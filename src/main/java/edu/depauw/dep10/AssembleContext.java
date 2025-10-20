@@ -9,25 +9,7 @@ public class AssembleContext {
 	private int origin;
 	private int current;
 
-	private List<ObjectItem> objects;
-
-	private interface ObjectItem {
-	}
-
-	private record BlockItem(int size) implements ObjectItem {
-	}
-
-	private record ByteItem(UByte b) implements ObjectItem {
-	}
-
-	private record WordItem(Word w) implements ObjectItem {
-	}
-
-	private record StringItem(String s) implements ObjectItem {
-	}
-
-	private record SymbolItem(String name) implements ObjectItem {
-	}
+	private List<Value> objects;
 
 	public AssembleContext() {
 		locals = new SymTable();
@@ -39,48 +21,25 @@ public class AssembleContext {
 	}
 
 	public void addLabel(String label) {
-		locals.add(label, current);
+		locals.add(label, new Value.Number(current));
 	}
 
-	public void equate(String label, List<Arg> args) {
+	public void equate(String label, List<Value> args) {
 		checkOneArg(args);
 
-		int value = getValue(args.get(0));
-		// TODO handle error
-		locals.add(label,  value);
+		locals.add(label, args.get(0));
 	}
 
-	private int getValue(Arg arg) {
-		switch (arg) {
-		case Arg.Number(var n):
-			return n;
-		case Arg.StrLit(var s):
-			if (s.length() == 1) {
-				return s.charAt(0);
-			} else if (s.length() == 2) {
-				return s.charAt(0) * 256 + s.charAt(1);
-			} else {
-				// TODO error
-			}
-			break;
-		case Arg.CharLit(var c):
-			return c;
-		default:
-			// TODO error
-		}
-		return 0;
-	}
-
-	public void align(List<Arg> args) {
+	public void align(List<Value> args) {
 		checkOneArg(args);
 
 		switch (args.get(0)) {
-		case Arg.Number(var n):
+		case Value.Number(var n):
 			if (n == 1 || n == 2 || n == 4 || n == 8) {
 				if (current % n != 0) {
 					int skip = n - (current % n);
 					current += skip;
-					objects.add(new BlockItem(skip));
+					objects.add(new Value.Block(skip));
 				}
 			} else {
 				// TODO error
@@ -91,32 +50,28 @@ public class AssembleContext {
 		}
 	}
 
-	public void ascii(List<Arg> args) {
+	public void ascii(List<Value> args) {
 		checkOneArg(args);
 
-		switch (args.get(0)) {
-		case Arg.StrLit(var s):
+		var arg = args.get(0);
+		if (arg instanceof Value.StrLit(var s)) {
 			current += s.length();
-			objects.add(new StringItem(s));
-			break;
-		case Arg.CharLit(var _):
-			current += 1;
-			break;
-		default:
-			// TODO error
+			objects.add(arg);
+		} else {
+			objects.add(new Value.LowByte(arg));
 		}
 	}
 
-	public void block(List<Arg> args) {
+	public void block(List<Value> args) {
 		checkOneArg(args);
 
 		switch (args.get(0)) {
-		case Arg.Number(var n):
+		case Value.Number(var n):
 			if (current < 0) {
 				// TODO error
 			} else {
 				current += n;
-				objects.add(new BlockItem(n));
+				objects.add(new Value.Block(n));
 			}
 			break;
 		default:
@@ -124,20 +79,19 @@ public class AssembleContext {
 		}
 	}
 
-	public void byt(List<Arg> args) {
+	public void byt(List<Value> args) {
 		checkOneArg(args);
 
-		int value = getValue(args.get(0));
-		// TODO handle error
+		var arg = args.get(0);
 		current += 1;
-		objects.add(new ByteItem(new UByte(value)));
+		objects.add(new Value.LowByte(arg));
 	}
 
-	public void org(List<Arg> args) {
+	public void org(List<Value> args) {
 		checkOneArg(args);
 
 		switch (args.get(0)) {
-		case Arg.Number(var n):
+		case Value.Number(var n):
 			origin = n - current;
 			break;
 		default:
@@ -145,35 +99,28 @@ public class AssembleContext {
 		}
 	}
 
-	public void word(List<Arg> args) {
+	public void word(List<Value> args) {
 		checkOneArg(args);
 
-		int value = getValue(args.get(0));
-		// TODO handle error
+		var arg = args.get(0);
 		current += 2;
-		objects.add(new WordItem(new Word(value)));
+		objects.add(arg);
 	}
 
-	public void op(String command, List<Arg> args) {
+	public void op(String command, List<Value> args) {
 		checkTwoArgs(args);
 
 		switch (args.get(1)) {
-		case Arg.Symbol(var mode):
-			UByte opcode = opTable.lookup(command, mode);
+		case Value.Symbol(var mode):
+			var opcode = opTable.lookup(command, mode);
 			
 			current += 1;
-			objects.add(new ByteItem(opcode));
+			objects.add(new Value.LowByte(new Value.Number(opcode)));
 			
 			var op = opTable.get(opcode);
 			if (op.hasOperand()) {
 				current += 2;
-				if (args.get(0) instanceof Arg.Symbol(var name)) {
-					objects.add(new SymbolItem(name));
-				} else {
-					int value = getValue(args.get(0));
-					// TODO handle error
-					objects.add(new WordItem(new Word(value)));
-				}
+				objects.add(args.get(0));
 			}
 			break;
 		default:
@@ -181,13 +128,13 @@ public class AssembleContext {
 		}
 	}
 
-	private void checkOneArg(List<Arg> args) {
+	private void checkOneArg(List<Value> args) {
 		if (args.size() != 1) {
 			// TODO error
 		}
 	}
 
-	private void checkTwoArgs(List<Arg> args) {
+	private void checkTwoArgs(List<Value> args) {
 		if (args.size() != 2) {
 			// TODO error
 		}

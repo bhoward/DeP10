@@ -58,10 +58,10 @@ public class Parser {
 		}
 	}
 
-	private static List<Arg> parseArgs(String s) {
+	private static List<Value> parseArgs(String s) {
 		var s2 = s + ",";
 		var m = ARG.matcher(s2);
-		return m.results().map(result -> Arg.fromString(s2.substring(result.start(), result.end() - 1).trim())).toList();
+		return m.results().map(result -> Value.fromString(s2.substring(result.start(), result.end() - 1).trim())).toList();
 	}
 
 	public static void main(String[] args) {

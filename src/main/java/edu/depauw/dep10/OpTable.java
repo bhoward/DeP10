@@ -5,14 +5,18 @@ import java.util.Map;
 
 public class OpTable {
 	private ModeOperation[] ops;
-	private Map<Pair<String, String>, UByte> codes;
+	private Map<Pair<String, String>, Integer> codes;
 	
 	public ModeOperation get(UByte n) {
 		return ops[n.value()];
 	}
 	
-	public UByte lookup(String mnemonic, String mode) {
-		return codes.getOrDefault(new Pair<>(mnemonic, mode), new UByte(0));
+	public ModeOperation get(int n) {
+		return ops[n];
+	}
+	
+	public int lookup(String mnemonic, String mode) {
+		return codes.getOrDefault(new Pair<>(mnemonic, mode), 0);
 	}
 	
 	public OpTable() {
@@ -92,6 +96,6 @@ public class OpTable {
 		ops[code] = mop;
 		String mnemonic = mop.op().mnemonic();
 		String modeString = (mop.mode() != null) ? mop.mode().modeString() : "";
-		codes.put(new Pair<>(mnemonic, modeString), new UByte(code));
+		codes.put(new Pair<>(mnemonic, modeString), code);
 	}
 }

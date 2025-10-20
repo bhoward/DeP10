@@ -22,13 +22,13 @@ public class Driver {
 			switch (line) {
 			case Line(var label, var command, var args, var _):
 				if (command.equalsIgnoreCase(".INCLUDE")) {
-					if (args.size() == 1 && args.get(0) instanceof Arg.StrLit s) {
+					if (args.size() == 1 && args.get(0) instanceof Value.StrLit s) {
 						context.pushReader(new FileReader(s.value()));
 					}
 				} else if (command.equalsIgnoreCase(".DEFMACRO")) {
-					if ((args.size() == 1 || args.size() == 2) && args.get(0) instanceof Arg.Symbol sym) {
+					if ((args.size() == 1 || args.size() == 2) && args.get(0) instanceof Value.Symbol sym) {
 						int numArgs = 0;
-						if (args.size() == 2 && args.get(1) instanceof Arg.Number n) {
+						if (args.size() == 2 && args.get(1) instanceof Value.Number n) {
 							numArgs = n.value();
 						}
 
