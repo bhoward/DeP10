@@ -20,4 +20,3 @@ public class Directive {
 // .ENDMACRO
 }
 // n is decimal, hex, or symbol
-// TODO handle the symbol case...

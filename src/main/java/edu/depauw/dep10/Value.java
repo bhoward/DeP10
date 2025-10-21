@@ -23,12 +23,22 @@ public interface Value {
 	}
 
 	static record Symbol(String name) implements Value {
+		public int size() {
+			return 2;
+		}
 	}
 
 	static record Number(int value) implements Value {
+		public int size() {
+			return 2;
+		}
 	}
 
 	static record StrLit(String value) implements Value {
+		public int size() {
+			return value.length();
+		}
+		
 		@Override
 		public Value asWord() {
 			if (value.length() == 1) {
@@ -42,6 +52,10 @@ public interface Value {
 	}
 
 	static record CharLit(Character value) implements Value {
+		public int size() {
+			return 1;
+		}
+		
 		@Override
 		public Value asWord() {
 			return new Number(value.charValue());
@@ -52,5 +66,10 @@ public interface Value {
 	}
 
 	static record LowByte(Value arg) implements Value {
+		public int size() {
+			return 1;
+		}
 	}
+
+	public int size();
 }

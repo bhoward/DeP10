@@ -24,6 +24,11 @@ public class AssembleContext {
 		locals.add(label, new Value.Number(current));
 	}
 
+	private void addObject(Value value) {
+		current += value.size();
+		objects.add(value);
+	}
+
 	public void equate(String label, List<Value> args) {
 		checkOneArg(args);
 
@@ -38,8 +43,7 @@ public class AssembleContext {
 			if (n == 1 || n == 2 || n == 4 || n == 8) {
 				if (current % n != 0) {
 					int skip = n - (current % n);
-					current += skip;
-					objects.add(new Value.Block(skip));
+					addObject(new Value.Block(skip));
 				}
 			} else {
 				// TODO error
@@ -55,10 +59,9 @@ public class AssembleContext {
 
 		var arg = args.get(0);
 		if (arg instanceof Value.StrLit(var s)) {
-			current += s.length();
-			objects.add(arg);
+			addObject(arg);
 		} else {
-			objects.add(new Value.LowByte(arg));
+			addObject(new Value.LowByte(arg));
 		}
 	}
 
@@ -67,11 +70,10 @@ public class AssembleContext {
 
 		switch (args.get(0)) {
 		case Value.Number(var n):
-			if (current < 0) {
+			if (n < 0) {
 				// TODO error
 			} else {
-				current += n;
-				objects.add(new Value.Block(n));
+				addObject(new Value.Block(n));
 			}
 			break;
 		default:
@@ -83,8 +85,7 @@ public class AssembleContext {
 		checkOneArg(args);
 
 		var arg = args.get(0);
-		current += 1;
-		objects.add(new Value.LowByte(arg));
+		addObject(new Value.LowByte(arg));
 	}
 
 	public void org(List<Value> args) {
@@ -103,8 +104,11 @@ public class AssembleContext {
 		checkOneArg(args);
 
 		var arg = args.get(0);
-		current += 2;
-		objects.add(arg);
+		if (arg instanceof Value.CharLit(var c)) {
+			addObject(new Value.Number(c));
+		} else {
+			addObject(arg);
+		}
 	}
 
 	public void op(String command, List<Value> args) {
@@ -113,14 +117,17 @@ public class AssembleContext {
 		switch (args.get(1)) {
 		case Value.Symbol(var mode):
 			var opcode = opTable.lookup(command, mode);
-			
-			current += 1;
-			objects.add(new Value.LowByte(new Value.Number(opcode)));
-			
+
+			addObject(new Value.LowByte(new Value.Number(opcode)));
+
 			var op = opTable.get(opcode);
 			if (op.hasOperand()) {
-				current += 2;
-				objects.add(args.get(0));
+				var arg = args.get(0);
+				if (arg instanceof Value.CharLit(var c)) {
+					addObject(new Value.Number(c));
+				} else {
+					addObject(arg);
+				}
 			}
 			break;
 		default:
