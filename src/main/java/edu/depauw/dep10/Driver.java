@@ -88,12 +88,15 @@ public class Driver {
 					context.block(args);
 				} else if (command.equalsIgnoreCase(".BYTE")) {
 					context.byt(args);
+				} else if (command.equalsIgnoreCase(".EXPORT")) {
+					context.export(args);
 				} else if (command.equalsIgnoreCase(".ORG")) {
 					context.org(args);
 				} else if (command.equalsIgnoreCase(".WORD")) {
 					context.word(args);
+				} else if (command.startsWith(".")) {
+					// Ignore other directives: .IMPORT, .INPUT, .OUTPUT, .SCALL, .SECTION
 				} else {
-					// TODO handle .EXPORT, .IMPORT, .INPUT, .OUTPUT, .SCALL, .SECTION
 					context.op(command, args);
 				}
 			}

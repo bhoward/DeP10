@@ -6,17 +6,21 @@ import java.util.List;
 public class AssembleContext {
 	private SymTable locals;
 	private OpTable opTable;
+	
 	private int origin;
 	private int current;
 
+	private List<String> exports;
 	private List<Value> objects;
 
 	public AssembleContext() {
 		locals = new SymTable();
 		opTable = new OpTable();
+		
 		origin = 0;
 		current = origin;
 
+		exports = new ArrayList<>();
 		objects = new ArrayList<>();
 	}
 
@@ -86,6 +90,17 @@ public class AssembleContext {
 
 		var arg = args.get(0);
 		addObject(new Value.LowByte(arg));
+	}
+
+	public void export(List<Value> args) {
+		checkOneArg(args);
+		
+		var arg = args.get(0);
+		if (arg instanceof Value.Symbol(var sym)) {
+			exports.add(sym);
+		} else {
+			// TODO error
+		}
 	}
 
 	public void org(List<Value> args) {
