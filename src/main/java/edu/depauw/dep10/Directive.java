@@ -21,8 +21,6 @@ public class Directive {
 }
 // n is decimal, hex, or symbol
 
-// TODO macro substitution
 // TODO generate object code
 // TODO produce assembly listing
 // TODO handle errors
-// TODO gensym labels in macros?

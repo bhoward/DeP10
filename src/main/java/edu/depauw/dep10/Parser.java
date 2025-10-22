@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class Parser {
-	static final String SYMBOL_PAT = "\\p{Alpha}\\w*";
+	static final String SYMBOL_PAT = "(\\p{Alpha}\\w*|\\$[1-9]\\p{Digit}*)";
 	static final String COMMAND_PAT = "[.@]?\\p{Alpha}+";
 	static final String INT_LIT_PAT = "-?[1-9]\\p{Digit}*|0";
 	static final String HEX_LIT_PAT = "0[Xx][0-9A-Fa-f]{1,4}";
