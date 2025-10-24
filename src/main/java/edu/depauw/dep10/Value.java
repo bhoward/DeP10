@@ -18,10 +18,6 @@ public interface Value {
 			return null;
 	}
 
-	default Value asWord() {
-		return this;
-	}
-
 	static record Symbol(String name) implements Value {
 		public int size() {
 			return 2;
@@ -33,32 +29,22 @@ public interface Value {
 			return 2;
 		}
 	}
+	
+	static record RelativeNumber(int value) implements Value {
+		public int size() {
+			return 2;
+		}
+	}
 
 	static record StrLit(String value) implements Value {
 		public int size() {
 			return value.length();
-		}
-		
-		@Override
-		public Value asWord() {
-			if (value.length() == 1) {
-				return new Number(value.charAt(0));
-			} else if (value.length() == 2) {
-				return new Number(value.charAt(0) << 8 + value.charAt(1));
-			} else {
-				return null; // TODO error
-			}
 		}
 	}
 
 	static record CharLit(Character value) implements Value {
 		public int size() {
 			return 1;
-		}
-		
-		@Override
-		public Value asWord() {
-			return new Number(value.charValue());
 		}
 	}
 

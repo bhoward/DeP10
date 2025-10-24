@@ -64,7 +64,7 @@ public class Driver {
 		return macro;
 	}
 
-	private void assemble(List<Line> lines) {
+	private Result assemble(List<Line> lines) {
 		AssembleContext context = new AssembleContext();
 
 		for (var line : lines) {
@@ -102,8 +102,8 @@ public class Driver {
 			}
 		}
 		
-		// TODO do something with the objects collected in context
-
+		return context.getResult();
+		
 		// TODO when compiling OS, relocate according to .ORG and write a "header file"
 		// with .EQUATEs for all exported symbols
 
@@ -127,6 +127,7 @@ public class Driver {
 		var lines = driver.preprocess(in); // all macros and includes have been expanded
 		in.close();
 
-		driver.assemble(lines);
+		Result result = driver.assemble(lines);
+		System.out.println(result);
 	}
 }

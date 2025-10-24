@@ -1,12 +1,14 @@
 package edu.depauw.dep10;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AssembleContext {
-	private SymTable locals;
+	private Map<String, Value> locals;
 	private OpTable opTable;
-	
+
 	private int origin;
 	private int current;
 
@@ -14,9 +16,9 @@ public class AssembleContext {
 	private List<Value> objects;
 
 	public AssembleContext() {
-		locals = new SymTable();
+		locals = new HashMap<>();
 		opTable = new OpTable();
-		
+
 		origin = 0;
 		current = origin;
 
@@ -25,7 +27,7 @@ public class AssembleContext {
 	}
 
 	public void addLabel(String label) {
-		locals.add(label, new Value.Number(current));
+		locals.put(label, new Value.RelativeNumber(current));
 	}
 
 	private void addObject(Value value) {
@@ -36,7 +38,7 @@ public class AssembleContext {
 	public void equate(String label, List<Value> args) {
 		checkOneArg(args);
 
-		locals.add(label, args.get(0));
+		locals.put(label, args.get(0));
 	}
 
 	public void align(List<Value> args) {
@@ -62,7 +64,7 @@ public class AssembleContext {
 		checkOneArg(args);
 
 		var arg = args.get(0);
-		if (arg instanceof Value.StrLit(var s)) {
+		if (arg instanceof Value.StrLit) {
 			addObject(arg);
 		} else {
 			addObject(new Value.LowByte(arg));
@@ -94,7 +96,7 @@ public class AssembleContext {
 
 	public void export(List<Value> args) {
 		checkOneArg(args);
-		
+
 		var arg = args.get(0);
 		if (arg instanceof Value.Symbol(var sym)) {
 			exports.add(sym);
@@ -148,6 +150,78 @@ public class AssembleContext {
 		default:
 			// TODO error
 		}
+	}
+
+	public Result getResult() {
+		Result result = new Result(origin);
+
+		for (Value value : objects) {
+			switch (value) {
+			case Value.Block(var size): {
+				for (int i = 0; i < size; i++) {
+					result.add(new UByte(0));
+				}
+				break;
+			}
+
+			case Value.CharLit(var c): {
+				result.add(new UByte(c));
+				break;
+			}
+
+			case Value.LowByte(var v): {
+				var w = evaluate(v);
+				result.add(w.lo());
+				break;
+			}
+
+			case Value.StrLit(var s): {
+				for (int i = 0; i < s.length(); i++) {
+					result.add(new UByte(s.charAt(i)));
+				}
+				break;
+			}
+
+			default: {
+				var w = evaluate(value);
+				result.add(w.hi());
+				result.add(w.lo());
+				break;
+			}
+			}
+		}
+
+		return result;
+	}
+
+	private Word evaluate(Value v) {
+		switch (v) {
+		case Value.CharLit(var c):
+			return new Word(c);
+		case Value.Number(var n):
+			return new Word(n);
+		case Value.RelativeNumber(var n):
+			return new Word(n + origin);
+		case Value.StrLit(var s):
+			if (s.length() == 1) {
+				return new Word(s.charAt(0));
+			} else if (s.length() == 2) {
+				return new Word(s.charAt(0) * 256 + s.charAt(1));
+			} else {
+				// TODO error
+				return null;
+			}
+		case Value.Symbol(var sym):
+			if (locals.containsKey(sym)) {
+				return evaluate(locals.get(sym));
+			} else {
+				// TODO check globals, or error
+			}
+			break;
+		default:
+			// TODO error
+		}
+		return null;
 	}
 
 	private void checkOneArg(List<Value> args) {
