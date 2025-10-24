@@ -129,26 +129,32 @@ public class AssembleContext {
 	}
 
 	public void op(String command, List<Value> args) {
-		checkTwoArgs(args);
+		String mode = "";
 
-		switch (args.get(1)) {
-		case Value.Symbol(var mode):
-			var opcode = opTable.lookup(command, mode);
-
-			addObject(new Value.LowByte(new Value.Number(opcode)));
-
-			var op = opTable.get(opcode);
-			if (op.hasOperand()) {
-				var arg = args.get(0);
-				if (arg instanceof Value.CharLit(var c)) {
-					addObject(new Value.Number(c));
-				} else {
-					addObject(arg);
-				}
+		if (args.size() == 1) {
+			mode = "i";
+		} else if (args.size() == 2) {
+			if (args.get(1) instanceof Value.Symbol(var sym)) {
+				mode = sym;
+			} else {
+				// TODO error
 			}
-			break;
-		default:
+		} else if (args.size() > 2) {
 			// TODO error
+		}
+
+		var opcode = opTable.lookup(command, mode);
+
+		addObject(new Value.LowByte(new Value.Number(opcode)));
+
+		var op = opTable.get(opcode);
+		if (op.hasOperand()) {
+			var arg = args.get(0);
+			if (arg instanceof Value.CharLit(var c)) {
+				addObject(new Value.Number(c));
+			} else {
+				addObject(arg);
+			}
 		}
 	}
 
@@ -226,12 +232,6 @@ public class AssembleContext {
 
 	private void checkOneArg(List<Value> args) {
 		if (args.size() != 1) {
-			// TODO error
-		}
-	}
-
-	private void checkTwoArgs(List<Value> args) {
-		if (args.size() != 2) {
 			// TODO error
 		}
 	}

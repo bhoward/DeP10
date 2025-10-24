@@ -16,7 +16,7 @@ public class OpTable {
 	}
 	
 	public int lookup(String mnemonic, String mode) {
-		return codes.getOrDefault(new Pair<>(mnemonic, mode), 0);
+		return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), 0);
 	}
 	
 	public OpTable() {
@@ -94,8 +94,8 @@ public class OpTable {
 	
 	public void add(int code, ModeOperation mop) {
 		ops[code] = mop;
-		String mnemonic = mop.op().mnemonic();
-		String modeString = (mop.mode() != null) ? mop.mode().modeString() : "";
+		String mnemonic = mop.op().mnemonic().toLowerCase();
+		String modeString = (mop.mode() != null) ? mop.mode().modeString().toLowerCase() : "";
 		codes.put(new Pair<>(mnemonic, modeString), code);
 	}
 }
