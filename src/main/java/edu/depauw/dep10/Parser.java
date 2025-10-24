@@ -49,6 +49,9 @@ public class Parser {
 		var m = LINE.matcher(s);
 		if (m.matches()) {
 			String label = m.group("label");
+			if (label.endsWith(":")) {
+				label = label.substring(0, label.length() - 1);
+			}
 			String command = m.group("command");
 			String args = m.group("args");
 			String comment = m.group("comment");

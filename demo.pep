@@ -1,4 +1,6 @@
-		LDWA	42
+		BR		Start
+		.block	90
+Start:	LDWA	42
 		ROLA
 		STWA	0,d
 		.ORG	100
