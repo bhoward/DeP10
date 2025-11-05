@@ -24,3 +24,8 @@ hs_err_pid*
 replay_pid*
 /bin/
 /target/
+
+# Eclipse files
+.classpath
+.project
+.settings/
