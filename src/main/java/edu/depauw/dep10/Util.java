@@ -39,7 +39,7 @@ public class Util {
 					b.append('\\');
 					break;
 				case '0':
-					b.append((char) 0);
+					b.append('\0');
 					break;
 				case 'X':
 				case 'x':
@@ -58,5 +58,28 @@ public class Util {
 		}
 
 		return b.toString();
+	}
+
+	public static String escape(char c) {
+		switch (c) {
+		case '\b': return "\\b";
+		case '\f': return "\\f";
+		case '\n': return "\\n";
+		case '\r': return "\\r";
+		case '\t': return "\\t";
+		case '\013': return "\\v";
+		case '"': return "\"";
+		case '\'': return "'";
+		case '\\': return "\\\\";
+		case '\0': return "\\0";
+		default:
+			if (32 <= c && c <= 126) {
+				return String.valueOf(c);
+			} else {
+				var hex = Integer.toHexString(c);
+				if (c < 16) hex = "0" + hex;
+				return "\\x" + hex;
+			}
+		}
 	}
 }

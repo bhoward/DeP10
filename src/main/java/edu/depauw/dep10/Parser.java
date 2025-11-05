@@ -34,7 +34,7 @@ public class Parser {
 	// Note that this eagerly reads and then closes the Reader
 	public static Iterable<Line> parse(Reader in) {
 		var lines = new BufferedReader(in).lines();
-		var result = lines.map(s -> parseLine(s)).filter(l -> !l.isEmpty()).toList();
+		var result = lines.map(s -> parseLine(s)).toList();
 		
 		try {
 			in.close();
@@ -55,13 +55,16 @@ public class Parser {
 			String command = m.group("command");
 			String args = m.group("args");
 			String comment = m.group("comment");
-			return new Line(label, command, parseArgs(args), comment);
+			return Line.of(label, command, parseArgs(args), comment);
 		} else {
-			return new Line("", "", null, "");
+			// TODO error
+			return Line.of("", "", null, "");
 		}
 	}
 
 	private static List<Value> parseArgs(String s) {
+		if (s.isEmpty()) return List.of();
+		
 		var s2 = s + ",";
 		var m = ARG.matcher(s2);
 		return m.results().map(result -> Value.fromString(s2.substring(result.start(), result.end() - 1).trim())).toList();
@@ -73,6 +76,12 @@ public class Parser {
 				 bar: .byte 2
 					baz:	.ascii "hello\\b\\f\\n\\r\\t\\v\\"\\'\\\\\\x2A\\0"
 					.block 42 ; that's the answer!
+				RET ;no args
+				;no command
+				bat: ; only a symbol; nothing more
+				"Hello!"
+				
+				*ERROR*
 				@demo this, is ,'a',"test of args"	,	42, -17, x37, 0xDEAD , '\\'', '\\X42'
 				""";
 		System.out.println(test);

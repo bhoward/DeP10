@@ -1,5 +1,7 @@
 		BR		Start
-		.block	90
+		.block	0x59
+; comment line, followed by empy line
+
 Start:	LDWA	42
 		ROLA
 		STWA	0,d

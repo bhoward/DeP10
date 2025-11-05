@@ -22,14 +22,24 @@ public interface Value {
 		public int size() {
 			return 2;
 		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
 	}
 
 	static record Number(int value) implements Value {
 		public int size() {
 			return 2;
 		}
+		
+		@Override
+		public String toString() {
+			return Integer.toString(value);
+		}
 	}
-	
+
 	static record RelativeNumber(int value) implements Value {
 		public int size() {
 			return 2;
@@ -40,11 +50,29 @@ public interface Value {
 		public int size() {
 			return value.length();
 		}
+		
+		@Override
+		public String toString() {
+			var builder = new StringBuilder();
+			
+			builder.append('"');
+			for (int i = 0; i < value.length(); i++) {
+				builder.append(Util.escape(value.charAt(i)));
+			}
+			builder.append('"');
+			
+			return builder.toString();
+		}
 	}
 
 	static record CharLit(Character value) implements Value {
 		public int size() {
 			return 1;
+		}
+		
+		@Override
+		public String toString() {
+			return "'" + Util.escape(value) + "'";
 		}
 	}
 

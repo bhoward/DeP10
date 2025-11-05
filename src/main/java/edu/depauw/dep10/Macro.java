@@ -22,12 +22,12 @@ public record Macro(String name, int numArgs, List<Line> body) {
 
 		for (var line : body) {
 			switch (line) {
-			case Line(var label, var command, var args, var comment):
+			case Line(var label, var command, var args, var comment, var _):
 				label = substString(label, argMap);
 
 				args = args.stream().map(arg -> substValue(arg, argMap)).toList();
 
-				result.add(new Line(label, command, args, comment));
+				result.add(Line.of(label, command, args, comment));
 			}
 		}
 
@@ -68,9 +68,9 @@ public record Macro(String name, int numArgs, List<Line> body) {
 	
 	public static void main(String[] args) {
 		List<Line> body = List.of(
-				new Line("", "LINE1", List.of(new Value.Symbol("$1"), new Value.Symbol("i")), ""),
-				new Line("$3", "LINE2", List.of(new Value.Symbol("$2")), ""),
-				new Line("", "LINE3", List.of(new Value.Symbol("$3")), "")
+				Line.of("", "LINE1", List.of(new Value.Symbol("$1"), new Value.Symbol("i")), ""),
+				Line.of("$3", "LINE2", List.of(new Value.Symbol("$2")), ""),
+				Line.of("", "LINE3", List.of(new Value.Symbol("$3")), "")
 				);
 		Macro test = new Macro("TEST", 2, body);
 		System.out.println(test.instantiate(List.of(new Value.Number(42))));

@@ -7,18 +7,6 @@ public class OpTable {
 	private ModeOperation[] ops;
 	private Map<Pair<String, String>, Integer> codes;
 	
-	public ModeOperation get(UByte n) {
-		return ops[n.value()];
-	}
-	
-	public ModeOperation get(int n) {
-		return ops[n];
-	}
-	
-	public int lookup(String mnemonic, String mode) {
-		return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), 0);
-	}
-	
 	public OpTable() {
 		this.ops = new ModeOperation[256];
 		this.codes = new HashMap<>();
@@ -84,6 +72,18 @@ public class OpTable {
 		Operation.STWX.install(this, 232);
 		Operation.STBA.install(this, 240);
 		Operation.STBX.install(this, 248);
+	}
+	
+	public ModeOperation get(UByte n) {
+		return ops[n.value()];
+	}
+	
+	public ModeOperation get(int n) {
+		return ops[n];
+	}
+	
+	public int lookup(String mnemonic, String mode) {
+		return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), 0);
 	}
 	
 	public void addUnused(int code, int n) {
