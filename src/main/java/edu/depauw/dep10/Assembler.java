@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.depauw.dep10.preprocess.Line;
+
 public class Assembler {
 	private Map<String, Value> locals;
 	private OpTable opTable;

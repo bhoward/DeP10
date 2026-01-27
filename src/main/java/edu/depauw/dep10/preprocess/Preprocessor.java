@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.preprocess;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,6 +9,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+
+import edu.depauw.dep10.Macro;
+import edu.depauw.dep10.Pair;
+import edu.depauw.dep10.Parser;
+import edu.depauw.dep10.Value;
 
 public class Preprocessor {
 	private Map<Pair<String, Integer>, Macro> macros;

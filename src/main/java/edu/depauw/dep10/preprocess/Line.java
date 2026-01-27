@@ -1,6 +1,9 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.preprocess;
 
 import java.util.List;
+
+import edu.depauw.dep10.Log;
+import edu.depauw.dep10.Value;
 
 public record Line(String label, String command, List<Value> args, String comment, Log log) {
 	public static Line of(String label, String command, List<Value> args, String comment) {

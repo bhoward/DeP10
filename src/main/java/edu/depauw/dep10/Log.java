@@ -3,6 +3,8 @@ package edu.depauw.dep10;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.depauw.dep10.preprocess.Line;
+
 public class Log {
 	private static final int COMMAND_START = 12;
 	private static final int ARG_START = 20;

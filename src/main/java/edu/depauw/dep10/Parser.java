@@ -7,6 +7,8 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import edu.depauw.dep10.preprocess.Line;
+
 public class Parser {
 	static final String SYMBOL_PAT = "(\\p{Alpha}\\w*|\\$[1-9]\\p{Digit}*)";
 	static final String COMMAND_PAT = "[.@]?\\p{Alpha}+";

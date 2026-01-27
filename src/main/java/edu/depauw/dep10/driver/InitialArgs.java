@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.driver;
 
 import com.beust.jcommander.Parameter;
 
