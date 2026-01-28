@@ -14,6 +14,7 @@ import edu.depauw.dep10.Macro;
 import edu.depauw.dep10.Pair;
 import edu.depauw.dep10.Parser;
 import edu.depauw.dep10.Value;
+import edu.depauw.dep10.driver.ErrorLog;
 
 public class Preprocessor {
 	private Map<Pair<String, Integer>, Macro> macros;
@@ -23,6 +24,8 @@ public class Preprocessor {
 	public Preprocessor() {
 		macros = new HashMap<>();
 		stack = new Stack<>();
+        
+        // Allow iteration through the current stack of open line sources
 		lines = new Iterator<>() {
 			public boolean hasNext() {
 				while (!stack.isEmpty() && !stack.peek().hasNext()) {
@@ -39,7 +42,7 @@ public class Preprocessor {
 		};
 	}
 
-	public List<Line> preprocess(Reader in) throws FileNotFoundException {
+	public List<Line> preprocess(Reader in, ErrorLog log) throws FileNotFoundException {
 		// TODO preload standard macros
 		List<Line> result = new ArrayList<>();
 
@@ -52,16 +55,24 @@ public class Preprocessor {
 				if (command.equalsIgnoreCase(".INCLUDE")) {
 					if (args.size() == 1 && args.get(0) instanceof Value.StrLit s) {
 						pushReader(new FileReader(s.value()));
+					} else {
+					    line.logError("Invalid arguments to .INCLUDE");
 					}
 				} else if (command.equalsIgnoreCase(".DEFMACRO")) {
 					if ((args.size() == 1 || args.size() == 2) && args.get(0) instanceof Value.Symbol sym) {
 						int numArgs = 0;
-						if (args.size() == 2 && args.get(1) instanceof Value.Number n) {
-							numArgs = n.value();
+						if (args.size() == 2) {
+						    if (args.get(1) instanceof Value.Number n) {
+						        numArgs = n.value();
+						    } else {
+						        line.logError("Expected number of arguments");
+						    }
 						}
 
 						Macro macro = new Macro(sym.name(), numArgs, extractUntil(".ENDMACRO"));
 						addMacro(macro);
+					} else {
+					    line.logError("Invalid arguments to .DEFMACRO");
 					}
 				} else if (command.startsWith("@")) {
 					String name = command.substring(1);

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.beust.jcommander.JCommander;
 
@@ -59,12 +60,14 @@ public class Driver {
 		}
 
 		// TODO handle more than one source file?
-		String sourceName = null;
+		Optional<String> sourceName;
 		if (sources.size() > 1) {
 			log.error("Only one source file allowed.");
 			return;
 		} else if (sources.size() == 1) {
-			sourceName = sources.getFirst();
+			sourceName = Optional.of(sources.getFirst());
+		} else {
+		    sourceName = Optional.empty();
 		}
 
 		// TODO pass this information along to the assembler...
@@ -75,7 +78,7 @@ public class Driver {
 
 		try (Reader in = openSource(sourceName)) {
 			var preprocessor = new Preprocessor();
-			var lines = preprocessor.preprocess(in); // all macros and includes have been expanded
+			var lines = preprocessor.preprocess(in, log); // all macros and includes have been expanded
 			
 			var assembler = new Assembler();
 			Result result = assembler.assemble(lines);
@@ -88,15 +91,15 @@ public class Driver {
 	}
 
 	/**
-	 * Open a Reader for the given sourceName, or System.in if name is null.
+	 * Open a Reader for the given sourceName, or System.in if name is absent.
 	 * 
 	 * @param sourceName
 	 * @return
 	 * @throws FileNotFoundException
 	 */
-	private static Reader openSource(String sourceName) throws FileNotFoundException {
-		if (sourceName != null) {
-			return new FileReader(sourceName);
+	private static Reader openSource(Optional<String> sourceName) throws FileNotFoundException {
+		if (sourceName.isPresent()) {
+			return new FileReader(sourceName.get());
 		} else {
 			return new InputStreamReader(System.in);
 		}
