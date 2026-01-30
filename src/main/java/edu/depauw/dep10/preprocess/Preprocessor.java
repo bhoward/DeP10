@@ -1,60 +1,33 @@
 package edu.depauw.dep10.preprocess;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import edu.depauw.dep10.Macro;
 import edu.depauw.dep10.Pair;
-import edu.depauw.dep10.Parser;
 import edu.depauw.dep10.Value;
 import edu.depauw.dep10.driver.ErrorLog;
 
 public class Preprocessor {
 	private Map<Pair<String, Integer>, Macro> macros;
-	private Stack<Iterator<Line>> stack;
-	private Iterator<Line> lines;
 
 	public Preprocessor() {
 		macros = new HashMap<>();
-		stack = new Stack<>();
-        
-        // Allow iteration through the current stack of open line sources
-		lines = new Iterator<>() {
-			public boolean hasNext() {
-				while (!stack.isEmpty() && !stack.peek().hasNext()) {
-					stack.pop();
-				}
-
-				return !stack.isEmpty();
-			}
-
-			public Line next() {
-				// Precondition: hasNext() is true
-				return stack.peek().next();
-			}
-		};
 	}
 
-	public List<Line> preprocess(Reader in, ErrorLog log) throws FileNotFoundException {
-		// TODO preload standard macros
+	public List<Line> preprocess(Sources sources, ErrorLog log) {
+		// TODO preload standard macros -- make sure this is the first reader in the list
 		List<Line> result = new ArrayList<>();
 
-		pushReader(in);
-
-		while (lines.hasNext()) {
-			var line = lines.next();
+		while (sources.hasNext()) {
+			var line = sources.next();
 			switch (line) {
 			case Line(var label, var command, var args, var _, var _):
 				if (command.equalsIgnoreCase(".INCLUDE")) {
 					if (args.size() == 1 && args.get(0) instanceof Value.StrLit s) {
-						pushReader(new FileReader(s.value()));
+						sources.pushFile(s.value(), log);
 					} else {
 					    line.logError("Invalid arguments to .INCLUDE");
 					}
@@ -69,7 +42,7 @@ public class Preprocessor {
 						    }
 						}
 
-						Macro macro = new Macro(sym.name(), numArgs, extractUntil(".ENDMACRO"));
+						Macro macro = new Macro(sym.name(), numArgs, sources.extractUntil(".ENDMACRO"));
 						addMacro(macro);
 					} else {
 					    line.logError("Invalid arguments to .DEFMACRO");
@@ -79,7 +52,11 @@ public class Preprocessor {
 					int numArgs = args.size();
 
 					Macro macro = getMacro(name, numArgs);
-					pushLines(macro.instantiate(args));
+					if (macro != null) {
+					    sources.pushLines(macro.instantiate(args));
+					} else {
+					    line.logError("Unknown macro " + command);
+					}
 
 					if (!label.isEmpty()) {
 						result.add(Line.of(label, "", null, ""));
@@ -93,39 +70,12 @@ public class Preprocessor {
 		return result;
 	}
 
-	// Note that these three methods affect the underlying iterators that supply
-	// the lines iterator!
-	private void pushReader(Reader in) {
-		stack.push(Parser.parse(in).iterator());
-	}
-
-	private void pushLines(List<Line> lines) {
-		stack.push(lines.iterator());
-	}
-
-	private List<Line> extractUntil(String end) {
-		List<Line> result = new ArrayList<>();
-
-		var it = stack.peek();
-		while (it.hasNext()) {
-			var line = it.next();
-			if (line.command().equalsIgnoreCase(end)) {
-				break;
-			} else {
-				result.add(line);
-			}
-		}
-
-		return result;
-	}
-
 	private void addMacro(Macro macro) {
 		macros.put(new Pair<>(macro.name(), macro.numArgs()), macro);
 	}
 
 	private Macro getMacro(String name, int numArgs) {
 		Macro macro = macros.get(new Pair<>(name, numArgs));
-		// TODO check whether it exists
 		return macro;
 	}
 }

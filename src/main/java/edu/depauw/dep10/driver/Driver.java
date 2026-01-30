@@ -1,19 +1,13 @@
 package edu.depauw.dep10.driver;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import com.beust.jcommander.JCommander;
 
 import edu.depauw.dep10.Assembler;
 import edu.depauw.dep10.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
+import edu.depauw.dep10.preprocess.Sources;
 
 public class Driver {
 	public static void main(String[] argv) throws IOException {
@@ -54,58 +48,42 @@ public class Driver {
 	}
 
 	private static void doAsm(CommandAsm asm, ErrorLog log) {
-		List<String> sources = new ArrayList<>(asm.sourceList);
-		if (asm.sourceFile != null) {
-			sources.add(asm.sourceFile);
-		}
-
-		// TODO handle more than one source file?
-		Optional<String> sourceName;
-		if (sources.size() > 1) {
-			log.error("Only one source file allowed.");
-			return;
-		} else if (sources.size() == 1) {
-			sourceName = Optional.of(sources.getFirst());
-		} else {
-		    sourceName = Optional.empty();
-		}
-
-		// TODO pass this information along to the assembler...
+	    Sources sources = new Sources();
+	    
+	    // First add standard macros
+	    sources.addResource("stdmacros", log); // TODO constant for the name
+	    
+	    // Next add the distinguished source file, if any
+	    if (asm.sourceFile != null) {
+	        sources.addFile(asm.sourceFile, log);
+	    }
+	    
+	    // Add any other source files from the command line
+	    for (var name : asm.sourceList) {
+	        sources.addFile(name, log);
+	    }
+	    
+	    // If no sources specified, add standard input
+	    if (asm.sourceFile == null && asm.sourceList.isEmpty()) {
+	        sources.addStdIn();
+	    }
+	    
+		// TODO open the appropriate OS file
 		if (asm.bareMetal && asm.osName != null) {
 			log.error("Bare metal excludes specifying OS.");
 			return;
 		}
 
-		try (Reader in = openSource(sourceName)) {
-			var preprocessor = new Preprocessor();
-			var lines = preprocessor.preprocess(in, log); // all macros and includes have been expanded
-			
-			var assembler = new Assembler();
-			Result result = assembler.assemble(lines);
-			
-			System.out.println(result);
-		} catch (IOException e) {
-			log.error(e.getMessage());
-			return;
-		}
+		var preprocessor = new Preprocessor();
+		var lines = preprocessor.preprocess(sources, log); // all macros and includes have been expanded
+		
+		var assembler = new Assembler();
+		Result result = assembler.assemble(lines);
+		
+		System.out.println(result);
 	}
-
-	/**
-	 * Open a Reader for the given sourceName, or System.in if name is absent.
-	 * 
-	 * @param sourceName
-	 * @return
-	 * @throws FileNotFoundException
-	 */
-	private static Reader openSource(Optional<String> sourceName) throws FileNotFoundException {
-		if (sourceName.isPresent()) {
-			return new FileReader(sourceName.get());
-		} else {
-			return new InputStreamReader(System.in);
-		}
-	}
-
+	
 	private static void doRun(CommandRun run, ErrorLog log) {
-
+	    // TODO
 	}
 }
