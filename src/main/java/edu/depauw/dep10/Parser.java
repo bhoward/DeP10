@@ -11,7 +11,7 @@ import edu.depauw.dep10.preprocess.Line;
 
 public class Parser {
 	static final String SYMBOL_PAT = "(\\p{Alpha}\\w*|\\$[1-9]\\p{Digit}*)";
-	static final String COMMAND_PAT = "[.@]?\\p{Alpha}+";
+	static final String COMMAND_PAT = "[.@]?\\p{Alpha}\\w*";
 	static final String INT_LIT_PAT = "-?[1-9]\\p{Digit}*|0";
 	static final String HEX_LIT_PAT = "0[Xx][0-9A-Fa-f]{1,4}";
 	static final String ESC_CHAR_PAT = "\\\\[\\\\bfnrtv0\"']";

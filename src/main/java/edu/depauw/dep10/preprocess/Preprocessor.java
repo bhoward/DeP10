@@ -18,7 +18,6 @@ public class Preprocessor {
 	}
 
 	public List<Line> preprocess(Sources sources, ErrorLog log) {
-		// TODO preload standard macros -- make sure this is the first reader in the list
 		List<Line> result = new ArrayList<>();
 
 		while (sources.hasNext()) {

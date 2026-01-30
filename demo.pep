@@ -1,9 +1,10 @@
 		BR		Start
-		.block	0x59
-; comment line, followed by empy line
+		.block	0x57
+; comment line, followed by empty line
 
-Start:	LDWA	42
+Start:	LDWA	42,i
 		ROLA
 		STWA	0,d
-		.ORG	100
+		@ASLA2
+		.ORG	0x0100
 		.ASCII	"Hello, world!\n\0"

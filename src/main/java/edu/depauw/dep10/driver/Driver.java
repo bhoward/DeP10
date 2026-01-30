@@ -51,7 +51,7 @@ public class Driver {
 	    Sources sources = new Sources();
 	    
 	    // First add standard macros
-	    sources.addResource("stdmacros", log); // TODO constant for the name
+	    sources.addResource("/stdmacro.pep", log); // TODO constant for the name; option to substitute?
 	    
 	    // Next add the distinguished source file, if any
 	    if (asm.sourceFile != null) {
