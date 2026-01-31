@@ -3,11 +3,14 @@ package edu.depauw.dep10.preprocess;
 import java.util.Iterator;
 
 public class Source implements Iterator<Line> {
-    // TODO add source name and line number tracking
+    private String sourceName;
     private Iterator<Line> it;
+    private int lineNumber;
     
-    public Source(Iterator<Line> it) {
+    public Source(String sourceName, Iterator<Line> it) {
+        this.sourceName = sourceName;
         this.it = it;
+        this.lineNumber = 0;
     }
     
     protected void setIterator(Iterator<Line> it) {
@@ -28,7 +31,6 @@ public class Source implements Iterator<Line> {
      * Close this source. Override this for nontrivial cases.
      */
     public void close() {
-        
     }
 
     public boolean hasNext() {
@@ -44,6 +46,9 @@ public class Source implements Iterator<Line> {
     }
 
     public Line next() {
-        return it.next();
+        var line = it.next();
+        lineNumber++;
+        line.setLocation(sourceName, lineNumber);
+        return line;
     }
 }

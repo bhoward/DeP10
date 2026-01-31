@@ -14,7 +14,7 @@ public class FileSource extends Source {
     private Reader reader;
 
     public FileSource(String filename, ErrorLog log) {
-        super(null);
+        super(filename, null);
         this.filename = filename;
         this.log = log;
         this.reader = null;

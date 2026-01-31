@@ -17,4 +17,9 @@ public record Line(String label, String command, List<Value> args, String commen
 	public void setComment() {
 		log.setComment();
 	}
+	
+	public void setLocation(String source, int lineNumber) {
+	    log.setSource(source);
+	    log.setLineNumber(lineNumber);
+	}
 }

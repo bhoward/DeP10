@@ -12,6 +12,8 @@ public class Log {
 	
 	private List<String> messages;
 	private boolean makeComment;
+	private String source;
+	private int lineNumber;
 	
 	public Log() {
 		messages = new ArrayList<>();
@@ -24,6 +26,14 @@ public class Log {
 
 	public void setComment() {
 		makeComment = true;
+	}
+	
+	public void setSource(String source) {
+	    this.source = source;
+	}
+	
+	public void setLineNumber(int lineNumber) {
+	    this.lineNumber = lineNumber;
 	}
 
 	public String produceListing(Line line) {
@@ -51,7 +61,13 @@ public class Log {
 		
 		builder.append(line.comment());
 		
-		// TODO add error messages if any
+		if (!messages.isEmpty()) {
+		    builder.append(" ; " + source + "[" + lineNumber + "]");
+		    for (var message : messages) {
+		        builder.append(" ");
+		        builder.append(message);
+		    }
+		}
 		
 		return builder.toString();
 	}

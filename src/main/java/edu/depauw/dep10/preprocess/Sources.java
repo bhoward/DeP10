@@ -16,7 +16,6 @@ import edu.depauw.dep10.driver.ErrorLog;
  * iterator of Lines.
  */
 public class Sources implements Iterator<Line> {
-    // TODO add source name and line number tracking
     private Deque<Source> deque = new ArrayDeque<>();
 
     public boolean hasNext() {
@@ -43,7 +42,7 @@ public class Sources implements Iterator<Line> {
     public void addStdIn() {
         var reader = new InputStreamReader(System.in);
         var it = Parser.parse(reader).iterator();
-        var source = new Source(it);
+        var source = new Source("<stdin>", it);
 
         deque.add(source);
     }
@@ -52,9 +51,9 @@ public class Sources implements Iterator<Line> {
         deque.push(new FileSource(filename, log));
     }
 
-    public void pushLines(List<Line> lines) {
+    public void pushLines(String macroName, List<Line> lines) {
         var it = lines.iterator();
-        var source = new Source(it);
+        var source = new Source(macroName, it);
 
         deque.push(source);
     }

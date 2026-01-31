@@ -52,7 +52,7 @@ public class Preprocessor {
 
 					Macro macro = getMacro(name, numArgs);
 					if (macro != null) {
-					    sources.pushLines(macro.instantiate(args));
+					    sources.pushLines(command, macro.instantiate(args));
 					} else {
 					    line.logError("Unknown macro " + command);
 					}

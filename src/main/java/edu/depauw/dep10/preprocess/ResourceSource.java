@@ -14,7 +14,7 @@ public class ResourceSource extends Source {
     private Reader reader;
 
     public ResourceSource(String resource, ErrorLog log) {
-        super(null);
+        super(resource, null);
         this.resource = resource;
         this.log = log;
         this.reader = null;
