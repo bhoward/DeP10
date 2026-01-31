@@ -1,6 +1,9 @@
 package edu.depauw.dep10.driver;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import com.beust.jcommander.JCommander;
 
@@ -80,7 +83,29 @@ public class Driver {
 		var assembler = new Assembler();
 		Result result = assembler.assemble(lines);
 		
-		System.out.println(result);
+		if (asm.objectFile != null) {
+		    try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
+		        out.write(result.toString());
+		    } catch (IOException e) {
+                log.error(e.getMessage());
+            }
+		} else {
+		    System.out.println(result);
+		}
+		
+		if (asm.listingFile != null) {
+		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
+		        for (var line : lines) {
+		            out.println(line);
+		        }
+		    } catch (IOException e) {
+		        log.error(e.getMessage());
+		    }
+		}
+		
+		if (asm.errorFile != null) {
+		    // TODO
+		}
 	}
 	
 	private static void doRun(CommandRun run, ErrorLog log) {

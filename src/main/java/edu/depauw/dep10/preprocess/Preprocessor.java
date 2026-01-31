@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.depauw.dep10.Macro;
 import edu.depauw.dep10.Pair;
 import edu.depauw.dep10.Value;
 import edu.depauw.dep10.driver.ErrorLog;
@@ -54,7 +53,9 @@ public class Preprocessor {
 					if (macro != null) {
 					    sources.pushLines(command, macro.instantiate(args));
 					} else {
+					    line.setComment();
 					    line.logError("Unknown macro " + command);
+					    result.add(line);
 					}
 
 					if (!label.isEmpty()) {

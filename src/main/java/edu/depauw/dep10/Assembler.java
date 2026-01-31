@@ -33,6 +33,10 @@ public class Assembler {
 			addListing(line);
 			switch (line) {
 			case Line(var label, var command, var args, var _, var _):
+			    if (line.isCommented()) {
+			        continue;
+			    }
+			
 				// Handle .EQUATE separately, because its label is different
 				if (command.equalsIgnoreCase(".EQUATE")) {
 					equate(label, args);
