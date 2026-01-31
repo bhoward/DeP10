@@ -1,0 +1,58 @@
+.DEFMACRO DC, 4
+.ASCII  "$1\0"
+_$1:    .WORD $2
+        .BYTE $3
+        .BYTE $4
+.ENDMACRO
+.DEFMACRO DCONST, 4
+$1:     .EQUATE $4
+.ASCII  "$1\0"
+_$1:    .WORD $2
+        .BYTE $3
+        .BYTE 0x0A
+        LDWA $4,i
+        STWA -2,x
+        SUBX 2,i
+        RET
+ .ENDMACRO
+ .DEFMACRO DCSTR, 5
+.ASCII  $1
+_$2:    .WORD $3
+        .BYTE $4
+        .BYTE $5
+.ENDMACRO
+.DEFMACRO DVAR, 3
+.ASCII  "$1\0"
+_$1:    .WORD $2
+        .BYTE $3
+        .BYTE 0x0A
+        LDWA $1,i
+        STWA -2,x
+        SUBX 2,i
+        RET
+.ENDMACRO
+.DEFMACRO POP, 0
+ADDX 2,i
+.ENDMACRO
+.DEFMACRO POPA, 0
+LDWA 0,x
+ADDX 2,i
+.ENDMACRO
+.DEFMACRO POPCA, 0
+LDBA 0,x
+ADDX 1,i
+.ENDMACRO
+.DEFMACRO PUSH, 2
+LDWA $1,$2
+SUBX 2,i
+STWA 0,x
+.ENDMACRO
+.DEFMACRO PUSHA, 0
+SUBX 2,i
+STWA 0,x
+.ENDMACRO
+.DEFMACRO PUSHC, 2
+LDBA $1,$2
+SUBX 1,i
+STWA 0,x
+.ENDMACRO

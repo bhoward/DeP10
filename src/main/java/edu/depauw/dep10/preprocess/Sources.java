@@ -74,3 +74,5 @@ public class Sources implements Iterator<Line> {
         return result;
     }
 }
+
+// TODO allow some sources (e.g., standard macros or OS) to be "hidden" from listing?
