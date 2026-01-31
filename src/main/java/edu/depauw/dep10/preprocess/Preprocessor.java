@@ -46,6 +46,8 @@ public class Preprocessor {
 					    line.logError("Invalid arguments to .DEFMACRO");
 					}
 				} else if (command.startsWith("@")) {
+				    line.setComment();
+				    
 					String name = command.substring(1);
 					int numArgs = args.size();
 
@@ -53,14 +55,10 @@ public class Preprocessor {
 					if (macro != null) {
 					    sources.pushLines(command, macro.instantiate(args));
 					} else {
-					    line.setComment();
 					    line.logError("Unknown macro " + command);
-					    result.add(line);
 					}
 
-					if (!label.isEmpty()) {
-						result.add(Line.of(label, "", null, ""));
-					}
+					result.add(line);
 				} else {
 					result.add(line);
 				}

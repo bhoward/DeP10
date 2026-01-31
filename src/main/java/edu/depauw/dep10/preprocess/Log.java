@@ -41,12 +41,12 @@ public class Log {
 	public String produceListing(Line line) {
 		var builder = new StringBuilder();
 		
+		builder.append((line.label().isEmpty()) ? "" : line.label() + ":");
+		builder.repeat(' ', Math.max(COMMAND_START - builder.length(), 0));
+		
 		if (makeComment) {
 			builder.append(';');
 		}
-		
-		builder.append((line.label().isEmpty()) ? "" : line.label() + ":");
-		builder.repeat(' ', Math.max(COMMAND_START - builder.length(), 0));
 		
 		builder.append(line.command().toUpperCase());
 		builder.repeat(' ', Math.max(ARG_START - builder.length(), 0));
@@ -64,7 +64,7 @@ public class Log {
 		builder.append(line.comment());
 		
 		if (!messages.isEmpty()) {
-		    builder.append(" ; " + source + "[" + lineNumber + "]");
+		    builder.append("; " + source + "[" + lineNumber + "]");
 		    for (var message : messages) {
 		        builder.append(" ");
 		        builder.append(message);

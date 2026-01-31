@@ -5,6 +5,6 @@
 Start:	LDWA	42,i
 		ROLA
 		STWA	0,d
-		@ASLA2
+		@ASLA3
 		.ORG	0x0100
 		.ASCII	"Hello, world!\n\0"
