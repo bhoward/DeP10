@@ -25,7 +25,7 @@ public class FileSource extends Source {
         try {
             if (reader == null) {
                 reader = new FileReader(filename);
-                setIterator(Parser.parse(reader).iterator());
+                setIterator(Parser.parse(reader, true).iterator());
             }
 
             return true;

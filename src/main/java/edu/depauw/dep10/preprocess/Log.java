@@ -10,12 +10,14 @@ public class Log {
 	
 	private List<String> messages;
 	private boolean makeComment;
+	private boolean visible;
 	private String source;
 	private int lineNumber;
 	
-	public Log() {
-		messages = new ArrayList<>();
-		makeComment = false;
+	public Log(boolean visible) {
+		this.messages = new ArrayList<>();
+		this.makeComment = false;
+		this.visible = visible;
 	}
 
 	public void add(String message) {
@@ -29,6 +31,14 @@ public class Log {
 	public boolean isCommented() {
 	    return makeComment;
 	}
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+    
+    public boolean isVisible() {
+        return visible;
+    }
 	
 	public void setSource(String source) {
 	    this.source = source;

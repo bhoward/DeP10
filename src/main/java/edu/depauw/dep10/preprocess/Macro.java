@@ -29,7 +29,7 @@ public record Macro(String name, int numArgs, List<Line> body) {
 
 				args = args.stream().map(arg -> substValue(arg, argMap)).toList();
 
-				result.add(Line.of(label, command, args, comment));
+				result.add(Line.of(label, command, args, comment, true));
 			}
 		}
 
@@ -70,9 +70,9 @@ public record Macro(String name, int numArgs, List<Line> body) {
 	
 	public static void main(String[] args) {
 		List<Line> body = List.of(
-				Line.of("", "LINE1", List.of(new Value.Symbol("$1"), new Value.Symbol("i")), ""),
-				Line.of("$3", "LINE2", List.of(new Value.Symbol("$2")), ""),
-				Line.of("", "LINE3", List.of(new Value.Symbol("$3")), "")
+				Line.of("", "LINE1", List.of(new Value.Symbol("$1"), new Value.Symbol("i")), "", true),
+				Line.of("$3", "LINE2", List.of(new Value.Symbol("$2")), "", true),
+				Line.of("", "LINE3", List.of(new Value.Symbol("$3")), "", true)
 				);
 		Macro test = new Macro("TEST", 2, body);
 		System.out.println(test.instantiate(List.of(new Value.Number(42))));

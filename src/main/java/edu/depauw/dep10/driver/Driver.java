@@ -96,7 +96,9 @@ public class Driver {
 		if (asm.listingFile != null) {
 		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
 		        for (var line : lines) {
-		            out.println(line);
+		            if (line.isVisible()) {
+		                out.println(line);
+		            }
 		        }
 		    } catch (IOException e) {
 		        log.error(e.getMessage());

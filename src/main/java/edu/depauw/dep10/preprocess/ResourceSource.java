@@ -31,7 +31,7 @@ public class ResourceSource extends Source {
                 }
 
                 reader = new InputStreamReader(url.openStream());
-                setIterator(Parser.parse(reader).iterator());
+                setIterator(Parser.parse(reader, false).iterator());
             }
 
             return true;

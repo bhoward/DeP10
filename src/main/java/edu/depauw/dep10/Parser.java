@@ -1,7 +1,6 @@
 package edu.depauw.dep10;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
@@ -33,21 +32,15 @@ public class Parser {
 	static final Pattern LINE = Pattern.compile(LINE_PAT);
 	static final Pattern ARG = Pattern.compile("\\s*" + ARG_PAT + "\\s*,"); // Include a trailing comma
 
-	// Note that this eagerly reads and then closes the Reader
-	public static Iterable<Line> parse(Reader in) {
+	// Note that this eagerly reads all of the lines
+	public static Iterable<Line> parse(Reader in, boolean visible) {
 		var lines = new BufferedReader(in).lines();
-		var result = lines.map(s -> parseLine(s)).toList();
-		
-		try {
-			in.close();
-		} catch (IOException e) {
-			// We don't care about IOException on close of a Reader.
-		}
+		var result = lines.map(s -> parseLine(s, visible)).toList();
 		
 		return result;
 	}
 
-	private static Line parseLine(String s) {
+	private static Line parseLine(String s, boolean visible) {
 		var m = LINE.matcher(s);
 		if (m.matches()) {
 			String label = m.group("label");
@@ -57,10 +50,10 @@ public class Parser {
 			String command = m.group("command");
 			String args = m.group("args");
 			String comment = m.group("comment");
-			return Line.of(label, command, parseArgs(args), comment);
+			return Line.of(label, command, parseArgs(args), comment, visible);
 		} else {
 			// TODO error
-			return Line.of("", "", null, "");
+			return Line.of("", "", null, "", visible);
 		}
 	}
 
@@ -88,7 +81,7 @@ public class Parser {
 				""";
 		System.out.println(test);
 
-		for (var line : parse(new StringReader(test))) {
+		for (var line : parse(new StringReader(test), true)) {
 			System.out.println(line);
 		}
 	}

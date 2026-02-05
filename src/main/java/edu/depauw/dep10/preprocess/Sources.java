@@ -41,7 +41,7 @@ public class Sources implements Iterator<Line> {
 
     public void addStdIn() {
         var reader = new InputStreamReader(System.in);
-        var it = Parser.parse(reader).iterator();
+        var it = Parser.parse(reader, true).iterator();
         var source = new Source("<stdin>", it);
 
         deque.add(source);
@@ -74,5 +74,3 @@ public class Sources implements Iterator<Line> {
         return result;
     }
 }
-
-// TODO allow some sources (e.g., standard macros or OS) to be "hidden" from listing?
