@@ -21,5 +21,4 @@ public class Directive {
 }
 // n is decimal, hex, or symbol
 
-// TODO produce assembly listing
 // TODO handle errors

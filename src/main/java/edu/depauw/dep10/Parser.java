@@ -52,8 +52,9 @@ public class Parser {
 			String comment = m.group("comment");
 			return Line.of(label, command, parseArgs(args), comment, visible);
 		} else {
-			// TODO error
-			return Line.of("", "", null, "", visible);
+			var line = Line.of("", "", null, "", visible);
+			line.logError("Syntax error in " + s);
+            return line;
 		}
 	}
 

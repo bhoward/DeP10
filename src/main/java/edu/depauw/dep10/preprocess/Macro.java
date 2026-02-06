@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.depauw.dep10.LineError;
 import edu.depauw.dep10.Value;
 
 public record Macro(String name, int numArgs, List<Line> body) {
@@ -23,14 +24,18 @@ public record Macro(String name, int numArgs, List<Line> body) {
 		}
 
 		for (var line : body) {
-			switch (line) {
-			case Line(var label, var command, var args, var comment, var _):
-				label = substString(label, argMap);
+			try {
+                switch (line) {
+                case Line(var label, var command, var args, var comment, var _):
+                	label = substString(label, argMap);
 
-				args = args.stream().map(arg -> substValue(arg, argMap)).toList();
+                	args = args.stream().map(arg -> substValue(arg, argMap)).toList();
 
-				result.add(Line.of(label, command, args, comment, true));
-			}
+                	result.add(Line.of(label, command, args, comment, true));
+                }
+            } catch (LineError e) {
+                line.logError(e.getMessage());
+            }
 		}
 
 		return result;
@@ -49,14 +54,14 @@ public record Macro(String name, int numArgs, List<Line> body) {
 		}
 	}
 
-	private String substString(String s, Map<String, Value> argMap) {
+	private String substString(String s, Map<String, Value> argMap) throws LineError {
 		if (s.startsWith("$")) {
 			var replacement = argMap.computeIfAbsent(s, Macro::genSym);
 
 			if (replacement instanceof Value.Symbol(var sym)) {
 				return sym;
 			} else {
-				// TODO error
+				throw new LineError("Macro argument not a symbol");
 			}
 		}
 		return s;

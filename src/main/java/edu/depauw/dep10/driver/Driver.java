@@ -81,7 +81,7 @@ public class Driver {
 		var lines = preprocessor.preprocess(sources, log); // all macros and includes have been expanded
 		
 		var assembler = new Assembler();
-		Result result = assembler.assemble(lines);
+		Result result = assembler.assemble(lines, log);
 		
 		if (asm.objectFile != null) {
 		    try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
