@@ -1,0 +1,77 @@
+Pep/10, as of October 2025
+
+```
+RET PC ← Mem[SP] ; SP ← SP+2
+SRET NZVC ← Mem[SP][4 : 7] ; A ← Mem[SP+1] ; X ← Mem[SP+3] ; PC ← Mem[SP+5] ; SP ← Mem[SP+7]
+MOVSPA A ← SP
+MOVASP SP ← A
+MOVFLGA A[0 : 11] ← 0 , A[12 : 15] ← NZVC
+MOVAFLG NZVC ← A[12 : 15]
+NOP {No operation}
+
+NEGr r ← −r ; N ← r < 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}
+ASLr C ← r[0] , r[0 : 14] ← r[1 : 15] , r[15] ← 0 ; N ← r < 0 , Z ← r = 0 , V ← {overflow}
+ASRr C ← r[15] , r[1 : 15] ← r[0 : 14] ; N ← r < 0 , Z ← r = 0 , V ← 0
+NOTr r ← ¬r ; N ← r < 0 , Z ← r = 0
+ROLr C ← r[0] , r[0 : 14] ← r[1 : 15] , r[15] ← C ; N ← r < 0 , Z ← r = 0
+RORr C ← r[15] , r[1 : 15] ← r[0 : 14] , r[0] ← C ; N ← r < 0 , Z ← r = 0
+
+BR PC ← Oprnd(i, x)
+BRLE N = 1∨Z = 1 ⇒ PC ← Oprnd(i, x)
+BRLT N = 1 ⇒ PC ← Oprnd(i, x)
+BREQ Z = 1 ⇒ PC ← Oprnd(i, x)
+BRNE Z = 0 ⇒ PC ← Oprnd(i, x)
+BRGE N = 0 ⇒ PC ← Oprnd(i, x)
+BRGT N = 0∧Z = 0 ⇒ PC ← Oprnd(i, x)
+BRV V = 1 ⇒ PC ← Oprnd(i, x)
+BRC C = 1 ⇒ PC ← Oprnd(i, x)
+CALL SP ← SP−2 ; Mem[SP] ← PC ; PC ← Oprnd(i, x)
+
+SCALL Y ← Mem[FFFB] ; Mem[Y−3] ← IR[0 : 23] ; Mem[Y−5] ← SP ; Mem[Y−7] ← PC ; Mem[Y−9] ← X ; Mem[Y−11] ← A ; Mem[Y−12][4 : 7] ← NZVC , Mem[Y-12][0 : 3] ← 0 ; SP ← Y−12 ; PC ← Mem[FFF7]
+
+LDWr r ← Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0
+LDBr r[8 : 15] ← byte Oprnd(i, d, n, s, sf, x, sx, sfx) , r[0 : 7] ← 0 ; N ← 0 , Z ← r = 0
+STWr Oprnd(d, n, s, sf, x, sx, sfx) ← r
+STBr byte Oprnd(d, n, s, sf, x, sx, sfx) ← r[8 : 15]
+
+CPWr  Y ← r−Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ←  Y < 0 , Z ←  Y = 0 , V ← {overflow} , C ← {carry} ; N ← N⊕V
+CPBr  Y ← r[8 : 15] −byte Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← Y < 0 , Z ← Y = 0 , V ← 0 , C ← 0
+
+ADDr r ← r+Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}
+SUBr r ← r−Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}
+ANDr r ← r∧Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0
+ORr r ← r∨Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0
+XORr r ← r⊕Oprnd(i, d, n, s, sf, x, sx, sfx) ; N ← r < 0 , Z ← r = 0
+
+ADDSP SP ← SP+Oprnd(i, d, n, s, sf, x, sx, sfx)
+SUBSP SP ← SP−Oprnd(i, d, n, s, sf, x, sx, sfx)
+
+Start PC ← Mem[FFF9] ; SP ← Mem[FFFB]
+```
+
+—
+
+Desired additions for OS and Compilers (DeP/10):
+
+MUL, DIV, MOD
+
+Floating point?
+
+More registers? Zero page (as in 6502); perhaps per-process??
+
+MMU — at least to protect some regions of memory: only available to read/write in kernel mode (I/O, trap table, …); base and bound? page tables and swapping?? TLB??? Cache hierarchy???
+
+Timer interrupt, and interrupt enable/disable
+
+Atomic compare-and-swap (CAS), fetch-and-increment (FAI), test-and-set (TAS), or swap (SWAP)
+
+Currently 16 unused opcodes (plus NOP and illegal 0x00, and the four STqr op,i)
+
+If math, MMU, and timer are memory-mapped devices (“coprocessors”), then only need atomic SWAP? Plus a notion of “kernel mode” when executing a trap handler — able to read/write locations above the user space bound. SCALL/trap is the only way to set kernel mode, and SRET resets it. When in kernel mode, interrupts are disabled?
+
+Use one opcode as an extension point; interpret 16-bit operand as instruction (perhaps put the math instructions here, or access to a large register file (memory-mapped?))
+
+Assemble either into user section (0 to systemBase - 1) or system section (systemBase to systemBase + bound - 1). Top few bytes (MM I/O) are back in user-accessible memory for compatibility. System base/bound are in MM device within system section. Only need a Supervisor bit (kernel mode) in CPU to control whether system section is accessible (RWX).
+
+For multiprocessing, have a “bank” register that selects which physical bank of 64K is mapped into the user section (shared bank mapped into system section). This implies that the top three words are per-process (attached to distinct terminals, and a process can only shut itself down).
+
