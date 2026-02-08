@@ -34,6 +34,7 @@ public class Result {
         
         for (var section : sections) {
             builder.append(section.toObjectFile(this));
+            builder.append('\n');
         }
         
         return builder.toString();
@@ -62,6 +63,13 @@ public class Result {
 
     public void org(int n) {
         current.org(n);
+    }
+
+    public void section(String name, String flags) {
+        Line line = current.removeLastLine();
+        current = new Section(this); // TODO use the name and flags...
+        sections.add(current);
+        current.addLine(line);
     }
 
     public Value lookup(String sym) {

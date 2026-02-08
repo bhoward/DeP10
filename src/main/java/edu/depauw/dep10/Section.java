@@ -160,4 +160,8 @@ public class Section {
             address += line.getBytes().size();
         }
     }
+
+    public Line removeLastLine() {
+        return lines.removeLast();
+    }
 }

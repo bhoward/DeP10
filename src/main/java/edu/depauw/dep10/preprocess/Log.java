@@ -10,8 +10,8 @@ public class Log {
     private static final int INITIAL_BYTES = 3;
     private static final int LABEL_START = 15;
 	private static final int COMMAND_START = 27;
-	private static final int ARG_START = 35;
-	private static final int COMMENT_START = 47;
+	private static final int ARG_START = 36;
+	private static final int COMMENT_START = 48;
 	
 	private List<String> messages;
 	private boolean makeComment;
