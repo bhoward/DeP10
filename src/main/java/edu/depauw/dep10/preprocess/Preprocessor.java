@@ -10,19 +10,21 @@ import edu.depauw.dep10.Value;
 import edu.depauw.dep10.driver.ErrorLog;
 
 public class Preprocessor {
+    private ErrorLog log;
 	private Map<Pair<String, Integer>, Macro> macros;
 
-	public Preprocessor() {
+	public Preprocessor(ErrorLog log) {
+	    this.log = log;
 		macros = new HashMap<>();
 	}
 
-	public List<Line> preprocess(Sources sources, ErrorLog log) {
+	public List<Line> preprocess(Sources sources) {
 		List<Line> result = new ArrayList<>();
 
 		while (sources.hasNext()) {
 			var line = sources.next();
 			switch (line) {
-			case Line(var label, var command, var args, var _, var _):
+			case Line(var _, var command, var args, var _, var _):
 				if (command.equalsIgnoreCase(".INCLUDE")) {
 					if (args.size() == 1 && args.get(0) instanceof Value.StrLit s) {
 						sources.pushFile(s.value(), log);

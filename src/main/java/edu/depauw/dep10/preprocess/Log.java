@@ -1,23 +1,30 @@
 package edu.depauw.dep10.preprocess;
 
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 
+import edu.depauw.dep10.UByte;
+
 public class Log {
-	private static final int COMMAND_START = 12;
-	private static final int ARG_START = 20;
-	private static final int COMMENT_START = 32;
+    private static final int INITIAL_BYTES = 3;
+    private static final int LABEL_START = 15;
+	private static final int COMMAND_START = 27;
+	private static final int ARG_START = 35;
+	private static final int COMMENT_START = 47;
 	
 	private List<String> messages;
 	private boolean makeComment;
 	private boolean visible;
 	private String source;
 	private int lineNumber;
+	private List<UByte> bytes;
 	
 	public Log(boolean visible) {
 		this.messages = new ArrayList<>();
 		this.makeComment = false;
 		this.visible = visible;
+		this.bytes = new ArrayList<>();
 	}
 
 	public void add(String message) {
@@ -48,18 +55,30 @@ public class Log {
 	    this.lineNumber = lineNumber;
 	}
 
-	public String produceListing(Line line) {
+	public String produceListing(Line line, int address) {
 		var builder = new StringBuilder();
+        var format = HexFormat.of().withUpperCase();
+		
+        builder.append(format.toHexDigits((short) address));
+        builder.append(' ');
+        
+		for (int i = 0; i < INITIAL_BYTES; i++) {
+		    if (i < bytes.size()) {
+		        format.toHexDigits(builder, (byte) bytes.get(i).value());
+		        builder.append(' ');
+		    }
+		}
+		alignToColumn(builder, LABEL_START);
 		
 		builder.append((line.label().isEmpty()) ? "" : line.label() + ":");
-		builder.repeat(' ', Math.max(COMMAND_START - builder.length(), 0));
+		alignToColumn(builder, COMMAND_START);
 		
 		if (makeComment) {
 			builder.append(';');
 		}
 		
 		builder.append(line.command().toUpperCase());
-		builder.repeat(' ', Math.max(ARG_START - builder.length(), 0));
+		alignToColumn(builder, ARG_START);
 		
 		if (line.args() != null && line.args().size() > 0) {
 			var args = line.args();
@@ -69,7 +88,7 @@ public class Log {
 				builder.append(args.get(i));
 			}
 		}
-		builder.repeat(' ', Math.max(COMMENT_START - builder.length(), 0));
+		alignToColumn(builder, COMMENT_START);
 		
 		builder.append(line.comment());
 		
@@ -81,6 +100,33 @@ public class Log {
 		    }
 		}
 		
+		builder.append('\n');
+		
+	    for (int i = INITIAL_BYTES; i < bytes.size(); i += INITIAL_BYTES) {
+	        builder.append(format.toHexDigits((short) (address + i)));
+	        builder.append(' ');
+
+	        for (int j = i; j < i + INITIAL_BYTES; j++) {
+	            if (j < bytes.size()) {
+	                format.toHexDigits(builder, (byte) bytes.get(j).value());
+	                builder.append(' ');
+	            }
+	        }
+	        builder.append('\n');
+	    }
+		
 		return builder.toString();
 	}
+
+    private void alignToColumn(StringBuilder builder, int column) {
+        builder.repeat(' ', Math.max(column - builder.length(), 0));
+    }
+
+    public void addByte(UByte uByte) {
+        bytes.add(uByte);
+    }
+
+    public List<UByte> getBytes() {
+        return bytes;
+    }
 }

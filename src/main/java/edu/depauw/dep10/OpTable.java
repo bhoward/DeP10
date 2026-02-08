@@ -83,7 +83,7 @@ public class OpTable {
 	}
 	
 	public int lookup(String mnemonic, String mode) {
-		return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), 0);
+		return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), -1);
 	}
 	
 	public void addUnused(int code, int n) {

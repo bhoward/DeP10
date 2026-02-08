@@ -2,6 +2,7 @@ package edu.depauw.dep10.preprocess;
 
 import java.util.List;
 
+import edu.depauw.dep10.UByte;
 import edu.depauw.dep10.Value;
 
 public record Line(String label, String command, List<Value> args, String comment, Log log) {
@@ -34,8 +35,15 @@ public record Line(String label, String command, List<Value> args, String commen
 	    log.setLineNumber(lineNumber);
 	}
 		
-	@Override
-	public String toString() {
-	    return log.produceListing(this);
-	}
+    public void add(UByte uByte) {
+        log.addByte(uByte);
+    }
+
+    public List<UByte> getBytes() {
+        return log.getBytes();
+    }
+
+    public String toListing(int address) {
+        return log.produceListing(this, address);
+    }
 }

@@ -77,29 +77,26 @@ public class Driver {
 			return;
 		}
 
-		var preprocessor = new Preprocessor();
-		var lines = preprocessor.preprocess(sources, log); // all macros and includes have been expanded
+		var preprocessor = new Preprocessor(log);
+		var lines = preprocessor.preprocess(sources);
+		// all macros and includes have been expanded
 		
-		var assembler = new Assembler();
-		Result result = assembler.assemble(lines, log);
+		var assembler = new Assembler(log);
+		Result result = assembler.assemble(lines);
 		
 		if (asm.objectFile != null) {
 		    try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
-		        out.write(result.toString());
+		        out.write(result.toObjectFile());
 		    } catch (IOException e) {
                 log.error(e.getMessage());
             }
 		} else {
-		    System.out.println(result);
+		    System.out.println(result.toObjectFile());
 		}
 		
 		if (asm.listingFile != null) {
 		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
-		        for (var line : lines) {
-		            if (line.isVisible()) {
-		                out.println(line);
-		            }
-		        }
+		        result.printListing(lines, out);
 		    } catch (IOException e) {
 		        log.error(e.getMessage());
 		    }
@@ -109,8 +106,8 @@ public class Driver {
 		    // TODO
 		}
 	}
-	
-	private static void doRun(CommandRun run, ErrorLog log) {
+
+    private static void doRun(CommandRun run, ErrorLog log) {
 	    // TODO
 	}
 }

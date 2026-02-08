@@ -22,6 +22,15 @@ public interface Value {
 		public int size() {
 			return 2;
 		}
+		
+		public Word evaluate(Section section) throws ValueError {
+		    var value = section.lookup(name);
+		    if (value != null) {
+		        return value.evaluate(section);
+		    } else {
+		        throw new ValueError("Symbol not found: " + name);
+		    }
+		}
 
 		@Override
 		public String toString() {
@@ -34,21 +43,39 @@ public interface Value {
 			return 2;
 		}
 		
+		public Word evaluate(Section section) {
+		    return new Word(value);
+		}
+		
 		@Override
 		public String toString() {
 			return Integer.toString(value);
 		}
 	}
 
-	static record RelativeNumber(int value) implements Value {
+	static record RelativeNumber(Section section, int value) implements Value {
 		public int size() {
 			return 2;
+		}
+		
+		public Word evaluate(Section s) {
+		    return new Word(section.getOrigin() + value);
 		}
 	}
 
 	static record StrLit(String value) implements Value {
 		public int size() {
 			return value.length();
+		}
+		
+		public Word evaluate(Section section) throws ValueError {
+		    if (value.length() == 1) {
+		        return new Word(value.charAt(0));
+		    } else if (value.length() == 2) {
+		        return new Word(value.charAt(0) * 256 + value.charAt(1));
+		    } else {
+		        throw new ValueError("String needs to be one or two characters: \"" + value + "\"");
+		    }
 		}
 		
 		@Override
@@ -70,6 +97,10 @@ public interface Value {
 			return 1;
 		}
 		
+		public Word evaluate(Section section) {
+		    return new Word(value);
+		}
+		
 		@Override
 		public String toString() {
 			return "'" + Util.escape(value) + "'";
@@ -77,13 +108,21 @@ public interface Value {
 	}
 
 	static record Block(int size) implements Value {
+        public Word evaluate(Section section) throws ValueError {
+            throw new ValueError("Illegal value");
+        }
 	}
 
 	static record LowByte(Value arg) implements Value {
 		public int size() {
 			return 1;
 		}
+
+        public Word evaluate(Section section) throws ValueError {
+            throw new ValueError("Illegal value");
+        }
 	}
 
 	public int size();
+	public Word evaluate(Section section) throws ValueError;
 }
