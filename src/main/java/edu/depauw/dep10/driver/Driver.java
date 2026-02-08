@@ -46,8 +46,6 @@ public class Driver {
 				break;
 			}
 		}
-		
-		// TODO Check log for errors and print them here
 	}
 
 	private static void doAsm(CommandAsm asm, ErrorLog log) {
@@ -78,32 +76,46 @@ public class Driver {
 		}
 
 		var preprocessor = new Preprocessor(log);
-		var lines = preprocessor.preprocess(sources);
-		// all macros and includes have been expanded
+		Result result = null;
 		
-		var assembler = new Assembler(log);
-		Result result = assembler.assemble(lines);
-		
-		if (asm.objectFile != null) {
-		    try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
-		        out.write(result.toObjectFile());
-		    } catch (IOException e) {
-                log.error(e.getMessage());
-            }
-		} else {
-		    System.out.println(result.toObjectFile());
-		}
-		
-		if (asm.listingFile != null) {
-		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
-		        result.printListing(lines, out);
-		    } catch (IOException e) {
-		        log.error(e.getMessage());
-		    }
+		if (log.noErrors()) {
+    		var lines = preprocessor.preprocess(sources);
+    		// all macros and includes have been expanded
+    		
+    		var assembler = new Assembler();
+    		result = assembler.assemble(lines);
+    		
+    		if (asm.objectFile != null) {
+    		    try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
+    		        out.write(result.toObjectFile());
+    		    } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
+    		} else {
+    		    System.out.println(result.toObjectFile());
+    		}
+    		
+    		if (asm.listingFile != null) {
+    		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
+    		        result.printListing(out);
+    		    } catch (IOException e) {
+    		        log.error(e.getMessage());
+    		    }
+    		}
 		}
 		
 		if (asm.errorFile != null) {
-		    // TODO
+		    try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.errorFile)))) {
+		        for (var message : log.getMessages()) {
+		            out.println(message);
+		        }
+		        
+		        if (result != null) {
+		            result.printErrors(out);
+		        }
+		    } catch (IOException e) {
+		        System.err.println("Error writing error file!");
+		    }
 		}
 	}
 

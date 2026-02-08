@@ -2,19 +2,14 @@ package edu.depauw.dep10;
 
 import java.util.List;
 
-import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Assembler {
-    private ErrorLog log;
     private Result result;
-
     private OpTable opTable;
 
-    public Assembler(ErrorLog log) {
-        this.log = log;
+    public Assembler() {
         this.result = new Result();
-
         this.opTable = new OpTable();
     }
 

@@ -142,6 +142,10 @@ public class Section {
         return builder.toString();
     }
 
+    public Line removeLastLine() {
+        return lines.removeLast();
+    }
+
     public int getOrigin() {
         return origin;
     }
@@ -161,7 +165,11 @@ public class Section {
         }
     }
 
-    public Line removeLastLine() {
-        return lines.removeLast();
+    public void printErrors(PrintWriter out) {
+        for (var line : lines) {
+            if (line.hasErrors()) {
+                out.print(line.getErrors());
+            }
+        }
     }
 }

@@ -14,5 +14,11 @@ public class ErrorLog {
 		messages.add(message);
 	}
 
-	// TODO get the messages back out...
+    public boolean noErrors() {
+        return messages.isEmpty();
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
 }

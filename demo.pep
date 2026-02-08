@@ -9,6 +9,6 @@ Start:	LDWA	42,i
 		@ASLA3
 		.ORG	0x0100
 		.ASCII	"Hello, world!\n\0"
-		;FOO
+		FOO
 		.SECTION "test", "rwx"
 		BR		Start

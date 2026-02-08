@@ -99,9 +99,15 @@ public class Result {
         }
     }
 
-    public void printListing(List<Line> lines, PrintWriter out) {
+    public void printListing(PrintWriter out) {
         for (var section : sections) {
             section.printListing(out);
+        }
+    }
+
+    public void printErrors(PrintWriter out) {
+        for (var section : sections) {
+            section.printErrors(out);
         }
     }
 }

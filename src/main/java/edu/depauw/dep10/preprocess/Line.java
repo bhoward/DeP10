@@ -46,4 +46,12 @@ public record Line(String label, String command, List<Value> args, String commen
     public String toListing(int address) {
         return log.produceListing(this, address);
     }
+
+    public boolean hasErrors() {
+        return log.hasErrors();
+    }
+    
+    public String getErrors() {
+        return log.getErrors();
+    }
 }

@@ -129,4 +129,19 @@ public class Log {
     public List<UByte> getBytes() {
         return bytes;
     }
+
+    public boolean hasErrors() {
+        return !messages.isEmpty();
+    }
+    
+    public String getErrors() {
+        StringBuilder builder = new StringBuilder();
+        
+        for (var message : messages) {
+            builder.append(source + "[" + lineNumber + "] " + message + "\n");
+        }
+        
+        return builder.toString();
+    }
 }
+
