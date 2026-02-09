@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import edu.depauw.dep10.assemble.Value;
 
 public class Parser {
-	static final String SYMBOL_PAT = "((\\p{Alpha}|_)\\w*|\\$[1-9]\\p{Digit}*)";
+	static final String SYMBOL_PAT = "(_*\\p{Alpha}\\w*|_*\\$[1-9]\\p{Digit}*)";
 	static final String COMMAND_PAT = "[.@]?\\p{Alpha}\\w*";
 	static final String INT_LIT_PAT = "-?[1-9]\\p{Digit}*|0";
 	static final String HEX_LIT_PAT = "0[Xx][0-9A-Fa-f]{1,4}";
@@ -79,6 +79,8 @@ public class Parser {
 				
 				*ERROR*
 				@demo this, is ,'a',"test of args"	,	42, -17, x37, 0xDEAD , '\\'', '\\X42'
+				$1: foo $2, _bar, _$3
+				_$4: baz
 				""";
 		System.out.println(test);
 

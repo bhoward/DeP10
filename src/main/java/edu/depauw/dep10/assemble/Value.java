@@ -4,7 +4,7 @@ import edu.depauw.dep10.Word;
 
 public interface Value {
 	static Value fromString(String s) {
-		if (Character.isAlphabetic(s.charAt(0)) || s.startsWith("_")) {
+		if (Character.isAlphabetic(s.charAt(0)) || s.startsWith("_") || s.startsWith("$")) {
 			return new Symbol(s);
 		} else if (s.startsWith("0x")) {
 			return new Number(Integer.parseInt(s.substring(2), 16));

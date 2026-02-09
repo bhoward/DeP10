@@ -14,8 +14,10 @@ import edu.depauw.dep10.preprocess.Sources;
 
 public class Driver {
 	private static final String STD_MACROS = "/stdmacro.pep";
+	private static final String FORTH_MACROS = "/forthmacro.pep";
 	private static final String BARE_METAL_OS = "/pep10baremetal.pep";
 	private static final String FULL_OS = "/pep10os.pep";
+	private static final String FORTH_OS = "/assembler.pep";
 
     public static void main(String[] argv) throws IOException {
 		ErrorLog log = new ErrorLog();
@@ -82,7 +84,13 @@ public class Driver {
 		if (asm.bareMetal) {
 		    sources.addResource(BARE_METAL_OS, log);
 		} else if (asm.osName != null) {
-		    sources.addFile(asm.osName, log);
+		    if (asm.osName.equals("FORTH")) {
+		        // special case for the FORTH OS
+		        sources.addResource(FORTH_MACROS, log);
+		        sources.addResource(FORTH_OS, log);
+		    } else {
+		        sources.addFile(asm.osName, log);
+		    }
 		} else {
 		    sources.addResource(FULL_OS, log);
 		}

@@ -63,6 +63,14 @@ public record Macro(String name, int numArgs, List<Line> body) {
 			} else {
 				throw new LineError("Macro argument not a symbol");
 			}
+		} else if (s.startsWith("_$")) {
+		    var replacement = argMap.computeIfAbsent(s.substring(1), Macro::genSym);
+		    
+		    if (replacement instanceof Value.Symbol(var sym)) {
+		        return "_" + sym;
+		    } else {
+		        throw new LineError("Macro argument not a symbol");
+		    }
 		}
 		return s;
 	}
