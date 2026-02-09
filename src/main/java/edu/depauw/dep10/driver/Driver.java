@@ -60,6 +60,9 @@ public class Driver {
 	    // First add standard macros
 	    sources.addResource(STD_MACROS, log); // TODO option to substitute?
 	    
+	    // After loading macros, set option to generate OS listing if desired
+	    sources.setVisibleResources(asm.osListing);
+	    
 	    // Next add the distinguished source file, if any
 	    if (asm.sourceFile != null) {
 	        sources.addFile(asm.sourceFile, log);
@@ -75,7 +78,7 @@ public class Driver {
 	        sources.addStdIn();
 	    }
 	    
-		// TODO open the appropriate OS file
+	    // Add the appropriate OS
 		if (asm.bareMetal && asm.osName != null) {
 			log.error("Bare metal excludes specifying OS.");
 			return;
@@ -136,6 +139,10 @@ public class Driver {
 		    } catch (IOException e) {
 		        System.err.println("Error writing error file!");
 		    }
+		} else {
+		    for (var message : log.getMessages()) {
+		        System.err.println(message);
+		    }
 		}
 	}
 
@@ -143,7 +150,5 @@ public class Driver {
 	    // TODO
 	}
 
-    // TODO extend simulator to load OS and user sections from object file to
-    // correct locations
-
+    // TODO extend simulator to load OS and user sections from object file to correct locations
 }

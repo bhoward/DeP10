@@ -15,7 +15,17 @@ import edu.depauw.dep10.driver.ErrorLog;
  * iterator of Lines.
  */
 public class Sources implements Iterator<Line> {
-    private Deque<Source> deque = new ArrayDeque<>();
+    private boolean visibleResources;
+    private Deque<Source> deque;
+    
+    public Sources() {
+        this.visibleResources = false;
+        this.deque = new ArrayDeque<>();
+    }
+    
+    public void setVisibleResources(boolean visibleResources) {
+        this.visibleResources = visibleResources;
+    }
 
     public boolean hasNext() {
         while (!deque.isEmpty() && !deque.peek().hasNext()) {
@@ -35,7 +45,7 @@ public class Sources implements Iterator<Line> {
     }
 
     public void addResource(String resource, ErrorLog log) {
-        deque.add(new ResourceSource(resource, log));
+        deque.add(new ResourceSource(resource, log, visibleResources));
     }
 
     public void addStdIn() {

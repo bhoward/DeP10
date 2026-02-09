@@ -13,7 +13,7 @@ public class FileSource extends Source {
     private Reader reader;
 
     public FileSource(String filename, ErrorLog log) {
-        super(filename, null, true); // TODO allow it to be invisible?
+        super(filename, null, true);
         this.filename = filename;
         this.log = log;
         this.reader = null;

@@ -12,8 +12,8 @@ public class ResourceSource extends Source {
     private ErrorLog log;
     private Reader reader;
 
-    public ResourceSource(String resource, ErrorLog log) {
-        super(resource, null, false); // TODO can there be visible resource sources?
+    public ResourceSource(String resource, ErrorLog log, boolean visible) {
+        super(resource, null, visible);
         this.resource = resource;
         this.log = log;
         this.reader = null;

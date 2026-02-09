@@ -27,8 +27,11 @@ public class CommandAsm {
 	@Parameter(names = "-e", description = "Name of error file.", order = 5)
 	public String errorFile = null;
 	
-	@Parameter(names = {"-l", "--os-listing"}, description = "Name of listing file.", order = 6)
+	@Parameter(names = {"-l"}, description = "Name of listing file.", order = 6)
 	public String listingFile = null;
 	
+    @Parameter(names = {"--os-listing"}, description = "Innclude OS in listing.", order = 7)
+    public boolean osListing = false;
+    
     // TODO --md for macro directory?
 }
