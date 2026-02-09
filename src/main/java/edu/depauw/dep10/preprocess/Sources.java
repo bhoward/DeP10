@@ -7,7 +7,6 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-import edu.depauw.dep10.Parser;
 import edu.depauw.dep10.driver.ErrorLog;
 
 /**

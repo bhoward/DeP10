@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.assemble;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -7,6 +7,13 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
+import edu.depauw.dep10.UByte;
+import edu.depauw.dep10.Word;
+import edu.depauw.dep10.assemble.Value.Block;
+import edu.depauw.dep10.assemble.Value.CharLit;
+import edu.depauw.dep10.assemble.Value.LowByte;
+import edu.depauw.dep10.assemble.Value.RelativeNumber;
+import edu.depauw.dep10.assemble.Value.StrLit;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Section {

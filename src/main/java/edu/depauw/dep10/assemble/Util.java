@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.assemble;
 
 public class Util {
 	public static String processEscape(String s) {

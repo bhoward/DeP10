@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.assemble;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;

@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 
-import edu.depauw.dep10.Parser;
 import edu.depauw.dep10.driver.ErrorLog;
 
 public class ResourceSource extends Source {

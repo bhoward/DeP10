@@ -1,7 +1,15 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.assemble;
 
 import java.util.List;
 
+import edu.depauw.dep10.ModeOperation;
+import edu.depauw.dep10.OpTable;
+import edu.depauw.dep10.assemble.Value.Block;
+import edu.depauw.dep10.assemble.Value.CharLit;
+import edu.depauw.dep10.assemble.Value.LowByte;
+import edu.depauw.dep10.assemble.Value.Number;
+import edu.depauw.dep10.assemble.Value.StrLit;
+import edu.depauw.dep10.assemble.Value.Symbol;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 

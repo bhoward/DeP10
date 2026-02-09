@@ -7,8 +7,8 @@ import java.io.PrintWriter;
 
 import com.beust.jcommander.JCommander;
 
-import edu.depauw.dep10.Assembler;
-import edu.depauw.dep10.Result;
+import edu.depauw.dep10.assemble.Assembler;
+import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
 

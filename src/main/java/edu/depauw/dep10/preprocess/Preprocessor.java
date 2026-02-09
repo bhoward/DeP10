@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import edu.depauw.dep10.Pair;
-import edu.depauw.dep10.Value;
+import edu.depauw.dep10.assemble.Value;
 import edu.depauw.dep10.driver.ErrorLog;
 
 public class Preprocessor {

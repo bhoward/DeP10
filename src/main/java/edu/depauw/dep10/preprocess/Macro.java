@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.depauw.dep10.LineError;
-import edu.depauw.dep10.Value;
+import edu.depauw.dep10.assemble.LineError;
+import edu.depauw.dep10.assemble.Value;
 
 public record Macro(String name, int numArgs, List<Line> body) {
 	public List<Line> instantiate(List<Value> actual) {

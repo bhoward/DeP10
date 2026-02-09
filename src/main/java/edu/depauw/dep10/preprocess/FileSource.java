@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import edu.depauw.dep10.Parser;
 import edu.depauw.dep10.driver.ErrorLog;
 
 public class FileSource extends Source {
