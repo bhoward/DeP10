@@ -2,15 +2,18 @@ package edu.depauw.dep10;
 
 import java.util.List;
 
+import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Assembler {
     private Result result;
     private OpTable opTable;
+    private ErrorLog log;
 
-    public Assembler() {
+    public Assembler(ErrorLog log) {
         this.result = new Result();
         this.opTable = new OpTable();
+        this.log = log;
     }
 
     public Result assemble(List<Line> lines) {
@@ -52,7 +55,6 @@ public class Assembler {
                         word(args);
                     } else if (command.startsWith(".")) {
                         // Ignore other directives: .IMPORT, .INPUT, .OUTPUT, .SCALL
-                        // TODO at least diagnose errors with them...
                     } else if (command.isEmpty()) {
                         // Skip this line, except for the listing
                         if (args != null && !args.isEmpty()) {
@@ -68,12 +70,9 @@ public class Assembler {
         }
 
         // Now pack the sections in the Result and resolve the relative addresses
-        result.resolveObjects();
+        result.resolveObjects(log);
 
         return result;
-
-        // TODO extend simulator to load OS and user sections from object file to
-        // correct locations
     }
 
     private void equate(String label, List<Value> args) throws LineError {
@@ -136,7 +135,7 @@ public class Assembler {
 
         var arg = args.get(0);
         if (arg instanceof Value.Symbol(var sym)) {
-            result.addGlobal(sym);
+            result.export(sym);
         } else {
             throw new LineError("Not a symbol");
         }
@@ -167,7 +166,7 @@ public class Assembler {
             default -> throw new LineError("Section flags not a quoted string");
         };
 
-        result.section(name, flags);
+        result.section(name, flags, log);
     }
 
     private void word(List<Value> args) throws LineError {

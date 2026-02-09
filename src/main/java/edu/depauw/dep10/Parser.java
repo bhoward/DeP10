@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Parser {
-	static final String SYMBOL_PAT = "(\\p{Alpha}\\w*|\\$[1-9]\\p{Digit}*)";
+	static final String SYMBOL_PAT = "((\\p{Alpha}|_)\\w*|\\$[1-9]\\p{Digit}*)";
 	static final String COMMAND_PAT = "[.@]?\\p{Alpha}\\w*";
 	static final String INT_LIT_PAT = "-?[1-9]\\p{Digit}*|0";
 	static final String HEX_LIT_PAT = "0[Xx][0-9A-Fa-f]{1,4}";
@@ -33,14 +33,14 @@ public class Parser {
 	static final Pattern ARG = Pattern.compile("\\s*" + ARG_PAT + "\\s*,"); // Include a trailing comma
 
 	// Note that this eagerly reads all of the lines
-	public static Iterable<Line> parse(Reader in, boolean visible) {
+	public static Iterable<Line> parse(Reader in) {
 		var lines = new BufferedReader(in).lines();
-		var result = lines.map(s -> parseLine(s, visible)).toList();
+		var result = lines.map(s -> parseLine(s)).toList();
 		
 		return result;
 	}
 
-	private static Line parseLine(String s, boolean visible) {
+	private static Line parseLine(String s) {
 		var m = LINE.matcher(s);
 		if (m.matches()) {
 			String label = m.group("label");
@@ -50,9 +50,9 @@ public class Parser {
 			String command = m.group("command");
 			String args = m.group("args");
 			String comment = m.group("comment");
-			return Line.of(label, command, parseArgs(args), comment, visible);
+			return Line.of(label, command, parseArgs(args), comment);
 		} else {
-			var line = Line.of("", "", null, "", visible);
+			var line = Line.of("", "", null, "");
 			line.logError("Syntax error in " + s);
             return line;
 		}
@@ -82,7 +82,7 @@ public class Parser {
 				""";
 		System.out.println(test);
 
-		for (var line : parse(new StringReader(test), true)) {
+		for (var line : parse(new StringReader(test))) {
 			System.out.println(line);
 		}
 	}

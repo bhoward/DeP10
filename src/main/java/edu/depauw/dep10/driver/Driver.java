@@ -13,7 +13,11 @@ import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
 
 public class Driver {
-	public static void main(String[] argv) throws IOException {
+	private static final String STD_MACROS = "/stdmacro.pep";
+	private static final String BARE_METAL_OS = "/pep10baremetal.pep";
+	private static final String FULL_OS = "/pep10os.pep";
+
+    public static void main(String[] argv) throws IOException {
 		ErrorLog log = new ErrorLog();
 
 		InitialArgs init = new InitialArgs();
@@ -52,7 +56,7 @@ public class Driver {
 	    Sources sources = new Sources();
 	    
 	    // First add standard macros
-	    sources.addResource("/stdmacro.pep", log); // TODO constant for the name; option to substitute?
+	    sources.addResource(STD_MACROS, log); // TODO option to substitute?
 	    
 	    // Next add the distinguished source file, if any
 	    if (asm.sourceFile != null) {
@@ -74,6 +78,14 @@ public class Driver {
 			log.error("Bare metal excludes specifying OS.");
 			return;
 		}
+		
+		if (asm.bareMetal) {
+		    sources.addResource(BARE_METAL_OS, log);
+		} else if (asm.osName != null) {
+		    sources.addFile(asm.osName, log);
+		} else {
+		    sources.addResource(FULL_OS, log);
+		}
 
 		var preprocessor = new Preprocessor(log);
 		Result result = null;
@@ -82,7 +94,7 @@ public class Driver {
     		var lines = preprocessor.preprocess(sources);
     		// all macros and includes have been expanded
     		
-    		var assembler = new Assembler();
+    		var assembler = new Assembler(log);
     		result = assembler.assemble(lines);
     		
     		if (asm.objectFile != null) {
@@ -122,4 +134,8 @@ public class Driver {
     private static void doRun(CommandRun run, ErrorLog log) {
 	    // TODO
 	}
+
+    // TODO extend simulator to load OS and user sections from object file to
+    // correct locations
+
 }

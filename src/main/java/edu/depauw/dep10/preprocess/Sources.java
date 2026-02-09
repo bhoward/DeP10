@@ -41,8 +41,8 @@ public class Sources implements Iterator<Line> {
 
     public void addStdIn() {
         var reader = new InputStreamReader(System.in);
-        var it = Parser.parse(reader, true).iterator();
-        var source = new Source("<stdin>", it);
+        var it = Parser.parse(reader).iterator();
+        var source = new Source("<stdin>", it, true);
 
         deque.add(source);
     }
@@ -53,7 +53,7 @@ public class Sources implements Iterator<Line> {
 
     public void pushLines(String macroName, List<Line> lines) {
         var it = lines.iterator();
-        var source = new Source(macroName, it);
+        var source = new Source(macroName, it, deque.peek().isVisible());
 
         deque.push(source);
     }

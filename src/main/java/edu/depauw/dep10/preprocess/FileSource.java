@@ -14,7 +14,7 @@ public class FileSource extends Source {
     private Reader reader;
 
     public FileSource(String filename, ErrorLog log) {
-        super(filename, null);
+        super(filename, null, true); // TODO allow it to be invisible?
         this.filename = filename;
         this.log = log;
         this.reader = null;
@@ -25,7 +25,7 @@ public class FileSource extends Source {
         try {
             if (reader == null) {
                 reader = new FileReader(filename);
-                setIterator(Parser.parse(reader, true).iterator());
+                setIterator(Parser.parse(reader).iterator());
             }
 
             return true;

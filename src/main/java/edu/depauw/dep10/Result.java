@@ -6,17 +6,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Result {
     private List<Section> sections;
     private Section current;
     private Map<String, Value> globals;
+    private List<String> exports;
     
     public Result() {
         this.sections = new ArrayList<Section>();
         this.current = new Section(this);
         this.globals = new HashMap<>();
+        this.exports = new ArrayList<>();
         
         sections.add(current);
     }
@@ -47,17 +50,21 @@ public class Result {
     public void align(int n) {
         current.align(n);
     }
+    
+    public void export(String sym) {
+        exports.add(sym);
+    }
 
     public void addObject(Value value) {
         current.addObject(value);
     }
-
-    public void addGlobal(String sym) throws LineError {
+    
+    public void addGlobal(String sym, ErrorLog log) {
         var value = current.lookup(sym);
         if (value != null) {
             globals.put(sym, value);
         } else {
-            throw new LineError("Unknown symbol " + sym);
+            log.error("Unknown symbol " + sym);
         }
     }
 
@@ -65,18 +72,29 @@ public class Result {
         current.org(n);
     }
 
-    public void section(String name, String flags) {
+    public void section(String name, String flags, ErrorLog log) {
         Line line = current.removeLastLine();
+        processExports(log);
+        
         current = new Section(this); // TODO use the name and flags...
         sections.add(current);
         current.addLine(line);
+    }
+
+    private void processExports(ErrorLog log) {
+        for (var export : exports) {
+            addGlobal(export, log);
+        }
+        exports.clear();
     }
 
     public Value lookup(String sym) {
         return globals.get(sym);
     }
 
-    public void resolveObjects() {
+    public void resolveObjects(ErrorLog log) {
+        processExports(log);
+        
         // Pack the sections:
         // * First section (user) goes at 0, unless explicitly relocated
         // * Remaining sections pack to top of memory, unless explicitly relocated

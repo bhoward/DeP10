@@ -14,7 +14,7 @@ public class ResourceSource extends Source {
     private Reader reader;
 
     public ResourceSource(String resource, ErrorLog log) {
-        super(resource, null);
+        super(resource, null, false); // TODO can there be visible resource sources?
         this.resource = resource;
         this.log = log;
         this.reader = null;
@@ -31,7 +31,7 @@ public class ResourceSource extends Source {
                 }
 
                 reader = new InputStreamReader(url.openStream());
-                setIterator(Parser.parse(reader, false).iterator());
+                setIterator(Parser.parse(reader).iterator());
             }
 
             return true;

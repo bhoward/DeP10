@@ -6,8 +6,8 @@ import edu.depauw.dep10.UByte;
 import edu.depauw.dep10.Value;
 
 public record Line(String label, String command, List<Value> args, String comment, Log log) {
-	public static Line of(String label, String command, List<Value> args, String comment, boolean visible) {
-		return new Line(label, command, args, comment, new Log(visible));
+	public static Line of(String label, String command, List<Value> args, String comment) {
+		return new Line(label, command, args, comment, new Log());
 	}
 	
 	public void logError(String message) {

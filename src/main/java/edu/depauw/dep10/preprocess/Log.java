@@ -20,10 +20,10 @@ public class Log {
 	private int lineNumber;
 	private List<UByte> bytes;
 	
-	public Log(boolean visible) {
+	public Log() {
 		this.messages = new ArrayList<>();
 		this.makeComment = false;
-		this.visible = visible;
+		this.visible = true;
 		this.bytes = new ArrayList<>();
 	}
 
