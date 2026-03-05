@@ -47,6 +47,7 @@ public class Preprocessor {
 					} else {
 					    line.logError("Invalid arguments to .DEFMACRO");
 					}
+				// TODO also process .SCALL directives here? These would need to happen before user code
 				} else if (command.startsWith("@")) {
 				    line.setComment();
 				    

@@ -5,10 +5,12 @@ OPTIONS allow specifying an OS other than default, and whether/where to produce
 object, listing, error, dump files
 
 .ORG affects current .SECTION
-OS sections pack to top (absent .ORG), user (default?) section starts at 0000 (no .ORG allowed)
+OS sections pack to top (absent .ORG), user (default?) section starts at 0000 (no .ORG allowed?)
 make object format compatible with Pepp for user code, but extend to handle OS sections? (instead of ELF)
 Or, make specific OS object format (or just always assemble the OS, as in Pepp)?
 Determine what the section flags do.
+
+.SCALL FOO should also create a macro @FOO a,b that expands to LDWA FOO,i/SCALL a,b
 
 -------
 Assemble stuff
