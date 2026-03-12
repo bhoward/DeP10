@@ -18,8 +18,6 @@ public class CommandRun {
 	@Parameter(names = "--bm", description = "Use bare metal OS.", order = 2)
 	public boolean bareMetal = false;
 	
-	// TODO -s option for source??
-	
 	@Parameter(names = {"-i", "--charIn"}, description = "Console input.", order = 3)
 	public String consoleIn = null;
 	

@@ -33,5 +33,5 @@ public class CommandAsm {
     @Parameter(names = {"--os-listing"}, description = "Innclude OS in listing.", order = 7)
     public boolean osListing = false;
     
-    // TODO --md for macro directory?
+    // TODO --md for macro directory? --sys for assembling OS code?
 }

@@ -29,3 +29,7 @@ replay_pid*
 .classpath
 .project
 .settings/
+
+# Pep files
+*.pepe
+*.pepl
