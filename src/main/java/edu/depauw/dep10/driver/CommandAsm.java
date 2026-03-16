@@ -21,17 +21,21 @@ public class CommandAsm {
 	@Parameter(names = "--bm", description = "Use bare metal OS.", order = 3)
 	public boolean bareMetal = false;
 	
-	@Parameter(names = "-o", description = "Name of object file.", order = 4)
+	@Parameter(names = "--sys", description = "Assemble OS code", order = 4)
+	public boolean sysMode = false;
+	
+	@Parameter(names = "-o", description = "Name of object file.", order = 5)
 	public String objectFile = null;
 	
-	@Parameter(names = "-e", description = "Name of error file.", order = 5)
+	@Parameter(names = "-e", description = "Name of error file.", order = 6)
 	public String errorFile = null;
 	
-	@Parameter(names = {"-l"}, description = "Name of listing file.", order = 6)
+	@Parameter(names = "-l", description = "Name of listing file.", order = 7)
 	public String listingFile = null;
 	
-    @Parameter(names = {"--os-listing"}, description = "Innclude OS in listing.", order = 7)
+    @Parameter(names = "-x", description = "Name of export file.", order = 8)
+    public String exportFile = null;
+
+    @Parameter(names = {"--os-listing"}, description = "Include OS in listing.", order = 7)
     public boolean osListing = false;
-    
-    // TODO --md for macro directory? --sys for assembling OS code?
 }

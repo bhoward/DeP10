@@ -66,6 +66,10 @@ public class Sources implements Iterator<Line> {
 
         deque.push(source);
     }
+    
+    public void pushAll(List<Line> lines) {
+        deque.push(new PreProcessedSource(lines));
+    }
 
     public List<Line> extractUntil(String end) {
         List<Line> result = new ArrayList<>();

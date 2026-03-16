@@ -47,36 +47,64 @@ public class Preprocessor {
 					} else {
 					    line.logError("Invalid arguments to .DEFMACRO");
 					}
-				// TODO also process .SCALL directives here? These would need to happen before user code
-				} else if (command.startsWith("@")) {
-				    line.setComment();
-				    
-					String name = command.substring(1);
-					int numArgs = args.size();
-
-					Macro macro = getMacro(name, numArgs);
-					if (macro != null) {
-					    sources.pushLines(command, macro.instantiate(args));
-					} else {
-					    line.logError("Unknown macro " + command);
-					}
-
-					result.add(line);
+				} else if (command.equalsIgnoreCase(".SCALL")) {
+				    if (args.size() == 1 && args.get(0) instanceof Value.Symbol sym) {
+				        var body = new ArrayList<Line>();
+				        body.add(Line.of("", "LDWA", List.of(sym, Value.fromString("i")), ""));
+				        body.add(Line.of("", "SCALL", List.of(Value.fromString("$1"), Value.fromString("$2")), ""));
+				        Macro macro = new Macro(sym.name(), 2, body);
+				        addMacro(macro);
+				    } else {
+				        line.logError("Invalid arguments to .SCALL");
+				    }
 				} else {
 					result.add(line);
 				}
 			}
 		}
 
-		return result;
+		return expandMacros(result);
 	}
 
+	private List<Line> expandMacros(List<Line> lines) {
+        List<Line> result = new ArrayList<>();
+        
+	    Sources sources = new Sources();
+	    sources.pushAll(lines);
+	    
+	    while (sources.hasNext()) {
+	        var line = sources.next();
+	        switch (line) {
+            case Line(var _, var command, var args, var _, var _):
+                if (command.startsWith("@")) {
+                  line.setComment();
+                  
+                  String name = command.substring(1);
+                  int numArgs = args.size();
+
+                  Macro macro = getMacro(name, numArgs);
+                  if (macro != null) {
+                      sources.pushLines(command, macro.instantiate(args));
+                  } else {
+                      line.logError("Unknown macro " + command);
+                  }
+
+                  result.add(line);
+                } else {
+                    result.add(line);
+                }
+	        }
+	    }
+	    
+	    return result;
+	}
+	
 	private void addMacro(Macro macro) {
-		macros.put(new Pair<>(macro.name(), macro.numArgs()), macro);
+		macros.put(new Pair<>(macro.name().toUpperCase(), macro.numArgs()), macro);
 	}
 
 	private Macro getMacro(String name, int numArgs) {
-		Macro macro = macros.get(new Pair<>(name, numArgs));
+		Macro macro = macros.get(new Pair<>(name.toUpperCase(), numArgs));
 		return macro;
 	}
 }

@@ -10,7 +10,7 @@ make object format compatible with Pepp for user code, but extend to handle OS s
 Or, make specific OS object format (or just always assemble the OS, as in Pepp)?
 Determine what the section flags do.
 
-.SCALL FOO should also create a macro @FOO a,b that expands to LDWA FOO,i/SCALL a,b
+Use --sys flag
 
 -------
 Assemble stuff
