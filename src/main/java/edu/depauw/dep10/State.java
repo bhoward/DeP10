@@ -2,8 +2,6 @@ package edu.depauw.dep10;
 
 import java.io.IOException;
 
-// TODO replace Word with short and UByte with byte
-
 public class State {
 	private Word A;
 	private Word X;
