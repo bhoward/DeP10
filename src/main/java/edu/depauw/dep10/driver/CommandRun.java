@@ -12,11 +12,11 @@ public class CommandRun {
 	@Parameter(names = { "-h", "--help" }, description = "Display this help message and exit.", help = true, order = 0)
 	public boolean showHelp = false;
 
-	@Parameter(names = "--os", description = "Name of OS.", order = 1)
-	public String osName = null;
-
-	@Parameter(names = "--bm", description = "Use bare metal OS.", order = 2)
-	public boolean bareMetal = false;
+//	@Parameter(names = "--os", description = "Name of OS.", order = 1)
+//	public String osName = null;
+//
+//	@Parameter(names = "--bm", description = "Use bare metal OS.", order = 2)
+//	public boolean bareMetal = false;
 	
 	@Parameter(names = {"-i", "--charIn"}, description = "Console input.", order = 3)
 	public String consoleIn = null;
