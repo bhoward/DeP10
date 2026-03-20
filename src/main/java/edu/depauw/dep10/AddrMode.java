@@ -11,7 +11,12 @@ public abstract class AddrMode {
 		return modeString;
 	}
 	
-	public abstract Word getAddress(State s);
+	@Override
+    public String toString() {
+        return modeString;
+    }
+
+    public abstract Word getAddress(State s);
 
 	public Word resolve(State s) {
 		return s.mem2(getAddress(s));

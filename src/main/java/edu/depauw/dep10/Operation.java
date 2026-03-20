@@ -23,8 +23,15 @@ public abstract class Operation {
 	public abstract void apply(State s, AddrMode mode);
 
 	public abstract void install(OpTable table, int i);
+	
+	@Override
+    public String toString() {
+        return mnemonic;
+    }
 
-	static abstract class UnaryOperation extends Operation {
+
+
+    static abstract class UnaryOperation extends Operation {
 		public UnaryOperation(String mnemonic) {
 			super(mnemonic);
 		}
