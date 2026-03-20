@@ -21,11 +21,21 @@ public class Word {
 	}
 
 	private static final int MAX_UNSIGNED = 0xFFFF;
+
+    private static final Word ZERO = new Word(0);
 	
 	private final int value;
 	
-	public Word(int value) {
+	private Word(int value) {
 		this.value = value & MAX_UNSIGNED;
+	}
+	
+	public static Word of(int value) {
+	    if (value == 0) {
+	        return ZERO;
+	    } else {
+	        return new Word(value);
+	    }
 	}
 	
 	public int value() {
@@ -45,7 +55,7 @@ public class Word {
 	}
 	
 	public UByte minus(UByte n) {
-		return new UByte(value - n.value());
+		return UByte.of(value - n.value());
 	}
 	
 	public Word and(Word n) {
@@ -61,11 +71,11 @@ public class Word {
 	}
 	
 	public UByte hi() {
-		return new UByte(value >> 8);
+		return UByte.of(value >> 8);
 	}
 
 	public UByte lo() {
-		return new UByte(value);
+		return UByte.of(value);
 	}
 
 	public boolean bit(int i) {
@@ -98,5 +108,10 @@ public class Word {
 
 	public Word not() {
 		return new Word(~value);
+	}
+	
+	@Override
+	public String toString() {
+	    return Integer.toHexString(value);
 	}
 }

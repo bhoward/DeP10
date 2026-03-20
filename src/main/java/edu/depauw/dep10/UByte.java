@@ -21,11 +21,21 @@ public class UByte {
 	}
 
 	private static final int MAX_UNSIGNED = 0xFF;
+
+    private static final UByte ZERO = new UByte(0);
 	
 	private final int value;
 	
-	public UByte(int value) {
+	private UByte(int value) {
 		this.value = value & MAX_UNSIGNED;
+	}
+	
+	public static UByte of(int value) {
+	    if (value == 0) {
+	        return ZERO;
+	    } else {
+	        return new UByte(value);
+	    }
 	}
 	
 	public int value() {
@@ -51,4 +61,9 @@ public class UByte {
 	public boolean isZero() {
 		return value == 0;
 	}
+    
+    @Override
+    public String toString() {
+        return Integer.toHexString(value);
+    }
 }

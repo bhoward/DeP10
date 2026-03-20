@@ -46,7 +46,7 @@ public interface Value {
 		}
 		
 		public Word evaluate(Section section) {
-		    return new Word(value);
+		    return Word.of(value);
 		}
 		
 		@Override
@@ -61,7 +61,7 @@ public interface Value {
 		}
 		
 		public Word evaluate(Section s) {
-		    return new Word(section.getOrigin() + value);
+		    return Word.of(section.getOrigin() + value);
 		}
 	}
 
@@ -72,9 +72,9 @@ public interface Value {
 		
 		public Word evaluate(Section section) throws ValueError {
 		    if (value.length() == 1) {
-		        return new Word(value.charAt(0));
+		        return Word.of(value.charAt(0));
 		    } else if (value.length() == 2) {
-		        return new Word(value.charAt(0) * 256 + value.charAt(1));
+		        return Word.of(value.charAt(0) * 256 + value.charAt(1));
 		    } else {
 		        throw new ValueError("String needs to be one or two characters: \"" + value + "\"");
 		    }
@@ -100,7 +100,7 @@ public interface Value {
 		}
 		
 		public Word evaluate(Section section) {
-		    return new Word(value);
+		    return Word.of(value);
 		}
 		
 		@Override

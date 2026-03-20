@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 
 import com.beust.jcommander.JCommander;
 
+import edu.depauw.dep10.Simulator;
+import edu.depauw.dep10.State;
 import edu.depauw.dep10.assemble.Assembler;
 import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
@@ -147,7 +149,20 @@ public class Driver {
 	}
 
     private static void doRun(CommandRun run, ErrorLog log) {
-	    // TODO
+	    State state = new State();
+	    
+	    for (var param : run.parameters) {
+	        state.load(param);
+	    }
+	    
+	    // TODO set up I/O
+	    
+	    Simulator sim = new Simulator(state);
+	    sim.run(); // TODO use max number of steps from run.max
+	    
+	    if (run.memDump != null) {
+	        state.dump(run.memDump);
+	    }
 	}
 
     // TODO extend simulator to load OS and user sections from object file to correct locations

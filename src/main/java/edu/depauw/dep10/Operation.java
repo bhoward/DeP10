@@ -1,12 +1,12 @@
 package edu.depauw.dep10;
 
 public abstract class Operation {
-	public static final Word TRAP_HANDLER_POINTER = new Word(0xFFF7);
-	public static final Word DISPATCHER_POINTER = new Word(0xFFF9);
-	public static final Word SYSTEM_STACK_POINTER = new Word(0xFFFB);
-	public static final Word CHARIN = new Word(0xFFFD);
-	public static final Word CHAROUT = new Word(0xFFFE);
-	public static final Word SHUTDOWN = new Word(0xFFFF);
+	public static final Word TRAP_HANDLER_POINTER = Word.of(0xFFF7);
+	public static final Word DISPATCHER_POINTER = Word.of(0xFFF9);
+	public static final Word SYSTEM_STACK_POINTER = Word.of(0xFFFB);
+	public static final Word CHARIN = Word.of(0xFFFD);
+	public static final Word CHAROUT = Word.of(0xFFFE);
+	public static final Word SHUTDOWN = Word.of(0xFFFF);
 	
 	private String mnemonic;
 	

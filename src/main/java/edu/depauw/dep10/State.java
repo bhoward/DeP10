@@ -1,157 +1,199 @@
 package edu.depauw.dep10;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class State {
-	private Word A;
-	private Word X;
-	private Word PC;
-	private Word SP;
-	private UByte IR1;
-	private Word IR2;
-	private UByte Flags;
-	private boolean running;
+    private Word A;
+    private Word X;
+    private Word PC;
+    private Word SP;
+    private UByte IR1;
+    private Word IR2;
+    private UByte Flags;
+    private boolean running;
 
-	// TODO initialization; loading; ...
+    private UByte[] memory = new UByte[65536];
 
-	private UByte[] memory = new UByte[65536];
+    public State() {
+        A = Word.of(0);
+        X = Word.of(0);
+        PC = Word.of(0);
+        SP = Word.of(0);
+        IR1 = UByte.of(0);
+        IR2 = Word.of(0);
+        Flags = UByte.of(0);
+        running = true;
 
-	public UByte mem1(Word addr) {
-		// TODO check permissions
-		if (addr.equals(Operation.CHARIN)) {
-			// TODO read from somewhere other than the console
-			try {
-				return new UByte(System.in.read());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+        for (int i = 0; i < memory.length; i++) {
+            memory[i] = UByte.of(0);
+        }
+    }
 
-		return memory[addr.value()];
-	}
+    public UByte mem1(Word addr) {
+        // TODO check permissions
+        if (addr.equals(Operation.CHARIN)) {
+            // TODO read from somewhere other than the console
+            try {
+                return UByte.of(System.in.read());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
 
-	public Word mem2(Word addr) {
-		var hi = mem1(addr);
-		var lo = mem1(addr.plus(1));
-		return new Word(hi.value() << 16 + lo.value());
-	}
+        return memory[addr.value()];
+    }
 
-	public void setMem1(Word addr, UByte n) {
-		// TODO check permissions
-		if (addr.equals(Operation.SHUTDOWN)) {
-			running = false;
-			System.out.flush();
-		} else if (addr.equals(Operation.CHAROUT)) {
-			// TODO write to somewhere other than the console
-			System.out.write(n.value());
-		}
+    public Word mem2(Word addr) {
+        var hi = mem1(addr);
+        var lo = mem1(addr.plus(1));
+        return Word.of((hi.value() << 8) + lo.value());
+    }
 
-		memory[addr.value()] = n;
-	}
+    public void setMem1(Word addr, UByte n) {
+        // TODO check permissions
+        if (addr.equals(Operation.SHUTDOWN)) {
+            running = false;
+            System.out.flush();
+        } else if (addr.equals(Operation.CHAROUT)) {
+            // TODO write to somewhere other than the console
+            System.out.write(n.value());
+        }
 
-	public void setMem2(Word addr, Word n) {
-		setMem1(addr, n.hi());
-		setMem1(addr.plus(1), n.lo());
-	}
+        memory[addr.value()] = n;
+    }
 
-	public Word getA() {
-		return A;
-	}
+    public void setMem2(Word addr, Word n) {
+        setMem1(addr, n.hi());
+        setMem1(addr.plus(1), n.lo());
+    }
 
-	public Word getX() {
-		return X;
-	}
+    public Word getA() {
+        return A;
+    }
 
-	public Word getPC() {
-		return PC;
-	}
+    public Word getX() {
+        return X;
+    }
 
-	public Word getSP() {
-		return SP;
-	}
+    public Word getPC() {
+        return PC;
+    }
 
-	public UByte getOpCode() {
-		return IR1;
-	}
+    public Word getSP() {
+        return SP;
+    }
 
-	public Word getOperand() {
-		return IR2;
-	}
+    public UByte getOpCode() {
+        return IR1;
+    }
 
-	public void setA(Word n) {
-		this.A = n;
-	}
+    public Word getOperand() {
+        return IR2;
+    }
 
-	public void setA(UByte n) {
-		this.A = new Word(n.value());
-	}
+    public void setA(Word n) {
+        this.A = n;
+    }
 
-	public void setX(Word n) {
-		this.X = n;
-	}
+    public void setA(UByte n) {
+        this.A = Word.of(n.value());
+    }
 
-	public void setX(UByte n) {
-		this.X = new Word(n.value());
-	}
+    public void setX(Word n) {
+        this.X = n;
+    }
 
-	public void setPC(Word n) {
-		this.PC = n;
-	}
+    public void setX(UByte n) {
+        this.X = Word.of(n.value());
+    }
 
-	public void setSP(Word n) {
-		this.SP = n;
-	}
+    public void setPC(Word n) {
+        this.PC = n;
+    }
 
-	public void setOpCode(UByte n) {
-		this.IR1 = n;
-	}
+    public void setSP(Word n) {
+        this.SP = n;
+    }
 
-	public void setOperand(Word n) {
-		this.IR2 = n;
-	}
+    public void setOpCode(UByte n) {
+        this.IR1 = n;
+    }
 
-	public boolean getN() {
-		return Flags.bit(3);
-	}
+    public void setOperand(Word n) {
+        this.IR2 = n;
+    }
 
-	public boolean getZ() {
-		return Flags.bit(2);
-	}
+    public boolean getN() {
+        return Flags.bit(3);
+    }
 
-	public boolean getV() {
-		return Flags.bit(1);
-	}
+    public boolean getZ() {
+        return Flags.bit(2);
+    }
 
-	public boolean getC() {
-		return Flags.bit(0);
-	}
+    public boolean getV() {
+        return Flags.bit(1);
+    }
 
-	public void setN(boolean b) {
-		Flags = Flags.withBit(3, b);
-	}
+    public boolean getC() {
+        return Flags.bit(0);
+    }
 
-	public void setZ(boolean b) {
-		Flags = Flags.withBit(2, b);
-	}
+    public void setN(boolean b) {
+        Flags = Flags.withBit(3, b);
+    }
 
-	public void setV(boolean b) {
-		Flags = Flags.withBit(1, b);
-	}
+    public void setZ(boolean b) {
+        Flags = Flags.withBit(2, b);
+    }
 
-	public void setC(boolean b) {
-		Flags = Flags.withBit(0, b);
-	}
+    public void setV(boolean b) {
+        Flags = Flags.withBit(1, b);
+    }
 
-	public void setFlags(UByte flags) {
-		Flags = new UByte(flags.value() & 0x0F);
-	}
+    public void setC(boolean b) {
+        Flags = Flags.withBit(0, b);
+    }
 
-	public UByte getFlags() {
-		return Flags;
-	}
+    public void setFlags(UByte flags) {
+        Flags = UByte.of(flags.value() & 0x0F);
+    }
 
-	public boolean isRunning() {
-		return running;
-	}
+    public UByte getFlags() {
+        return Flags;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void load(String param) {
+        try (Scanner scanner = new Scanner(new File(param))) {
+            int addr = 0;
+
+            while (scanner.hasNext()) {
+                String token = scanner.next();
+                if (token.startsWith("[")) {
+                    addr = Integer.parseInt(token.substring(1, 5), 16);
+                    // TODO also handle protection bits
+                } else {
+                    var value = Integer.parseInt(token, 16);
+                    memory[addr] = UByte.of(value);
+                    addr = (addr + 1) % memory.length;
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    public void dump(String memDump) {
+        // TODO Auto-generated method stub
+
+    }
 }

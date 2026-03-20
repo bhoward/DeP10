@@ -1,17 +1,21 @@
 package edu.depauw.dep10;
 
 public class Simulator {
-	// TODO loading and initialization
-	
 	private State s;
 	
 	private OpTable table;
 	
+	public Simulator(State s) {
+	    this.s = s;
+	    this.table = new OpTable();
+	}
+	
 	public void run() {
-		s.setPC(Operation.DISPATCHER_POINTER);
-		s.setSP(Operation.SYSTEM_STACK_POINTER);
+		s.setPC(s.mem2(Operation.DISPATCHER_POINTER));
+		s.setSP(s.mem2(Operation.SYSTEM_STACK_POINTER));
 		
 		while (s.isRunning()) {
+		    // TODO count number of steps
 			var pc = s.getPC();
 			var opcode = s.mem1(pc);
 			pc = pc.plus(1);

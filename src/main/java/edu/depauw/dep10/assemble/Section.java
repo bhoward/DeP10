@@ -82,13 +82,13 @@ public class Section {
                 switch (value) {
                 case Value.Block(var size): {
                     for (int i = 0; i < size; i++) {
-                        line.add(new UByte(0));
+                        line.add(UByte.of(0));
                     }
                     break;
                 }
 
                 case Value.CharLit(var c): {
-                    line.add(new UByte(c));
+                    line.add(UByte.of(c));
                     break;
                 }
 
@@ -100,7 +100,7 @@ public class Section {
 
                 case Value.StrLit(var s): {
                     for (int i = 0; i < s.length(); i++) {
-                        line.add(new UByte(s.charAt(i)));
+                        line.add(UByte.of(s.charAt(i)));
                     }
                     break;
                 }
