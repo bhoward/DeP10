@@ -1,8 +1,11 @@
 package edu.depauw.dep10;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Scanner;
 
 public class State {
@@ -16,6 +19,9 @@ public class State {
     private boolean running;
 
     private UByte[] memory = new UByte[65536];
+    
+    private InputStream in;
+    private PrintStream out;
 
     public State() {
         A = Word.of(0);
@@ -35,9 +41,8 @@ public class State {
     public UByte mem1(Word addr) {
         // TODO check permissions
         if (addr.equals(Operation.CHARIN)) {
-            // TODO read from somewhere other than the console
             try {
-                return UByte.of(System.in.read());
+                return UByte.of(in.read());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -57,13 +62,29 @@ public class State {
         // TODO check permissions
         if (addr.equals(Operation.SHUTDOWN)) {
             running = false;
-            System.out.flush();
+            shutdownIO();
         } else if (addr.equals(Operation.CHAROUT)) {
-            // TODO write to somewhere other than the console
-            System.out.write(n.value());
+            out.write(n.value());
         }
 
         memory[addr.value()] = n;
+    }
+
+    private void shutdownIO() {
+        if (in != System.in) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        
+        if (out != System.out) {
+            out.close();
+        } else {
+            out.flush();
+        }
     }
 
     public void setMem2(Word addr, Word n) {
@@ -195,5 +216,31 @@ public class State {
     public void dump(String memDump) {
         // TODO Auto-generated method stub
 
+    }
+
+    public void setInput(String consoleIn) {
+        if (consoleIn != null) {
+            try {
+                in = new FileInputStream(new File(consoleIn));
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            in = System.in;
+        }
+    }
+    
+    public void setOutput(String consoleOut) {
+        if (consoleOut != null) {
+            try {
+                out = new PrintStream(new File(consoleOut));
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            out = System.out;
+        }
     }
 }

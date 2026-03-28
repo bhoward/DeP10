@@ -155,7 +155,8 @@ public class Driver {
 	        state.load(param);
 	    }
 	    
-	    // TODO set up I/O
+	    state.setInput(run.consoleIn);
+	    state.setOutput(run.consoleOut);
 	    
 	    Simulator sim = new Simulator(state);
 	    sim.run(); // TODO use max number of steps from run.max
@@ -164,6 +165,4 @@ public class Driver {
 	        state.dump(run.memDump);
 	    }
 	}
-
-    // TODO extend simulator to load OS and user sections from object file to correct locations
 }

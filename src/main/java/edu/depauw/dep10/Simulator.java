@@ -16,6 +16,7 @@ public class Simulator {
 		
 		while (s.isRunning()) {
 		    // TODO count number of steps
+		    // TODO allow single-stepping, breakpoints, tracing, ...
 			var pc = s.getPC();
 			var opcode = s.mem1(pc);
 			pc = pc.plus(1);
