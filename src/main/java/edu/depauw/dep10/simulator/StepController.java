@@ -17,7 +17,7 @@ public class StepController extends AbstractController {
         
         step++;
         if (step >= max) {
-            s.setRunning(false);
+            s.stop();
         }
     }
 }
