@@ -65,8 +65,7 @@ public class State {
     public void setMem1(Word addr, UByte n) {
         // TODO check permissions
         if (addr.equals(Operation.SHUTDOWN)) {
-            running = false;
-            shutdownIO();
+            setRunning(false);
         } else if (addr.equals(Operation.CHAROUT)) {
             out.write(n.value());
         }
@@ -198,6 +197,7 @@ public class State {
     
     public void setRunning(boolean b) {
         running = b;
+        shutdownIO();
     }
 
     public void load(String param) {
