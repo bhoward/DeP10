@@ -3,6 +3,7 @@ package edu.depauw.dep10.simulator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -24,8 +25,9 @@ public class State {
 
     private UByte[] memory = new UByte[65536];
     
-    private InputStream in;
-    private PrintStream out;
+    private InputStream in = System.in;
+    private PrintStream out = System.out;
+    private PrintStream err = System.err;
 
     public State() {
         A = Word.of(0);
@@ -48,8 +50,7 @@ public class State {
             try {
                 return UByte.of(in.read());
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                haltWithError("Unable to read from console input");
             }
         }
 
@@ -71,23 +72,6 @@ public class State {
         }
 
         memory[addr.value()] = n;
-    }
-
-    private void shutdownIO() {
-        if (in != System.in) {
-            try {
-                in.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-        
-        if (out != System.out) {
-            out.close();
-        } else {
-            out.flush();
-        }
     }
 
     public void setMem2(Word addr, Word n) {
@@ -195,13 +179,22 @@ public class State {
         return running;
     }
     
-    public void stop() {
+    public void pause() {
         running = false;
+        flushIO();
+    }
+    
+    public void stop() {
+        pause();
         shutdownIO();
     }
-
+    
+    public void resume() {
+        running = true;
+    }
+    
     public void load(String param) {
-        try (Scanner scanner = new Scanner(new File(param))) {
+        try (var scanner = new Scanner(new File(param))) {
             int addr = 0;
 
             while (scanner.hasNext()) {
@@ -216,14 +209,51 @@ public class State {
                 }
             }
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            haltWithError("Unable to load " + param);
         }
     }
 
     public void dump(String memDump) {
-        // TODO Auto-generated method stub
+        try (var dumpOut = new FileOutputStream(memDump)) {
+            var mem = new byte[memory.length];
+            for (int i = 0; i < memory.length; i++) {
+                mem[i] = (byte) memory[i].value();
+            }
+            dumpOut.write(mem);
+            dumpOut.close();
+        } catch (IOException e) {
+            err.println("Error writing memory dump: " + e.getMessage());
+        }
+    }
 
+    private void haltWithError(String message) {
+        err.println(message);
+        stop();
+    }
+    
+    private void flushIO() {
+        out.flush();
+        if (err != System.err) {
+            err.flush(); // System.err is autoflushing
+        }
+    }
+
+    private void shutdownIO() {
+        if (in != System.in) {
+            try {
+                in.close();
+            } catch (IOException e) {
+                err.println("Unable to close console input");
+            }
+        }
+        
+        if (out != System.out) {
+            out.close();
+        }
+        
+        if (err != System.err) {
+            err.close();
+        }
     }
 
     public void setInput(String consoleIn) {
@@ -231,8 +261,7 @@ public class State {
             try {
                 in = new FileInputStream(new File(consoleIn));
             } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                haltWithError("Unable to open console input: " + consoleIn);
             }
         } else {
             in = System.in;
@@ -244,11 +273,22 @@ public class State {
             try {
                 out = new PrintStream(new File(consoleOut));
             } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                haltWithError("Unable to open console output: " + consoleOut);
             }
         } else {
             out = System.out;
+        }
+    }
+    
+    public void setError(String errOut) {
+        if (errOut != null) {
+            try {
+                err = new PrintStream(new File(errOut));
+            } catch (FileNotFoundException e) {
+                haltWithError("Unable to open error output: " + errOut);
+            }
+        } else {
+            err = System.err;
         }
     }
 }
