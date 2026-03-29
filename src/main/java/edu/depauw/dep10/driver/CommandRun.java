@@ -27,6 +27,6 @@ public class CommandRun {
 	@Parameter(names = {"-d", "--mem-dump"}, description = "Name of memory dump file.", order = 5)
 	public String memDump = null;
 	
-	@Parameter(names = {"-m", "--max"}, description = "Maximum number of instructions.", order = 6)
-	public int max = 125000; // TODO unlimited?
+	@Parameter(names = {"-m", "--max"}, description = "Maximum number of instructions (0 for unlimited).", order = 6)
+	public int max = 125000;
 }

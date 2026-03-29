@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Properties;
 
 import com.beust.jcommander.JCommander;
 
@@ -12,6 +13,7 @@ import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
 import edu.depauw.dep10.simulator.Controller;
+import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepController;
@@ -22,6 +24,8 @@ public class Driver {
 	private static final String BARE_METAL_OS = "/pep10baremetal.pep";
 	private static final String FULL_OS = "/pep10os.pep";
 	private static final String FORTH_OS = "/assembler.pep";
+	private static final String PROPERTIES = "project.properties";
+	private static final String VERSION_PROP = "version";
 
     public static void main(String[] argv) throws IOException {
 		ErrorLog log = new ErrorLog();
@@ -38,6 +42,10 @@ public class Driver {
 
 		if (init.showHelp) {
 			jc.usage();
+		} else if (init.showVersion) {
+		    var properties = new Properties();
+		    properties.load(Driver.class.getClassLoader().getResourceAsStream(PROPERTIES));
+		    System.out.println(properties.getProperty(VERSION_PROP));
 		} else {
 			switch (jc.getParsedCommand()) {
 			case "asm":
@@ -161,7 +169,12 @@ public class Driver {
 	    state.setOutput(run.consoleOut);
 	    
 	    Simulator sim = new Simulator(state);
-	    Controller control = new StepController(run.max);
+	    
+	    Controller control = new PlainController();
+	    if (run.max > 0) {
+	        control = new StepController(control, run.max);
+	    }
+	    
 	    // TODO support a tracing controller?
 	    // TODO for interactive use, also support breakpoints and single-stepping
 	    sim.run(control);
