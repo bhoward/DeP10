@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator;
 
-public interface Controller {
+import edu.depauw.dep10.ModeOperation;
 
+public interface Controller {
+    void perform(ModeOperation op, State s);
 }

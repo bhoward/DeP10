@@ -195,6 +195,10 @@ public class State {
     public boolean isRunning() {
         return running;
     }
+    
+    public void setRunning(boolean b) {
+        running = b;
+    }
 
     public void load(String param) {
         try (Scanner scanner = new Scanner(new File(param))) {

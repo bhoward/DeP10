@@ -1,10 +1,7 @@
 package edu.depauw.dep10.simulator;
 
-import edu.depauw.dep10.ModeOperation;
 import edu.depauw.dep10.OpTable;
 import edu.depauw.dep10.Operation;
-import edu.depauw.dep10.util.UByte;
-import edu.depauw.dep10.util.Word;
 
 public class Simulator {
 	private State s;
@@ -14,15 +11,17 @@ public class Simulator {
 	public Simulator(State s) {
 	    this.s = s;
 	    this.table = new OpTable();
+	    
+        initialize();
 	}
+
+    private void initialize() {
+        s.setPC(s.mem2(Operation.DISPATCHER_POINTER));
+        s.setSP(s.mem2(Operation.SYSTEM_STACK_POINTER));
+    }
 	
 	public void run(Controller control) {
-		s.setPC(s.mem2(Operation.DISPATCHER_POINTER));
-		s.setSP(s.mem2(Operation.SYSTEM_STACK_POINTER));
-		
 		while (s.isRunning()) {
-		    // TODO count number of steps
-		    // TODO allow single-stepping, breakpoints, tracing, ...
 			var pc = s.getPC();
 			var opcode = s.mem1(pc);
 			pc = pc.plus(1);
@@ -36,7 +35,7 @@ public class Simulator {
 			}
 			
 			s.setPC(pc);
-			op.apply(s);
+			control.perform(op, s);
 		}
 	}
 }
