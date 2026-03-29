@@ -7,8 +7,8 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
-import edu.depauw.dep10.UByte;
 import edu.depauw.dep10.preprocess.Line;
+import edu.depauw.dep10.util.UByte;
 
 public class Section {
 	private static final int BYTES_PER_OBJECT_FILE_LINE = 8;

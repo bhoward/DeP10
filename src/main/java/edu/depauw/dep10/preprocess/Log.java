@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 
-import edu.depauw.dep10.UByte;
+import edu.depauw.dep10.util.UByte;
 
 public class Log {
     private static final int INITIAL_BYTES = 3;

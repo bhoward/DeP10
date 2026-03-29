@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.util;
 
 import java.util.Objects;
 

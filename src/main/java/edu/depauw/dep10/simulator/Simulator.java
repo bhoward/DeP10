@@ -1,4 +1,10 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.simulator;
+
+import edu.depauw.dep10.ModeOperation;
+import edu.depauw.dep10.OpTable;
+import edu.depauw.dep10.Operation;
+import edu.depauw.dep10.util.UByte;
+import edu.depauw.dep10.util.Word;
 
 public class Simulator {
 	private State s;
@@ -10,7 +16,7 @@ public class Simulator {
 	    this.table = new OpTable();
 	}
 	
-	public void run() {
+	public void run(Controller control) {
 		s.setPC(s.mem2(Operation.DISPATCHER_POINTER));
 		s.setSP(s.mem2(Operation.SYSTEM_STACK_POINTER));
 		

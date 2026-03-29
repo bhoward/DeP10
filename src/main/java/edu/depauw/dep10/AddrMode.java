@@ -1,5 +1,9 @@
 package edu.depauw.dep10;
 
+import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.util.UByte;
+import edu.depauw.dep10.util.Word;
+
 public abstract class AddrMode {
 	private String modeString;
 	

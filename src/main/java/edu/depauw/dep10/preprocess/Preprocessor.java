@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.depauw.dep10.Pair;
 import edu.depauw.dep10.assemble.Value;
 import edu.depauw.dep10.driver.ErrorLog;
+import edu.depauw.dep10.util.Pair;
 
 public class Preprocessor {
     private ErrorLog log;

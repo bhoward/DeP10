@@ -1,5 +1,9 @@
 package edu.depauw.dep10;
 
+import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.util.UByte;
+import edu.depauw.dep10.util.Word;
+
 public abstract class Operation {
 	public static final Word TRAP_HANDLER_POINTER = Word.of(0xFFF7);
 	public static final Word DISPATCHER_POINTER = Word.of(0xFFF9);

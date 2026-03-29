@@ -1,6 +1,6 @@
 package edu.depauw.dep10.assemble;
 
-import edu.depauw.dep10.Word;
+import edu.depauw.dep10.util.Word;
 
 public interface Value {
 	static Value fromString(String s) {

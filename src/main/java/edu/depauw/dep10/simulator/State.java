@@ -1,4 +1,4 @@
-package edu.depauw.dep10;
+package edu.depauw.dep10.simulator;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.Scanner;
+
+import edu.depauw.dep10.Operation;
+import edu.depauw.dep10.util.UByte;
+import edu.depauw.dep10.util.Word;
 
 public class State {
     private Word A;

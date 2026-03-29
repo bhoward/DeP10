@@ -3,6 +3,9 @@ package edu.depauw.dep10;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.depauw.dep10.util.Pair;
+import edu.depauw.dep10.util.UByte;
+
 public class OpTable {
 	private ModeOperation[] ops;
 	private Map<Pair<String, String>, Integer> codes;

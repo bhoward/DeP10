@@ -7,12 +7,14 @@ import java.io.PrintWriter;
 
 import com.beust.jcommander.JCommander;
 
-import edu.depauw.dep10.Simulator;
-import edu.depauw.dep10.State;
 import edu.depauw.dep10.assemble.Assembler;
 import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
+import edu.depauw.dep10.simulator.Controller;
+import edu.depauw.dep10.simulator.Simulator;
+import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.simulator.StepController;
 
 public class Driver {
 	private static final String STD_MACROS = "/stdmacro.pep";
@@ -159,7 +161,10 @@ public class Driver {
 	    state.setOutput(run.consoleOut);
 	    
 	    Simulator sim = new Simulator(state);
-	    sim.run(); // TODO use max number of steps from run.max
+	    Controller control = new StepController(run.max);
+	    // TODO support a tracing controller?
+	    // TODO for interactive use, also support breakpoints and single-stepping
+	    sim.run(control);
 	    
 	    if (run.memDump != null) {
 	        state.dump(run.memDump);
