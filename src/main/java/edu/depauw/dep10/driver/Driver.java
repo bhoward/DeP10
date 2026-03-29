@@ -1,8 +1,11 @@
 package edu.depauw.dep10.driver;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Properties;
 
@@ -13,10 +16,12 @@ import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
 import edu.depauw.dep10.simulator.Controller;
+import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepController;
+import edu.depauw.dep10.simulator.TracingController;
 
 public class Driver {
 	private static final String STD_MACROS = "/stdmacro.pep";
@@ -159,7 +164,7 @@ public class Driver {
 	}
 
     private static void doRun(CommandRun run, ErrorLog log) {
-	    State state = new State();
+	    State state = (run.trace == null) ? new State() : new DebugState();
 	    
 	    for (var param : run.parameters) {
 	        state.load(param);
@@ -176,12 +181,27 @@ public class Driver {
 	        control = new StepController(control, run.max);
 	    }
 	    
-	    // TODO support a tracing controller?
+	    TracingController tc = null;
+	    if (run.trace != null) {
+	        tc = new TracingController(control);
+	        control = tc;
+	    }
+	    
 	    // TODO for interactive use, also support breakpoints and single-stepping
 	    sim.run(control);
 	    
 	    if (run.memDump != null) {
 	        state.dump(run.memDump);
+	    }
+	    
+	    if (run.trace != null) {
+	        try {
+	            var output = new PrintStream(new File(run.trace));
+	            tc.printTrace(output);
+	            output.close();
+	        } catch (FileNotFoundException e) {
+	            System.err.println("Unable to open tracing output: " + run.trace);
+	        }
 	    }
 	}
 }

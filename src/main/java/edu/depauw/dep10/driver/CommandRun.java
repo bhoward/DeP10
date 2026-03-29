@@ -30,6 +30,9 @@ public class CommandRun {
 	@Parameter(names = {"-d", "--mem-dump"}, description = "Name of memory dump file.", order = 6)
 	public String memDump = null;
 	
-	@Parameter(names = {"-m", "--max"}, description = "Maximum number of instructions (0 for unlimited).", order = 7)
+	@Parameter(names = {"-t", "--trace"}, description = "Tracing output.", order = 7)
+	public String trace = null;
+	
+	@Parameter(names = {"-m", "--max"}, description = "Maximum number of instructions (0 for unlimited).", order = 8)
 	public int max = 125000;
 }

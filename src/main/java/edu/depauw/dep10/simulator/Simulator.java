@@ -24,18 +24,18 @@ public class Simulator {
 		while (s.isRunning()) {
 			var pc = s.getPC();
 			var opcode = s.mem1(pc);
-			pc = pc.plus(1);
+			var nextpc = pc.plus(1);
 			s.setOpCode(opcode);
 			
 			var op = table.get(opcode);
 			if (op.hasOperand()) {
-				var operand = s.mem2(pc);
-				pc = pc.plus(2);
+				var operand = s.mem2(nextpc);
+				nextpc = nextpc.plus(2);
 				s.setOperand(operand);
 			}
 			
-			s.setPC(pc);
-			control.perform(op, s);
+			s.setPC(nextpc);
+			control.perform(op, s, pc);
 		}
 	}
 }

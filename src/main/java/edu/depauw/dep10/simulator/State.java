@@ -219,8 +219,8 @@ public class State {
             for (int i = 0; i < memory.length; i++) {
                 mem[i] = (byte) memory[i].value();
             }
+            
             dumpOut.write(mem);
-            dumpOut.close();
         } catch (IOException e) {
             err.println("Error writing memory dump: " + e.getMessage());
         }

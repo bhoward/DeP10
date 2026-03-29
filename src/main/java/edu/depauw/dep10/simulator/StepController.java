@@ -1,6 +1,7 @@
 package edu.depauw.dep10.simulator;
 
 import edu.depauw.dep10.ModeOperation;
+import edu.depauw.dep10.util.Word;
 
 public class StepController implements Controller {
     private Controller parent;
@@ -13,8 +14,9 @@ public class StepController implements Controller {
         this.step = 0;
     }
 
-    public void perform(ModeOperation op, State s) {
-        parent.perform(op, s);
+    @Override
+    public void perform(ModeOperation op, State s, Word pc) {
+        parent.perform(op, s, pc);
         
         step++;
         if (step >= max) {
