@@ -45,13 +45,13 @@ public class Driver {
 				.build();
 		jc.parse(argv);
 
-		if (init.showHelp) {
-			jc.usage();
-		} else if (init.showVersion) {
+		if (init.showVersion) {
 		    var properties = new Properties();
 		    properties.load(Driver.class.getClassLoader().getResourceAsStream(PROPERTIES));
 		    System.out.println(properties.getProperty(VERSION_PROP));
-		} else {
+		} else if (init.showHelp || jc.getParsedCommand() == null) {
+            jc.usage();
+        } else {
 			switch (jc.getParsedCommand()) {
 			case "asm":
 				if (asm.showHelp) {
@@ -67,6 +67,9 @@ public class Driver {
 					doRun(run, log);
 				}
 				break;
+			default:
+			    jc.usage();
+			    break;
 			}
 		}
 	}
