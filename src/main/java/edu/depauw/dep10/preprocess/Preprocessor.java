@@ -24,7 +24,7 @@ public class Preprocessor {
 		while (sources.hasNext()) {
 			var line = sources.next();
 			switch (line) {
-			case Line(var _, var command, var args, var _, var _):
+			case Line(var label, var command, var args, var comment, var log2):
 				if (command.equalsIgnoreCase(".INCLUDE")) {
 					if (args.size() == 1 && args.get(0) instanceof Value.StrLit s) {
 						sources.pushFile(s.value(), log);
@@ -75,7 +75,7 @@ public class Preprocessor {
 	    while (sources.hasNext()) {
 	        var line = sources.next();
 	        switch (line) {
-            case Line(var _, var command, var args, var _, var _):
+            case Line(var label, var command, var args, var comment, var log):
                 if (command.startsWith("@")) {
                   line.setComment();
                   

@@ -1,6 +1,12 @@
 # DeP10
 Exploring extensions of Pep/10 to support OS and Compilers courses at DePauw
 
+## Building
+
+Uses JDK 21. Update the version in `pom.xml`, and then with Maven, run `mvn package` to produce
+`dep10-<VERSION>-jar-with-dependencies.jar` in the `target` directory. Rename this `dep10.jar` to match
+usage below.
+
 ## Running
 
 Given the following source in `test.pep`:

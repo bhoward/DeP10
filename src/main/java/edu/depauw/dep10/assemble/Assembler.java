@@ -23,7 +23,7 @@ public class Assembler {
 
             try {
                 switch (line) {
-                case Line(var label, var command, var args, var _, var _):
+                case Line(var label, var command, var args, var comment, var log):
                     // Handle .EQUATE separately, because its label is different
                     if (command.equalsIgnoreCase(".EQUATE")) {
                         equate(label, args);

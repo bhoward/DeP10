@@ -26,7 +26,7 @@ public record Macro(String name, int numArgs, List<Line> body) {
 		for (var line : body) {
 			try {
                 switch (line) {
-                case Line(var label, var command, var args, var comment, var _):
+                case Line(var label, var command, var args, var comment, var log):
                 	label = substString(label, argMap);
 
                 	args = args.stream().map(arg -> substValue(arg, argMap)).toList();
