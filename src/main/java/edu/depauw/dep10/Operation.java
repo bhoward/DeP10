@@ -823,4 +823,37 @@ public abstract class Operation {
 			s.setSP(sp2);
 		}
 	};
+
+	public static final Operation MUL = new AllModeWordOperation("MUL") {
+		public void exec(State s, Word operand) {
+			// Jess notes
+			// val in A is multiplied by operand and stored in A
+
+			// N: set if product is <0, cleared otherwise
+			// s.setN();
+
+			// Z: set if product is 0, cleared otherwise
+			// s.setZ();
+			
+			// V: overflow value needs to be cleared, so don't set at all (?)
+			// s.setV();
+
+			// C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
+			// s.setC();
+		}
+	};
+
+	public static final Operation DIV = new AllModeWordOperation("DIV"){
+		public void exec(State s, Word operand) {
+			// Jess Notes
+			// A is quotient, X is remainder
+
+			// flags
+			// N: if quotient <0, cleared otherwise
+			// s.setN(s.getA() == 0)
+			// Z: if quotient <0, cleared otherwise
+			// V: if source = 0 or...?
+			// C: set if divide 0 attempted, clear otherwise
+		}
+	};
 }
