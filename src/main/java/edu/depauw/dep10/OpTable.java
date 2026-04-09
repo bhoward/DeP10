@@ -75,6 +75,9 @@ public class OpTable {
 		Operation.STWX.install(this, 232);
 		Operation.STBA.install(this, 240);
 		Operation.STBX.install(this, 248);
+
+		Operation.MUL.install(this, 256);
+		Operation.DIV.install(this, 264);
 	}
 	
 	public ModeOperation get(UByte n) {

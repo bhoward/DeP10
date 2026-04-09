@@ -826,19 +826,17 @@ public abstract class Operation {
 
 	public static final Operation MUL = new AllModeWordOperation("MUL") {
 		public void exec(State s, Word operand) {
-			// val in A is multiplied by operand and stored in A
-			var a = s.getA();
-			var op = operand.isNegative();
-			var product = 0; // how to multiply a by op? using 0 as placeholder, 
-			// considering a.multiply(operand.negate())
-			var low_16_bits = Word.of(0);
-       		var high_16_bits = Word.of(0);
+			var a = s.getA().value();
+			var op = operand.value();
+			var product = a * op;
+			var low_bits = Word.of(product);
+       		var high_bits = Word.of(product >> 16); // check
 
-			s.setA(low_16_bits);
-			s.setX(high_16_bits);
+			s.setA(low_bits);
+			s.setX(high_bits);
 
 			// N: set if product is <0, cleared otherwise
-			s.setN(low_16_bits.isNegative());
+			s.setN(low_bits.isNegative());
 
 			// Z: set if product is 0, cleared otherwise
 			s.setZ(product == 0);
@@ -854,16 +852,21 @@ public abstract class Operation {
 	public static final Operation DIV = new AllModeWordOperation("DIV"){
 		public void exec(State s, Word operand) {
 			// Jess Notes
-			Word divisor = operand;
+			var divisor = operand.value();
+			if (divisor == 0) {
+            	s.setC(true);
+            	return;
+        	}
 			// A is quotient, X is remainder
-			var a = s.getA();
-			var x = s.getX();
 			// will ask for clarification during meeting on initializing vars
-			int dividend; 
-			int quotient = 0; // temp 0 
-			int remainder;
 
-			
+			var high_bits = s.getA().value();
+			var low_bits = s.getX().value();
+			int dividend = (high_bits << 16) | low_bits;
+			int quotient  = dividend / divisor;
+        	int remainder = dividend % divisor;
+			s.setA(Word.of(quotient));
+			s.setX(Word.of(remainder));
 
 			// flags
 			// N: if quotient <0, cleared otherwise
