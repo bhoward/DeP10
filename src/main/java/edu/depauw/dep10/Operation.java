@@ -826,17 +826,25 @@ public abstract class Operation {
 
 	public static final Operation MUL = new AllModeWordOperation("MUL") {
 		public void exec(State s, Word operand) {
-			// Jess notes
 			// val in A is multiplied by operand and stored in A
+			var a = s.getA();
+			var op = operand.isNegative();
+			var product = 0; // how to multiply a by op? using 0 as placeholder, 
+			// considering a.multiply(operand.negate())
+			var low_16_bits = Word.of(0);
+       		var high_16_bits = Word.of(0);
+
+			s.setA(low_16_bits);
+			s.setX(high_16_bits);
 
 			// N: set if product is <0, cleared otherwise
-			// s.setN();
+			s.setN(low_16_bits.isNegative());
 
 			// Z: set if product is 0, cleared otherwise
-			// s.setZ();
+			s.setZ(product == 0);
 			
 			// V: overflow value needs to be cleared, so don't set at all (?)
-			// s.setV();
+			//s.setV(high_16_bits.toSigned() != 0 && high_16_bits.toSigned() != -1);
 
 			// C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
 			// s.setC();
@@ -846,14 +854,25 @@ public abstract class Operation {
 	public static final Operation DIV = new AllModeWordOperation("DIV"){
 		public void exec(State s, Word operand) {
 			// Jess Notes
+			Word divisor = operand;
 			// A is quotient, X is remainder
+			var a = s.getA();
+			var x = s.getX();
+			// will ask for clarification during meeting on initializing vars
+			int dividend; 
+			int quotient = 0; // temp 0 
+			int remainder;
+
+			
 
 			// flags
 			// N: if quotient <0, cleared otherwise
 			// s.setN(s.getA() == 0)
 			// Z: if quotient <0, cleared otherwise
+			s.setZ(quotient == 0);
 			// V: if source = 0 or...?
 			// C: set if divide 0 attempted, clear otherwise
+			s.setC(false);
 		}
 	};
 }
