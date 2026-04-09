@@ -23,7 +23,8 @@ public class OpTable {
 		Operation.MOVASP.install(this, 6);
 		Operation.NOP.install(this, 7);
 		
-		addUnused(8, 16);
+		Operation.MUL.install(this, 8);
+		Operation.DIV.install(this, 16);
 		
 		Operation.NEGA.install(this, 24);
 		Operation.NEGX.install(this, 25);
@@ -75,9 +76,6 @@ public class OpTable {
 		Operation.STWX.install(this, 232);
 		Operation.STBA.install(this, 240);
 		Operation.STBX.install(this, 248);
-
-		Operation.MUL.install(this, 256);
-		Operation.DIV.install(this, 264);
 	}
 	
 	public ModeOperation get(UByte n) {

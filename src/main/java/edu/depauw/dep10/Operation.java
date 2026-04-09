@@ -830,22 +830,22 @@ public abstract class Operation {
 			var op = operand.value();
 			var product = a * op;
 			var low_bits = Word.of(product);
-       		var high_bits = Word.of(product >> 16); // check
+       		var high_bits = Word.of(product >>> 16); 
 
 			s.setA(low_bits);
 			s.setX(high_bits);
 
 			// N: set if product is <0, cleared otherwise
-			s.setN(low_bits.isNegative());
+			s.setN(product < 0);
 
 			// Z: set if product is 0, cleared otherwise
 			s.setZ(product == 0);
 			
 			// V: overflow value needs to be cleared, so don't set at all (?)
-			//s.setV(high_16_bits.toSigned() != 0 && high_16_bits.toSigned() != -1);
+			s.setV(product == 0);
 
 			// C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
-			// s.setC();
+			s.setC(low_bits.value() != product);
 		}
 	};
 
@@ -855,13 +855,14 @@ public abstract class Operation {
 			var divisor = operand.value();
 			if (divisor == 0) {
             	s.setC(true);
+				s.setV(true);
             	return;
         	}
+			// X is high_bits, A is low_bits
 			// A is quotient, X is remainder
-			// will ask for clarification during meeting on initializing vars
 
-			var high_bits = s.getA().value();
-			var low_bits = s.getX().value();
+			var high_bits = s.getX().value();
+			var low_bits = s.getA().value();
 			int dividend = (high_bits << 16) | low_bits;
 			int quotient  = dividend / divisor;
         	int remainder = dividend % divisor;
@@ -870,10 +871,11 @@ public abstract class Operation {
 
 			// flags
 			// N: if quotient <0, cleared otherwise
-			// s.setN(s.getA() == 0)
-			// Z: if quotient <0, cleared otherwise
+			s.setN(quotient < 0);
+			// Z: if quotient is 0, cleared otherwise
 			s.setZ(quotient == 0);
 			// V: if source = 0 or...?
+			s.setV(s.getA().value() != quotient);
 			// C: set if divide 0 attempted, clear otherwise
 			s.setC(false);
 		}
