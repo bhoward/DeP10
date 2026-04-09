@@ -826,34 +826,58 @@ public abstract class Operation {
 
 	public static final Operation MUL = new AllModeWordOperation("MUL") {
 		public void exec(State s, Word operand) {
-			// Jess notes
-			// val in A is multiplied by operand and stored in A
+			var a = s.getA().value();
+			var op = operand.value();
+			var product = a * op;
+			var low_bits = Word.of(product);
+       		var high_bits = Word.of(product >>> 16); 
+
+			s.setA(low_bits);
+			s.setX(high_bits);
 
 			// N: set if product is <0, cleared otherwise
-			// s.setN();
+			s.setN(product < 0);
 
 			// Z: set if product is 0, cleared otherwise
-			// s.setZ();
+			s.setZ(product == 0);
 			
 			// V: overflow value needs to be cleared, so don't set at all (?)
-			// s.setV();
+			s.setV(product == 0);
 
 			// C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
-			// s.setC();
+			s.setC(low_bits.value() != product);
 		}
 	};
 
 	public static final Operation DIV = new AllModeWordOperation("DIV"){
 		public void exec(State s, Word operand) {
 			// Jess Notes
+			var divisor = operand.value();
+			if (divisor == 0) {
+            	s.setC(true);
+				s.setV(true);
+            	return;
+        	}
+			// X is high_bits, A is low_bits
 			// A is quotient, X is remainder
+
+			var high_bits = s.getX().value();
+			var low_bits = s.getA().value();
+			int dividend = (high_bits << 16) | low_bits;
+			int quotient  = dividend / divisor;
+        	int remainder = dividend % divisor;
+			s.setA(Word.of(quotient));
+			s.setX(Word.of(remainder));
 
 			// flags
 			// N: if quotient <0, cleared otherwise
-			// s.setN(s.getA() == 0)
-			// Z: if quotient <0, cleared otherwise
+			s.setN(quotient < 0);
+			// Z: if quotient is 0, cleared otherwise
+			s.setZ(quotient == 0);
 			// V: if source = 0 or...?
+			s.setV(s.getA().value() != quotient);
 			// C: set if divide 0 attempted, clear otherwise
+			s.setC(false);
 		}
 	};
 }

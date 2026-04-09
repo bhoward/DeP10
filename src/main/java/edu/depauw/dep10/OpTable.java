@@ -23,7 +23,8 @@ public class OpTable {
 		Operation.MOVASP.install(this, 6);
 		Operation.NOP.install(this, 7);
 		
-		addUnused(8, 16);
+		Operation.MUL.install(this, 8);
+		Operation.DIV.install(this, 16);
 		
 		Operation.NEGA.install(this, 24);
 		Operation.NEGX.install(this, 25);
