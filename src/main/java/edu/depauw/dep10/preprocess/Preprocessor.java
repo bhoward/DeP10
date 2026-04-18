@@ -1,5 +1,6 @@
 package edu.depauw.dep10.preprocess;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,4 +108,10 @@ public class Preprocessor {
 		Macro macro = macros.get(new Pair<>(name.toUpperCase(), numArgs));
 		return macro;
 	}
+
+    public void printMacros(PrintWriter out) {
+        for (var macro : macros.values()) {
+            out.print(macro);
+        }
+    }
 }

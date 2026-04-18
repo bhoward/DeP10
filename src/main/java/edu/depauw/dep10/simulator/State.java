@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.Scanner;
 
 import edu.depauw.dep10.Operation;
@@ -193,23 +194,40 @@ public class State {
         running = true;
     }
     
-    public void load(String param) {
+    public void loadFile(String param) {
         try (var scanner = new Scanner(new File(param))) {
-            int addr = 0;
-
-            while (scanner.hasNext()) {
-                String token = scanner.next();
-                if (token.startsWith("[")) {
-                    addr = Integer.parseInt(token.substring(1, 5), 16);
-                    // TODO also handle protection bits
-                } else {
-                    var value = Integer.parseInt(token, 16);
-                    memory[addr] = UByte.of(value);
-                    addr = (addr + 1) % memory.length;
-                }
-            }
+            load(scanner);
         } catch (FileNotFoundException e) {
             haltWithError("Unable to load " + param);
+        }
+    }
+    
+    public void loadResource(String resource) {
+        URL url = getClass().getResource(resource);
+        if (url == null) {
+            haltWithError("Unable to open resource " + resource);
+        }
+
+        try (var scanner = new Scanner(url.openStream())) {
+            load(scanner);
+        } catch (IOException e) {
+            haltWithError("Unable to open resource " + resource);
+        }
+    }
+
+    private void load(Scanner scanner) {
+        int addr = 0;
+
+        while (scanner.hasNext()) {
+            String token = scanner.next();
+            if (token.startsWith("[")) {
+                addr = Integer.parseInt(token.substring(1, 5), 16);
+                // TODO also handle protection bits
+            } else {
+                var value = Integer.parseInt(token, 16);
+                memory[addr] = UByte.of(value);
+                addr = (addr + 1) % memory.length;
+            }
         }
     }
 

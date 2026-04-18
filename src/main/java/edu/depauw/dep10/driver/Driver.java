@@ -170,7 +170,7 @@ public class Driver {
 	    State state = (run.trace == null) ? new State() : new DebugState();
 	    
 	    for (var param : run.parameters) {
-	        state.load(param);
+	        state.loadFile(param);
 	    }
 	    
 	    state.setInput(run.consoleIn);

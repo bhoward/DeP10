@@ -36,6 +36,6 @@ public class CommandAsm {
     @Parameter(names = "-x", description = "Name of export file.", order = 8)
     public String exportFile = null;
 
-    @Parameter(names = {"--os-listing"}, description = "Include OS in listing.", order = 7)
+    @Parameter(names = {"--os-listing"}, description = "Include OS in listing.", order = 9) // TODO not used in Driver2
     public boolean osListing = false;
 }

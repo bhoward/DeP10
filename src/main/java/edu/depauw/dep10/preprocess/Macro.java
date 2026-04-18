@@ -40,6 +40,28 @@ public record Macro(String name, int numArgs, List<Line> body) {
 
 		return result;
 	}
+	
+	public String toString() {
+	    StringBuilder builder = new StringBuilder();
+	    builder.append(".DEFMACRO " + name + ", " + numArgs + "\n");
+	    for (var line : body) {
+	        builder.append((line.label().isEmpty()) ? "" : line.label() + ": ");
+	        builder.append(line.command().toUpperCase());
+	        if (line.args() != null && line.args().size() > 0) {
+	            var args = line.args();
+    	        builder.append(" ");
+	            builder.append(args.get(0));
+	            for (int i = 1; i < args.size(); i++) {
+	                builder.append(',');
+	                builder.append(args.get(i));
+	            }
+	        }
+	        builder.append(line.comment());
+	        builder.append("\n");
+	    }
+	    builder.append(".ENDMACRO\n");
+	    return builder.toString();
+	}
 
 	private Value substValue(Value v, Map<String, Value> argMap) {
 		switch (v) {

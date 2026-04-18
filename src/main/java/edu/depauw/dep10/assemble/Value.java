@@ -63,6 +63,11 @@ public interface Value {
 		public Word evaluate(Section s) {
 		    return Word.of(section.getOrigin() + value);
 		}
+		
+		@Override
+		public String toString() {
+		    return Integer.toString(section.getOrigin() + value);
+		}
 	}
 
 	static record StrLit(String value) implements Value {

@@ -128,4 +128,10 @@ public class Result {
             section.printErrors(out);
         }
     }
+
+    public void printHeader(PrintWriter out) {
+        for (var entry : globals.entrySet()) {
+            out.println(entry.getKey() + ": .EQUATE " + entry.getValue());
+        }
+    }
 }
