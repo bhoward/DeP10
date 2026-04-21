@@ -60,5 +60,20 @@
 			<artifactId>jcommander</artifactId>
 			<version>3.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fifesoft</groupId>
+			<artifactId>rsyntaxtextarea</artifactId>
+			<version>3.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fifesoft</groupId>
+			<artifactId>rstaui</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>3.7.1</version>
+		</dependency>
 	</dependencies>
 </project>
