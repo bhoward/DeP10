@@ -2,7 +2,6 @@ package edu.depauw.dep10.preprocess;
 
 import java.io.BufferedReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -64,28 +63,5 @@ public class Parser {
 		var s2 = s + ",";
 		var m = ARG.matcher(s2);
 		return m.results().map(result -> Value.fromString(s2.substring(result.start(), result.end() - 1).trim())).toList();
-	}
-
-	public static void main(String[] args) {
-		String test = """
-				foo:.word 1
-				 bar: .byte 2
-					baz:	.ascii "hello\\b\\f\\n\\r\\t\\v\\"\\'\\\\\\x2A\\0"
-					.block 42 ; that's the answer!
-				RET ;no args
-				;no command
-				bat: ; only a symbol; nothing more
-				"Hello!"
-				
-				*ERROR*
-				@demo this, is ,'a',"test of args"	,	42, -17, x37, 0xDEAD , '\\'', '\\X42'
-				$1: foo $2, _bar, _$3
-				_$4: baz
-				""";
-		System.out.println(test);
-
-		for (var line : parse(new StringReader(test))) {
-			System.out.println(line);
-		}
 	}
 }

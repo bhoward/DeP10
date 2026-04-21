@@ -102,14 +102,4 @@ public record Macro(String name, int numArgs, List<Line> body) {
 	private static Value genSym(String s) {
 		return new Value.Symbol("_" + (sequenceNumber++));
 	}
-	
-	public static void main(String[] args) {
-		List<Line> body = List.of(
-				Line.of("", "LINE1", List.of(new Value.Symbol("$1"), new Value.Symbol("i")), ""),
-				Line.of("$3", "LINE2", List.of(new Value.Symbol("$2")), ""),
-				Line.of("", "LINE3", List.of(new Value.Symbol("$3")), "")
-				);
-		Macro test = new Macro("TEST", 2, body);
-		System.out.println(test.instantiate(List.of(new Value.Number(42))));
-	}
 }
