@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.Scanner;
@@ -292,6 +293,10 @@ public class State {
         }
     }
     
+    public void setInput(InputStream is) {
+        in = is;
+    }
+    
     public void setOutput(String consoleOut) {
         if (consoleOut != null) {
             try {
@@ -304,6 +309,10 @@ public class State {
         }
     }
     
+    public void setOutput(OutputStream os) {
+        out = new PrintStream(os);
+    }
+    
     public void setError(String errOut) {
         if (errOut != null) {
             try {
@@ -314,5 +323,9 @@ public class State {
         } else {
             err = System.err;
         }
+    }
+    
+    public void setError(OutputStream os) {
+        err = new PrintStream(os);
     }
 }

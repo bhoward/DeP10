@@ -315,16 +315,16 @@ public class SourcePanel extends JPanel implements SearchListener {
         };
     }
 
-    public Action getRunAction(OutputPanel object) {
+    public Action getRunAction(OutputPanel object, TerminalPanel terminal) {
     	return new AbstractAction("Run") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				State state = new State();
 				state.loadString(object.getContent());
 				state.loadResource(Driver.FULL_OS_OBJECT);
-				state.setInput(null); // TODO
-				state.setOutput(null); // TODO
-				state.setError(null); // TODO
+				state.setInput(terminal.getInputStream());
+				state.setOutput(terminal.getOutputStream());
+				state.setError(terminal.getOutputStream());
 				
 				Simulator sim = new Simulator(state);
 				

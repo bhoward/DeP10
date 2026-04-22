@@ -17,6 +17,7 @@ public class MainFrame extends JFrame {
     private SourcePanel source;
     private OutputPanel listing;
     private OutputPanel object;
+    private TerminalPanel terminal;
 
     public MainFrame() {
         setSize(400, 300);
@@ -34,6 +35,9 @@ public class MainFrame extends JFrame {
         
         object = new OutputPanel("object");
         tabs.add(object.getTitle(), object);
+        
+        terminal = new TerminalPanel("term");
+        tabs.add(terminal.getTitle(), terminal);
 
         pack();
         setLocationRelativeTo(null);
@@ -87,6 +91,7 @@ public class MainFrame extends JFrame {
 
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
+        simulatorMenu.add(createMenuItem(source.getRunAction(object, terminal)));
         menuBar.add(simulatorMenu);
 
         // Help Menu
