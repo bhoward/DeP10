@@ -23,6 +23,8 @@ class SourcePanel extends JPanel {
 
     public SourcePanel(String name) {
         this.name = name;
+        
+        
 
         textArea = new RSyntaxTextArea(25, 80);
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // TODO
@@ -79,5 +81,9 @@ class SourcePanel extends JPanel {
 
     public String getTitle() {
         return name;
+    }
+
+    public RSyntaxTextArea getTextArea() {
+        return textArea;
     }
 }

@@ -24,18 +24,18 @@ import edu.depauw.dep10.simulator.StepController;
 import edu.depauw.dep10.simulator.TracingController;
 
 public class Driver {
-    private static final String PROPERTIES = "project.properties";
-    private static final String VERSION_PROP = "version";
+    public static final String PROPERTIES = "project.properties";
+    public static final String VERSION_PROP = "version";
 
-    private static final String BARE_METAL_OS_HEADER = "/pep10baremetal.peph";
-    private static final String FULL_OS_HEADER = "/pep10os.peph";
-    private static final String FORTH_OS_HEADER = "/pep10forth.peph";
+    public static final String BARE_METAL_OS_HEADER = "/pep10baremetal.peph";
+    public static final String FULL_OS_HEADER = "/pep10os.peph";
+    public static final String FORTH_OS_HEADER = "/pep10forth.peph";
 
-    private static final String BARE_METAL_OS_OBJECT = "/pep10baremetal.pepo";
-    private static final String FULL_OS_OBJECT = "/pep10os.pepo";
-    private static final String FORTH_OS_OBJECT = "/pep10forth.pepo";
+    public static final String BARE_METAL_OS_OBJECT = "/pep10baremetal.pepo";
+    public static final String FULL_OS_OBJECT = "/pep10os.pepo";
+    public static final String FORTH_OS_OBJECT = "/pep10forth.pepo";
 
-    private static final String STD_MACROS = "/stdmacro.pep";
+    public static final String STD_MACROS = "/stdmacro.pep";
 
     public static void main(String[] args) {
         InitialArgs init = new InitialArgs();

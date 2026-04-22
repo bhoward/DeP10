@@ -55,6 +55,10 @@ public class Sources implements Iterator<Line> {
 
         deque.add(source);
     }
+    
+    public void addString(String string) {
+        deque.add(new StringSource(string));
+    }
 
     public void pushFile(String filename, ErrorLog log) {
         deque.push(new FileSource(filename, log));
