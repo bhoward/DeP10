@@ -1,6 +1,7 @@
 package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,6 +17,7 @@ class OutputPanel extends JPanel {
 
         textArea = new JTextArea(25, 80);
         textArea.setEditable(false);
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         
         JScrollPane sp = new JScrollPane(textArea);
         this.setLayout(new BorderLayout());
