@@ -40,6 +40,10 @@ import edu.depauw.dep10.driver.Driver;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
+import edu.depauw.dep10.simulator.Controller;
+import edu.depauw.dep10.simulator.PlainController;
+import edu.depauw.dep10.simulator.Simulator;
+import edu.depauw.dep10.simulator.State;
 
 @SuppressWarnings("serial")
 public class SourcePanel extends JPanel implements SearchListener {
@@ -311,4 +315,25 @@ public class SourcePanel extends JPanel implements SearchListener {
         };
     }
 
+    public Action getRunAction(OutputPanel object) {
+    	return new AbstractAction("Run") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				State state = new State();
+				state.loadString(object.getContent());
+				state.loadResource(Driver.FULL_OS_OBJECT);
+				state.setInput(null); // TODO
+				state.setOutput(null); // TODO
+				state.setError(null); // TODO
+				
+				Simulator sim = new Simulator(state);
+				
+				Controller control = new PlainController();
+				sim.run(control);
+				
+				// TODO tracing; errors, ...
+			}
+			
+		};
+    }
 }

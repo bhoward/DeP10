@@ -24,11 +24,15 @@ class OutputPanel extends JPanel {
         this.add(sp);
     }
 
+	public String getTitle() {
+		return name;
+	}
+
     public void setContent(String content) {
         textArea.setText(content);
     }
 
-    public String getTitle() {
-        return name;
-    }
+	public String getContent() {
+		return textArea.getText();
+	}
 }

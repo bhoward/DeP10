@@ -214,6 +214,12 @@ public class State {
             haltWithError("Unable to open resource " + resource);
         }
     }
+    
+    public void loadString(String object) {
+    	try (var scanner = new Scanner(object)) {
+    		load(scanner);
+    	}
+    }
 
     private void load(Scanner scanner) {
         int addr = 0;
