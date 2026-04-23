@@ -310,7 +310,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                     object.setContent(result.toObjectFile());
                 }
                 
-                // TODO deal with errors
+                // TODO deal with errors; don't run on UI thread!
             }
         };
     }
@@ -329,7 +329,8 @@ public class SourcePanel extends JPanel implements SearchListener {
 				Simulator sim = new Simulator(state);
 				
 				Controller control = new PlainController();
-				sim.run(control);
+				var t = new Thread(() -> sim.run(control));
+				t.start();
 				
 				// TODO tracing; errors, ...
 			}

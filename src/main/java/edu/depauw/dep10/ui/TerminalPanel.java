@@ -15,10 +15,8 @@ public class TerminalPanel extends JPanel {
     public TerminalPanel(String name) {
         this.name = name;
 
-        terminal = new JTerminal();
+        terminal = new JTerminal(false, true);
         
-//        JScrollPane sp = new JScrollPane(terminal);
-//        this.setLayout(new BorderLayout());
         this.add(terminal);
     }
     
