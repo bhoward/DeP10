@@ -8,4 +8,7 @@ public class InitialArgs {
 	
 	@Parameter(names = {"-v", "--version"}, description = "Display version and exit.", order = 1)
     public boolean showVersion = false;
+	
+	@Parameter(names = {"-g", "--gui"}, description = "Open GUI.", order = 2)
+	public boolean showGUI = false;
 }

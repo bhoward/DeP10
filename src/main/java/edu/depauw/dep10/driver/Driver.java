@@ -22,6 +22,7 @@ import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepController;
 import edu.depauw.dep10.simulator.TracingController;
+import edu.depauw.dep10.ui.Main;
 
 public class Driver {
     public static final String PROPERTIES = "project.properties";
@@ -56,6 +57,8 @@ public class Driver {
             } catch (IOException e) {
                 System.err.println("Unable to load resource " + PROPERTIES);
             }
+        } else if (init.showGUI) {
+            Main.main(args);
         } else if (init.showHelp || jc.getParsedCommand() == null) {
             jc.usage();
         } else {

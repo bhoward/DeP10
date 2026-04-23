@@ -12,7 +12,7 @@ public class Main {
         if (SystemInfo.isMacOS) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
             System.setProperty("apple.awt.application.appearance", "system");
-            System.setProperty("apple.awt.application.name", "Demo");
+            System.setProperty("apple.awt.application.name", "DeP10 IDE");
         }
 
         FlatLightLaf.setup();

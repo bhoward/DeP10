@@ -1,5 +1,8 @@
 package edu.depauw.dep10.ui;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -100,7 +103,12 @@ public class MainFrame extends JFrame {
 
         if (!SystemInfo.isMacOS) {
             fileMenu.addSeparator();
-            fileMenu.add(new JMenuItem("Exit"));
+            fileMenu.add(new JMenuItem(new AbstractAction("Exit") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    MainFrame.this.dispose(); // TODO check whether it is OK to close
+                }
+            }));
 
             editMenu.addSeparator();
             editMenu.add(new JMenuItem("Preferences..."));
