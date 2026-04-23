@@ -1,27 +1,39 @@
 package com.hermant.terminal;
 
+import static javax.swing.BorderFactory.createEmptyBorder;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.font.TextAttribute;
+import java.io.PrintStream;
+import java.util.Collections;
+import java.util.Map;
+
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.BoundedRangeModel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
+import javax.swing.text.JTextComponent;
+
 import com.hermant.terminal.io.LineBufferedTerminalInputStream;
 import com.hermant.terminal.io.NonBufferedTerminalInputStream;
 import com.hermant.terminal.io.TerminalInputStream;
 import com.hermant.terminal.io.TerminalOutputStream;
 
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultCaret;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.font.TextAttribute;
-import java.io.*;
-import java.util.Collections;
-import java.util.Map;
-
-import static javax.swing.BorderFactory.createEmptyBorder;
-
 public class JTerminal extends JScrollPane {
-
-    private static final FontProvider DEFAULT_FONT_PROVIDER = new FontProvider(FontProvider.INCONSOLATA);
-
     private TerminalInputStream tis;
     private TerminalOutputStream tos;
     private int verticalScrollBarMaximumValue;
@@ -152,7 +164,7 @@ public class JTerminal extends JScrollPane {
     }
 
     public static Font getDefaultFont(int size) {
-        return DEFAULT_FONT_PROVIDER.getFont(size);
+        return new Font(Font.MONOSPACED, Font.PLAIN, size);
     }
 
     public void removeBorder() {
