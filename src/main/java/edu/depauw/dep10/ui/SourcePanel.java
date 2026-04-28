@@ -4,17 +4,21 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 
 import org.fife.rsta.ui.CollapsibleSectionPanel;
@@ -49,7 +53,7 @@ import edu.depauw.dep10.simulator.State;
 public class SourcePanel extends JPanel implements SearchListener {
     private JFrame parent;
     private String name;
-    
+
     private FindDialog findDialog;
     private ReplaceDialog replaceDialog;
     private FindToolBar findToolBar;
@@ -58,13 +62,15 @@ public class SourcePanel extends JPanel implements SearchListener {
     private StatusBar statusBar;
     private CollapsibleSectionPanel csp;
 
+    private JFileChooser chooser;
+
     public SourcePanel(JFrame parent, String name) {
         this.parent = parent;
         this.name = name;
-        
+
         this.findDialog = new FindDialog(parent, this);
         this.replaceDialog = new ReplaceDialog(parent, this);
-        
+
         // This ties the properties of the two dialogs together (match case,
         // regex, etc.).
         SearchContext context = findDialog.getSearchContext();
@@ -92,6 +98,10 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         statusBar = new StatusBar();
         this.add(statusBar, BorderLayout.SOUTH);
+
+        this.chooser = new JFileChooser();
+        var filter = new FileNameExtensionFilter("Pep source", "pep");
+        chooser.setFileFilter(filter);
     }
 
     public String getTitle() {
@@ -257,10 +267,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         showReplaceBarAction.putValue(Action.NAME, "Show Replace Search Bar");
         return showReplaceBarAction;
     }
-    
+
     public Action getHideSearchBarAction() {
         var ks = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0); // duplicates what csp already does, but this makes the
-                                                            // accelerator key show in the menu
+        // accelerator key show in the menu
         Action hideSearchBarAction = new AbstractAction("Hide Search Bar") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -282,7 +292,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     public Action getGoToLineAction() {
         return new GoToLineAction();
     }
-    
+
     public Action getAssembleAction(OutputPanel listing, OutputPanel object) {
         return new AbstractAction("Assemble") {
             @Override
@@ -291,53 +301,108 @@ public class SourcePanel extends JPanel implements SearchListener {
                 Sources sources = new Sources();
                 sources.addResource(Driver.FULL_OS_HEADER, log);
                 sources.addString(textArea.getText());
-                
+
                 var preprocessor = new Preprocessor(log);
                 Result result = null;
-                
+
                 if (log.noErrors()) {
                     var lines = preprocessor.preprocess(sources);
                     var assembler = new Assembler(log);
                     result = assembler.assemble(lines);
-                    
+
                     // Print a listing for testing purposes
                     var writer = new StringWriter();
                     try (var out = new PrintWriter(writer)) {
                         result.printListing(out);
                     }
-                    
+
                     listing.setContent(writer.toString());
                     object.setContent(result.toObjectFile());
                 }
-                
+
                 // TODO deal with errors; don't run on UI thread!
             }
         };
     }
 
     public Action getRunAction(OutputPanel object, TerminalPanel terminal) {
-    	return new AbstractAction("Run") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				State state = new State();
-				state.loadString(object.getContent());
-				state.loadResource(Driver.FULL_OS_OBJECT);
-				
-				terminal.clear();
-				state.setInput(terminal.getInputStream());
-				state.setOutput(terminal.getOutputStream());
-				state.setError(terminal.getOutputStream());
-				// TODO allow batch I/O
-				
-				Simulator sim = new Simulator(state);
-				
-				Controller control = new PlainController();
-				var t = new Thread(() -> sim.run(control));
-				t.start();
-				
-				// TODO tracing; errors, ...
-			}
-			
-		};
+        return new AbstractAction("Run") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                State state = new State();
+                state.loadString(object.getContent());
+                state.loadResource(Driver.FULL_OS_OBJECT);
+
+                terminal.clear();
+                state.setInput(terminal.getInputStream());
+                state.setOutput(terminal.getOutputStream());
+                state.setError(terminal.getOutputStream());
+                // TODO allow batch I/O
+
+                Simulator sim = new Simulator(state);
+
+                Controller control = new PlainController();
+                var t = new Thread(() -> sim.run(control));
+                t.start();
+
+                // TODO tracing; errors, ...
+            }
+
+        };
+    }
+
+    public Action getNewAction() {
+        return new AbstractAction("New") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO offer to save first...
+                textArea.setText("");
+            }
+        };
+    }
+
+    public Action getOpenDialogAction() {
+        return new AbstractAction("Open...") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        var path = chooser.getSelectedFile().toPath();
+                        var content = Files.readString(path);
+                        textArea.setText(content);
+                    } catch (IOException e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                }
+            }
+        };
+    }
+
+    public Action getSaveAction() {
+        return new AbstractAction("Save") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO need to have a file name already...
+            }
+        };
+    }
+
+    public Action getSaveAsDialogAction() {
+        return new AbstractAction("Save As...") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        var path = chooser.getSelectedFile().toPath();
+                        var content = textArea.getText();
+                        Files.writeString(path, content);
+                    } catch (IOException e1) {
+                        // TODO
+                        e1.printStackTrace();
+                    }
+                }
+            }
+        };
     }
 }
