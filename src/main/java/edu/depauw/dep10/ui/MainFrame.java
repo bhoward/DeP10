@@ -54,9 +54,10 @@ public class MainFrame extends JFrame {
 
         // File Menu
         var fileMenu = new JMenu("File");
-        fileMenu.add(new JMenuItem("New"));
-        fileMenu.add(new JMenuItem("Open..."));
-        fileMenu.add(new JMenuItem("Save"));
+        fileMenu.add(new JMenuItem(source.getNewAction()));
+        fileMenu.add(new JMenuItem(source.getOpenDialogAction()));
+        fileMenu.add(new JMenuItem(source.getSaveAction()));
+        fileMenu.add(new JMenuItem(source.getSaveAsDialogAction()));
         menuBar.add(fileMenu);
 
         // Edit Menu

@@ -33,6 +33,7 @@ import com.hermant.terminal.io.NonBufferedTerminalInputStream;
 import com.hermant.terminal.io.TerminalInputStream;
 import com.hermant.terminal.io.TerminalOutputStream;
 
+@SuppressWarnings("serial")
 public class JTerminal extends JScrollPane {
     private TerminalInputStream tis;
     private TerminalOutputStream tos;
@@ -359,18 +360,6 @@ public class JTerminal extends JScrollPane {
         public SmartScroller(JScrollPane scrollPane)
         {
             this(scrollPane, VERTICAL, END);
-        }
-
-        /**
-         *  Convenience constructor.
-         *  Scroll direction is VERTICAL.
-         *
-         *  @param scrollPane the scroll pane to monitor
-         *  @param viewportPosition valid values are START and END
-         */
-        public SmartScroller(JScrollPane scrollPane, int viewportPosition)
-        {
-            this(scrollPane, VERTICAL, viewportPosition);
         }
 
         /**
