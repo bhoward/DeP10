@@ -31,4 +31,8 @@ public class TerminalPanel extends JPanel {
     public OutputStream getOutputStream() {
         return terminal.getTos();
     }
+    
+    public void clear() {
+        terminal.getTerminalController().clear();
+    }
 }

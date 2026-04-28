@@ -322,9 +322,12 @@ public class SourcePanel extends JPanel implements SearchListener {
 				State state = new State();
 				state.loadString(object.getContent());
 				state.loadResource(Driver.FULL_OS_OBJECT);
+				
+				terminal.clear();
 				state.setInput(terminal.getInputStream());
 				state.setOutput(terminal.getOutputStream());
 				state.setError(terminal.getOutputStream());
+				// TODO allow batch I/O
 				
 				Simulator sim = new Simulator(state);
 				

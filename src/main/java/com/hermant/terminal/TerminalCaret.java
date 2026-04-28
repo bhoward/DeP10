@@ -5,6 +5,7 @@ import javax.swing.text.DefaultCaret;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
 
+@SuppressWarnings("serial")
 public class TerminalCaret extends DefaultCaret {
 
     @Override
@@ -27,6 +28,7 @@ public class TerminalCaret extends DefaultCaret {
         repaint(); // calls getComponent().repaint(x, y, width, height)
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void paint(Graphics g) {
         JTextComponent comp = getComponent();

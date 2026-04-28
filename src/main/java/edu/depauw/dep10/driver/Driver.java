@@ -39,49 +39,55 @@ public class Driver {
     public static final String STD_MACROS = "/stdmacro.pep";
 
     public static void main(String[] args) {
-        InitialArgs init = new InitialArgs();
-        CommandAsm asm = new CommandAsm();
-        CommandRun run = new CommandRun();
-        JCommander jc = JCommander.newBuilder()
-                .addObject(init)
-                .addCommand("asm", asm)
-                .addCommand("run", run)
-                .build();
-        jc.parse(args);
-
-        if (init.showVersion) {
-            try {
-                var properties = new Properties();
-                properties.load(Driver.class.getClassLoader().getResourceAsStream(PROPERTIES));
-                System.out.println(properties.getProperty(VERSION_PROP));
-            } catch (IOException e) {
-                System.err.println("Unable to load resource " + PROPERTIES);
-            }
-        } else if (init.showGUI) {
+        if (System.console() == null &&
+                (args.length == 0 || args[0].equals("-g") || args[0].equals("--gui"))) {
+            // assume GUI mode: no console, no args, or explicit -g/--gui first arg
             Main.main(args);
-        } else if (init.showHelp || jc.getParsedCommand() == null) {
-            jc.usage();
         } else {
-            var log = new ErrorLog();
+            InitialArgs init = new InitialArgs();
+            CommandAsm asm = new CommandAsm();
+            CommandRun run = new CommandRun();
+            JCommander jc = JCommander.newBuilder()
+                    .addObject(init)
+                    .addCommand("asm", asm)
+                    .addCommand("run", run)
+                    .build();
+            jc.parse(args);
 
-            switch (jc.getParsedCommand()) {
-            case "asm":
-                if (asm.showHelp) {
-                    jc.usage("asm");
-                } else {
-                    doAsm(asm, log);
+            if (init.showVersion) {
+                try {
+                    var properties = new Properties();
+                    properties.load(Driver.class.getClassLoader().getResourceAsStream(PROPERTIES));
+                    System.out.println(properties.getProperty(VERSION_PROP));
+                } catch (IOException e) {
+                    System.err.println("Unable to load resource " + PROPERTIES);
                 }
-                break;
-            case "run":
-                if (run.showHelp) {
-                    jc.usage("run");
-                } else {
-                    doRun(run, log);
-                }
-                break;
-            default:
+            } else if (init.showGUI) {
+                Main.main(args);
+            } else if (init.showHelp || jc.getParsedCommand() == null) {
                 jc.usage();
-                break;
+            } else {
+                var log = new ErrorLog();
+
+                switch (jc.getParsedCommand()) {
+                case "asm":
+                    if (asm.showHelp) {
+                        jc.usage("asm");
+                    } else {
+                        doAsm(asm, log);
+                    }
+                    break;
+                case "run":
+                    if (run.showHelp) {
+                        jc.usage("run");
+                    } else {
+                        doRun(run, log);
+                    }
+                    break;
+                default:
+                    jc.usage();
+                    break;
+                }
             }
         }
     }
@@ -126,17 +132,17 @@ public class Driver {
         if (asm.sourceFile == null && asm.sourceList.isEmpty()) {
             sources.addStdIn();
         }
-        
+
         var preprocessor = new Preprocessor(log);
         Result result = null;
-        
+
         if (log.noErrors()) {
             var lines = preprocessor.preprocess(sources);
             // all macros and includes have been expanded
-            
+
             var assembler = new Assembler(log);
             result = assembler.assemble(lines);
-            
+
             if (asm.objectFile != null) {
                 try (var out = new BufferedWriter(new FileWriter(asm.objectFile))) {
                     out.write(result.toObjectFile());
@@ -146,7 +152,7 @@ public class Driver {
             } else {
                 System.out.println(result.toObjectFile());
             }
-            
+
             if (asm.listingFile != null) {
                 try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.listingFile)))) {
                     result.printListing(out);
@@ -154,7 +160,7 @@ public class Driver {
                     log.error(e.getMessage());
                 }
             }
-            
+
             if (asm.exportFile != null) {
                 // Generate a header file
                 try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.exportFile)))) {
@@ -165,13 +171,13 @@ public class Driver {
                 }
             }
         }
-        
+
         if (asm.errorFile != null) {
             try (var out = new PrintWriter(new BufferedWriter(new FileWriter(asm.errorFile)))) {
                 for (var message : log.getMessages()) {
                     out.println(message);
                 }
-                
+
                 if (result != null) {
                     result.printErrors(out);
                 }
@@ -187,11 +193,11 @@ public class Driver {
 
     private static void doRun(CommandRun run, ErrorLog log) {
         State state = (run.trace == null) ? new State() : new DebugState();
-        
+
         for (var param : run.parameters) {
             state.loadFile(param);
         }
-        
+
         // load object code for selected OS
         if (run.bareMetal) {
             if (run.osName != null) {
@@ -213,27 +219,27 @@ public class Driver {
         state.setInput(run.consoleIn);
         state.setOutput(run.consoleOut);
         state.setError(run.errOut);
-        
+
         Simulator sim = new Simulator(state);
-        
+
         Controller control = new PlainController();
         if (run.max > 0) {
             control = new StepController(control, run.max);
         }
-        
+
         TracingController tc = null;
         if (run.trace != null) {
             tc = new TracingController(control);
             control = tc;
         }
-        
+
         // TODO for interactive use, also support breakpoints and single-stepping
         sim.run(control);
-        
+
         if (run.memDump != null) {
             state.dump(run.memDump);
         }
-        
+
         if (run.trace != null) {
             try {
                 var output = new PrintStream(new File(run.trace));
