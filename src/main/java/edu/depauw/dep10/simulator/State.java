@@ -22,6 +22,7 @@ public class State {
     private Word SP;
     private UByte IR1;
     private Word IR2;
+    private UByte PREFIX;
     private UByte Flags;
     private boolean running;
 
@@ -38,6 +39,7 @@ public class State {
         SP = Word.of(0);
         IR1 = UByte.of(0);
         IR2 = Word.of(0);
+        PREFIX = UByte.of(0);
         Flags = UByte.of(0);
         running = true;
 
@@ -104,6 +106,10 @@ public class State {
     public Word getOperand() {
         return IR2;
     }
+    
+    public UByte getPrefix() {
+        return PREFIX;
+    }
 
     public void setA(Word n) {
         this.A = n;
@@ -135,6 +141,10 @@ public class State {
 
     public void setOperand(Word n) {
         this.IR2 = n;
+    }
+
+    public void setPrefix(UByte prefix) {
+        this.PREFIX = prefix;
     }
 
     public boolean getN() {

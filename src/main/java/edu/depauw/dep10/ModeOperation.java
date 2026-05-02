@@ -2,7 +2,7 @@ package edu.depauw.dep10;
 
 import edu.depauw.dep10.simulator.State;
 
-public record ModeOperation(AddrMode mode, Operation op) {
+public record ModeOperation(AddrMode mode, Operation op) implements OpTableEntry {
     public boolean hasOperand() {
         return op.hasOperand();
     }

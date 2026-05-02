@@ -33,8 +33,75 @@ public abstract class Operation {
         return mnemonic;
     }
 
+	public static void installAll(OpTable table) {
+        table.addUnused(0, 1);
+        RET.install(table, 1);
+        SRET.install(table, 2);
+        MOVFLGA.install(table, 3);
+        MOVAFLG.install(table, 4);
+        MOVSPA.install(table, 5);
+        MOVASP.install(table, 6);
+        NOP.install(table, 7);
+        
+        var MulDiv = new OpTable();
+        MUL.install(MulDiv, 0);
+        DIV.install(MulDiv, 8);
+        table.add(8, new PrefixEntry(MulDiv));
+        
+        table.addUnused(9, 15);
+        
+        NEGA.install(table, 24);
+        NEGX.install(table, 25);
+        ASLA.install(table, 26);
+        ASLX.install(table, 27);
+        ASRA.install(table, 28);
+        ASRX.install(table, 29);
+        NOTA.install(table, 30);
+        NOTX.install(table, 31);
+        ROLA.install(table, 32);
+        ROLX.install(table, 33);
+        RORA.install(table, 34);
+        RORX.install(table, 35);
+        
+        BR.install(table, 36);
+        BRLE.install(table, 38);
+        BRLT.install(table, 40);
+        BREQ.install(table, 42);
+        BRNE.install(table, 44);
+        BRGE.install(table, 46);
+        BRGT.install(table, 48);
+        BRV.install(table, 50);
+        BRC.install(table, 52);
+        CALL.install(table, 54);
 
-
+        SCALL.install(table, 56);
+        ADDSP.install(table, 64);
+        SUBSP.install(table, 72);
+        
+        ADDA.install(table, 80);
+        ADDX.install(table, 88);
+        SUBA.install(table, 96);
+        SUBX.install(table, 104);
+        ANDA.install(table, 112);
+        ANDX.install(table, 120);
+        ORA.install(table, 128);
+        ORX.install(table, 136);
+        XORA.install(table, 144);
+        XORX.install(table, 152);
+        CPWA.install(table, 160);
+        CPWX.install(table, 168);
+        CPBA.install(table, 176);
+        CPBX.install(table, 184);
+        LDWA.install(table, 192);
+        LDWX.install(table, 200);
+        LDBA.install(table, 208);
+        LDBX.install(table, 216);
+        STWA.install(table, 224);
+        STWX.install(table, 232);
+        STBA.install(table, 240);
+        STBX.install(table, 248);
+	}
+	
     static abstract class UnaryOperation extends Operation {
 		public UnaryOperation(String mnemonic) {
 			super(mnemonic);

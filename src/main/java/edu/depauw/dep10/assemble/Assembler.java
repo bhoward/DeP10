@@ -3,6 +3,7 @@ package edu.depauw.dep10.assemble;
 import java.util.List;
 
 import edu.depauw.dep10.OpTable;
+import edu.depauw.dep10.Operation;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 
@@ -15,6 +16,8 @@ public class Assembler {
         this.result = new Result();
         this.opTable = new OpTable();
         this.log = log;
+        
+        Operation.installAll(opTable);
     }
 
     public Result assemble(List<Line> lines) {
@@ -199,9 +202,12 @@ public class Assembler {
         var opcode = opTable.lookup(command, mode);
         if (opcode < 0) {
             throw new LineError("Unrecognized opcode: " + command);
+        } else if (opcode < 256) {
+            result.addObject(new Value.LowByte(new Value.Number(opcode)));
+        } else {
+            // high byte is a prefix, low byte is actual opcode
+            result.addObject(new Value.Number(opcode));
         }
-
-        result.addObject(new Value.LowByte(new Value.Number(opcode)));
 
         var op = opTable.get(opcode);
         if (op.hasOperand()) {

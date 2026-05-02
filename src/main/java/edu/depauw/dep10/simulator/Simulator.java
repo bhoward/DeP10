@@ -1,7 +1,10 @@
 package edu.depauw.dep10.simulator;
 
+import edu.depauw.dep10.ModeOperation;
 import edu.depauw.dep10.OpTable;
 import edu.depauw.dep10.Operation;
+import edu.depauw.dep10.PrefixEntry;
+import edu.depauw.dep10.util.UByte;
 
 public class Simulator {
 	private State s;
@@ -11,6 +14,8 @@ public class Simulator {
 	public Simulator(State s) {
 	    this.s = s;
 	    this.table = new OpTable();
+	    
+	    Operation.installAll(table);
 	    
         initialize();
 	}
@@ -25,9 +30,20 @@ public class Simulator {
 			var pc = s.getPC();
 			var opcode = s.mem1(pc);
 			var nextpc = pc.plus(1);
+			
+			var entry = table.get(opcode);
+			if (entry instanceof PrefixEntry prefix) {
+			    s.setPrefix(opcode);
+			    opcode = s.mem1(nextpc);
+			    nextpc = nextpc.plus(1);
+			    entry = prefix.get(opcode);
+			} else {
+			    s.setPrefix(UByte.of(0));
+			}
+			
 			s.setOpCode(opcode);
 			
-			var op = table.get(opcode);
+			var op = (ModeOperation) entry;
 			if (op.hasOperand()) {
 				var operand = s.mem2(nextpc);
 				nextpc = nextpc.plus(2);
