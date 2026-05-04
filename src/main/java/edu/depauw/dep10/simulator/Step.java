@@ -2,10 +2,10 @@ package edu.depauw.dep10.simulator;
 
 import java.util.HexFormat;
 
-import edu.depauw.dep10.ModeOperation;
+import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.util.Word;
 
-public record Step(Word pc, ModeOperation op, Word operand, Trace trace) {
+public record Step(Word pc, Operation op, Word operand, Trace trace) {
     @Override
     public String toString() {
         var result = new StringBuilder();
