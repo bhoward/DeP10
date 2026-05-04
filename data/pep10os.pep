@@ -12,11 +12,6 @@ opAddr:  .BLOCK  2           ;Trap instruction operand address #2h.
 
 true:    .EQUATE 1
 false:   .EQUATE 0
-         .EXPORT osRAM       ;BTH -- need to export to be visible in other sections
-         .EXPORT wordTemp    ;BTH
-         .EXPORT byteTemp    ;BTH
-         .EXPORT addrMask    ;BTH
-         .EXPORT opAddr      ;BTH
          .EXPORT true
          .EXPORT false
 ;******* Operating system ROM
@@ -130,6 +125,7 @@ addrJT:  .WORD addrI       ;Immediate addressing
          .WORD addrSFX     ;Stack-deferred indexed addressing
 ;
 ;We compute the address of operands rather than their values
+;except for immediate, where we compute its value, which unifies I and D.
 addrI:   LDWX    oldPC4,s    ;Immediate addressing
          SUBX    2,i         ;Oprnd = Address[OprndSpec]
          STWX    opAddr,d
@@ -522,7 +518,6 @@ trpHnd:  .WORD  trap         ;Address of first instruction in trap handler.
 initPC:  .WORD  disp         ;Address of first instruction to execute on boot.
          .SECTION "memvec", "rw"
          .ORG   0xFFFB
-         .EXPORT initSp      ;BTH
 initSp:  .WORD  wordTemp     ;Initial stack pointer. Must be updated before
                              ; calling main or OS state will be clobbered.
 

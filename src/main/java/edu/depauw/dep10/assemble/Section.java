@@ -2,10 +2,8 @@ package edu.depauw.dep10.assemble;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Map;
 
 import edu.depauw.dep10.preprocess.Line;
 import edu.depauw.dep10.util.UByte;
@@ -18,7 +16,6 @@ public class Section {
 	private int nextAddress;
 	private List<Line> lines;
 	private Line current;
-	private Map<String, Value> locals;
 	private List<ObjectEntry> objects;
 	
 	private record ObjectEntry(Value value, Line line) {}
@@ -28,7 +25,6 @@ public class Section {
 		this.origin = 0;
 		this.nextAddress = 0;
 		this.lines = new ArrayList<>();
-		this.locals = new HashMap<>();
 		this.objects = new ArrayList<>();
 	}
 
@@ -37,14 +33,6 @@ public class Section {
         current = line;
     }
     
-    public void addLabel(String label) {
-        locals.put(label, new Value.RelativeNumber(this, nextAddress));
-    }
-
-    public void equate(String label, Value value) {
-        locals.put(label, value);
-    }
-
     public void align(int n) {
         if (nextAddress % n != 0) {
             int skip = n - (nextAddress % n);
@@ -55,14 +43,6 @@ public class Section {
     public void addObject(Value value) {
         objects.add(new ObjectEntry(value, current));
         nextAddress += value.size();
-    }
-
-    public Value lookup(String sym) {
-        if (locals.containsKey(sym)) {
-            return locals.get(sym);
-        } else {
-            return parent.lookup(sym);
-        }
     }
 
     public void org(int n) {
@@ -93,7 +73,7 @@ public class Section {
                 }
 
                 case Value.LowByte(var v): {
-                    var w = v.evaluate(this);
+                    var w = v.evaluate(parent);
                     line.add(w.lo());
                     break;
                 }
@@ -106,7 +86,7 @@ public class Section {
                 }
 
                 default: {
-                    var w = entry.value.evaluate(this);
+                    var w = entry.value.evaluate(parent);
                     line.add(w.hi());
                     line.add(w.lo());
                     break;

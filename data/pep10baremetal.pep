@@ -1,6 +1,5 @@
          .SECTION "stack", "rwz"
 bmRAM:   .BLOCK  2
-         .EXPORT bmRAM       ;BTH -- need to export to be visible in other sections
 ;
          .SECTION "text", "wx"
 ;

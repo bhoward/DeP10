@@ -53,7 +53,7 @@ public class Assembler {
                     } else if (command.equalsIgnoreCase(".WORD")) {
                         word(args);
                     } else if (command.startsWith(".")) {
-                        // Ignore other directives: .IMPORT, .INPUT, .OUTPUT, .SCALL
+                        // Ignore other directives here: .INPUT, .OUTPUT, .SCALL
                     } else if (command.isEmpty()) {
                         // Skip this line, except for the listing
                         if (args != null && !args.isEmpty()) {

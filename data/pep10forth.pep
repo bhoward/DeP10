@@ -1,8 +1,6 @@
          .SECTION "stack", "rwz"
 pStack:  .BLOCK  128         ;Limit return stack to 128 bytes
-         .EXPORT pStack      ;BTH
 rStack:  .BLOCK  2           ;Padding before IDE controller
-         .EXPORT rStack      ;BTH
 ;Memory-mapped IDE controller registers
 ; It uses 256B sectors instead of the usual 512B so that offsets in a sector can be 8 bits.
 ; It always use DMA to avoid the CPU overhead of programmed IO (PIO).
@@ -41,7 +39,6 @@ lenDMA:  .BLOCK  2
          .EXPORT lenDMA
          .BLOCK 2            ;Padding to protect IDE controller
 _BUF:    .BLOCK  32          ;Static buffer into which WORD reads
-         .EXPORT _BUF        ;BTH
 ;
          .SECTION "text", "rx"
 ;
@@ -408,7 +405,6 @@ sdRet:   ADDSP   1,i         ;@locals#sdSign
 HALT:    LDWA    0xDEAD, i
          STBA    pwrOff, d
 hang:    BR      hang
-         .EXPORT HALT        ;BTH
 
 @DC      DROP, _HALT, 0x04, 0x04
 DROP:    @POP
@@ -923,7 +919,7 @@ STWAH:   STWA    HERE,n
 @DCSTR   ",\0", COMMA, _CREATE, 0x01, 0x00
 COMMA:   @POPA                ;A <- TOS
          BR      STWAH
-         .EXPORT COMMA        ;BTH
+
 
          ;( -- )
 @DCSTR   "CALL,\0", CALLC, _COMMA, 0x05, 0x13
@@ -1116,9 +1112,6 @@ cldstrt: LDWX    pStack, i
          CALL    INTERP
          CALL    HALT
 ;
-         .EXPORT _intErr     ;BTH
-         .EXPORT cldstrt     ;BTH
-         .EXPORT _INTERP     ;BTH
          .SECTION "memvec", "rw"
 ;
 ;******* FORTH Globals
@@ -1128,11 +1121,6 @@ RSP:     .WORD   rStack      ;Current return stack pointer
 STATE:   .WORD   0           ;0=interpret, !0=compile
 LATEST:  .WORD   _INTERP      ;Pointer to the most recently defined word
 HERE:    .WORD   0x0000      ;Pointer to the next free memory location
-         .EXPORT PSP         ;BTH
-         .EXPORT RSP         ;BTH
-         .EXPORT STATE       ;BTH
-         .EXPORT LATEST      ;BTH
-         .EXPORT HERE        ;BTH
 ; Probably should be RO, but I don't want to add another section.
 ;While bare metal mode is not supposed to have a trap handler,
 ;failure to provide one could cause user-programs to enter an infinite loop.
