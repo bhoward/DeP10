@@ -1,3 +1,15 @@
+* Source window -- editable in RSyntaxTextArea
+    + Multiple source windows? Assemble all together?
+* Listing window produced on successful assembly
+    + Also have a symbol table view?
+* Better I/O console?
+* Batch input file -- editable
+* Batch output
+* Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
+* References: instructions, modes, directives, macros
+* Others from Pepp: watch expressions, stack trace, byte converter
+
+-------
 dep10 asm [OPTIONS] source
 dep10 run [OPTIONS] object
 
