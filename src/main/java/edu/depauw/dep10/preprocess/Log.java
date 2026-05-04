@@ -7,11 +7,11 @@ import java.util.List;
 import edu.depauw.dep10.util.UByte;
 
 public class Log {
-    private static final int INITIAL_BYTES = 3;
-    private static final int LABEL_START = 15;
-	private static final int COMMAND_START = 27;
-	private static final int ARG_START = 36;
-	private static final int COMMENT_START = 48;
+    private static final int INITIAL_BYTES = 4;
+    private static final int LABEL_START = 18;
+	private static final int COMMAND_START = 30;
+	private static final int ARG_START = 40;
+	private static final int COMMENT_START = 52;
 	
 	private List<String> messages;
 	private boolean makeComment;
