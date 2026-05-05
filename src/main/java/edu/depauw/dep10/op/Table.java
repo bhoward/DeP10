@@ -21,6 +21,9 @@ public class Table {
     }
 
     public void install(int code, Operation op) {
+        if (code == 0) {
+            throw new IllegalArgumentException("Zero opcodes are not supported");
+        }
         ops[code] = op;
         codes.put(new Pair<>(op.getMnemonic().toLowerCase(), ""), code);
     }
@@ -28,6 +31,9 @@ public class Table {
     public void install(int code, OpCore op) {
         for (Mode mode : op.getModes()) {
             var index = code + mode.getOffset();
+            if (index == 0) {
+                throw new IllegalArgumentException("Zero opcodes are not supported");
+            }
             ops[index] = new Operation.NonUnary(op, mode);
             codes.put(new Pair<>(op.getMnemonic().toLowerCase(), mode.getSuffix().toLowerCase()), index);
         }

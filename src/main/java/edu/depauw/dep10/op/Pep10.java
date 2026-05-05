@@ -788,7 +788,7 @@ public class Pep10 {
         table.install(7, NOP);
         
         var MulDiv = new Table();
-        MulDiv.install(8, MUL); // NOTE opcode 0 should be unimplemented in any table
+        MulDiv.install(8, MUL); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
         MulDiv.install(16, DIV);
         table.install(8,  MulDiv);
         
