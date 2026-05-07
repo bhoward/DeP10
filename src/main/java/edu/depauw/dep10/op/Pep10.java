@@ -724,10 +724,9 @@ public class Pep10 {
             var op = operand.value();
             var product = a * op;
             var low_bits = Word.of(product);
-            var high_bits = Word.of(product >>> 16); 
+            //var high_bits = Word.of(product >>> 16); 
 
             s.setA(low_bits);
-            s.setX(high_bits);
 
             // N: set if product is <0, cleared otherwise
             s.setN(product < 0);
