@@ -716,7 +716,7 @@ public class Pep10 {
         }
     };
     
-    public static final OpCore MUL = new OpCore("MUL", Modes.All) {
+    public static final OpCore MULA = new OpCore("MULA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
             
@@ -724,10 +724,8 @@ public class Pep10 {
             var op = operand.value();
             var product = a * op;
             var low_bits = Word.of(product);
-            var high_bits = Word.of(product >>> 16); 
 
             s.setA(low_bits);
-            s.setX(high_bits);
 
             // N: set if product is <0, cleared otherwise
             s.setN(product < 0);
@@ -740,6 +738,27 @@ public class Pep10 {
 
             // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
             s.setC(low_bits.value() != product);
+        }
+    };
+
+    public static final OpCore MULHA = new OpCore("MULHA", Modes.All){
+        public void exec(State s, Mode mode){
+            var operand = mode.resolveWord(s);
+            
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000: s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+
+            var product = a * op;
+            var high_bits = Word.of(product >>> 16); 
+
+            s.setA(high_bits);
+
+            s.setN(high_bits.isNegative());
+            s.setZ(high_bits.isZero());
+            // check these two: do we need them set like MULA?
+            s.setV(false);
+            s.setC(false);
         }
     };
 
@@ -788,8 +807,10 @@ public class Pep10 {
         table.install(7, NOP);
         
         var MulDiv = new Table();
-        MulDiv.install(8, MUL); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
-        MulDiv.install(16, DIV);
+        MulDiv.install(8, MULA); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
+        MulDiv.install(16, MULHA);
+        //MulDiv.install(16, DIV);
+
         table.install(8,  MulDiv);
         
         table.install(24, NEGA);
