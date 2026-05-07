@@ -2,6 +2,7 @@ BR      start
 
 ; vars to store registers
 resultA: .BLOCK 2
+resultHi: .BLOCK 2
 rowVal: .BLOCK 2 
 
 ; vars for array and indexing
@@ -58,7 +59,8 @@ inloop:  LDWA col,d
 	 LDWX col,d
 	 ASLX
 	 MULHA values,x
-	 @HEXO whatever is in accumulator
+	 STWA resultHi,d
+	 @HEXO resultHi,d
 	 @STRO space,d
 	 @HEXO resultA,d
 	 @STRO newline,d

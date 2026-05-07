@@ -746,11 +746,11 @@ public class Pep10 {
             var operand = mode.resolveWord(s);
             
             // update logic for signed * signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() -0x10000: s.getA().value();
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000: s.getA().value();
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             var product = a * op;
-            var high_bits = Word.of(product >> 16); 
+            var high_bits = Word.of(product >>> 16); 
 
             s.setA(high_bits);
 
