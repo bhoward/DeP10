@@ -716,7 +716,7 @@ public class Pep10 {
         }
     };
     
-    public static final OpCore MUL = new OpCore("MUL", Modes.All) {
+    public static final OpCore MULA = new OpCore("MULA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
             
@@ -739,6 +739,24 @@ public class Pep10 {
 
             // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
             s.setC(low_bits.value() != product);
+        }
+    };
+
+    public static final OpCore MULHA = new OpCore("MULHA", Modes.All){
+        public void exec(State s, Mode mode){
+            var operand = mode.resolveWord(s);
+            
+            var a = s.getA().value();
+            var op = operand.value();
+            var product = a * op;
+            var high_bits = Word.of(product >>> 16); 
+
+            s.setA(high_bits);
+
+            s.setN(product < 0);
+            s.setZ(product == 0);
+            s.setV(product == 0);
+            s.setC(high_bits.value() != product);
         }
     };
 
@@ -787,8 +805,10 @@ public class Pep10 {
         table.install(7, NOP);
         
         var MulDiv = new Table();
-        MulDiv.install(8, MUL); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
-        MulDiv.install(16, DIV);
+        MulDiv.install(8, MULA); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
+        MulDiv.install(16, MULHA);
+        //MulDiv.install(16, DIV);
+
         table.install(8,  MulDiv);
         
         table.install(24, NEGA);
