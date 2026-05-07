@@ -2,18 +2,16 @@ package edu.depauw.dep10.assemble;
 
 import java.util.List;
 
-import edu.depauw.dep10.OpTable;
 import edu.depauw.dep10.driver.ErrorLog;
+import edu.depauw.dep10.op.Pep10;
 import edu.depauw.dep10.preprocess.Line;
 
 public class Assembler {
     private Result result;
-    private OpTable opTable;
     private ErrorLog log;
 
     public Assembler(ErrorLog log) {
         this.result = new Result();
-        this.opTable = new OpTable();
         this.log = log;
     }
 
@@ -55,7 +53,7 @@ public class Assembler {
                     } else if (command.equalsIgnoreCase(".WORD")) {
                         word(args);
                     } else if (command.startsWith(".")) {
-                        // Ignore other directives: .IMPORT, .INPUT, .OUTPUT, .SCALL
+                        // Ignore other directives here: .INPUT, .OUTPUT, .SCALL
                     } else if (command.isEmpty()) {
                         // Skip this line, except for the listing
                         if (args != null && !args.isEmpty()) {
@@ -158,13 +156,13 @@ public class Assembler {
         checkTwoArgs(args);
 
         var name = switch (args.get(0)) {
-            case Value.StrLit(var s) -> s;
-            default -> throw new LineError("Section name not a quoted string");
+        case Value.StrLit(var s) -> s;
+        default -> throw new LineError("Section name not a quoted string");
         };
 
         var flags = switch (args.get(1)) {
-            case Value.StrLit(var s) -> s;
-            default -> throw new LineError("Section flags not a quoted string");
+        case Value.StrLit(var s) -> s;
+        default -> throw new LineError("Section flags not a quoted string");
         };
 
         result.section(name, flags, log);
@@ -196,14 +194,20 @@ public class Assembler {
             throw new LineError("Too many arguments");
         }
 
-        var opcode = opTable.lookup(command, mode);
+        var opcode = Pep10.table.lookup(command, mode);
         if (opcode < 0) {
             throw new LineError("Unrecognized opcode: " + command);
+        } else {
+            var code = opcode;
+            while (code >= 256) {
+                // low byte is a prefix -- assumes final opcode is > 0
+                result.addObject(new Value.LowByte(new Value.Number(code)));
+                code = code >> 8;
+            }
+            result.addObject(new Value.LowByte(new Value.Number(code)));
         }
 
-        result.addObject(new Value.LowByte(new Value.Number(opcode)));
-
-        var op = opTable.get(opcode);
+        var op = Pep10.table.get(opcode);
         if (op.hasOperand()) {
             var arg = args.get(0);
             if (arg instanceof Value.CharLit(var c)) {

@@ -1,6 +1,6 @@
 package edu.depauw.dep10.simulator;
 
-import edu.depauw.dep10.ModeOperation;
+import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.util.Word;
 
 public class StepController implements Controller {
@@ -15,7 +15,7 @@ public class StepController implements Controller {
     }
 
     @Override
-    public void perform(ModeOperation op, State s, Word pc) {
+    public void perform(Operation op, State s, Word pc) {
         parent.perform(op, s, pc);
         
         step++;

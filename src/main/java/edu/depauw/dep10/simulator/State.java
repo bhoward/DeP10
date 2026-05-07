@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Scanner;
 
-import edu.depauw.dep10.Operation;
+import edu.depauw.dep10.op.Pep10;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -48,7 +48,7 @@ public class State {
 
     public UByte mem1(Word addr) {
         // TODO check permissions
-        if (addr.equals(Operation.CHARIN)) {
+        if (addr.equals(Pep10.CHARIN)) {
             try {
                 return UByte.of(in.read());
             } catch (IOException e) {
@@ -67,9 +67,9 @@ public class State {
 
     public void setMem1(Word addr, UByte n) {
         // TODO check permissions
-        if (addr.equals(Operation.SHUTDOWN)) {
+        if (addr.equals(Pep10.SHUTDOWN)) {
             stop();
-        } else if (addr.equals(Operation.CHAROUT)) {
+        } else if (addr.equals(Pep10.CHAROUT)) {
             out.write(n.value());
         }
 
@@ -104,7 +104,7 @@ public class State {
     public Word getOperand() {
         return IR2;
     }
-
+    
     public void setA(Word n) {
         this.A = n;
     }

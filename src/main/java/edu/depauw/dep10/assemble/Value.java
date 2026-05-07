@@ -25,10 +25,10 @@ public interface Value {
 			return 2;
 		}
 		
-		public Word evaluate(Section section) throws ValueError {
-		    var value = section.lookup(name);
+		public Word evaluate(Result result) throws ValueError {
+		    var value = result.lookup(name);
 		    if (value != null) {
-		        return value.evaluate(section);
+		        return value.evaluate(result);
 		    } else {
 		        throw new ValueError("Symbol not found: " + name);
 		    }
@@ -45,7 +45,7 @@ public interface Value {
 			return 2;
 		}
 		
-		public Word evaluate(Section section) {
+		public Word evaluate(Result result) {
 		    return Word.of(value);
 		}
 		
@@ -60,7 +60,7 @@ public interface Value {
 			return 2;
 		}
 		
-		public Word evaluate(Section s) {
+		public Word evaluate(Result result) {
 		    return Word.of(section.getOrigin() + value);
 		}
 		
@@ -75,7 +75,7 @@ public interface Value {
 			return value.length();
 		}
 		
-		public Word evaluate(Section section) throws ValueError {
+		public Word evaluate(Result result) throws ValueError {
 		    if (value.length() == 1) {
 		        return Word.of(value.charAt(0));
 		    } else if (value.length() == 2) {
@@ -104,7 +104,7 @@ public interface Value {
 			return 1;
 		}
 		
-		public Word evaluate(Section section) {
+		public Word evaluate(Result result) {
 		    return Word.of(value);
 		}
 		
@@ -115,7 +115,7 @@ public interface Value {
 	}
 
 	static record Block(int size) implements Value {
-        public Word evaluate(Section section) throws ValueError {
+        public Word evaluate(Result result) throws ValueError {
             throw new ValueError("Illegal value");
         }
 	}
@@ -125,11 +125,11 @@ public interface Value {
 			return 1;
 		}
 
-        public Word evaluate(Section section) throws ValueError {
+        public Word evaluate(Result result) throws ValueError {
             throw new ValueError("Illegal value");
         }
 	}
 
 	public int size();
-	public Word evaluate(Section section) throws ValueError;
+	public Word evaluate(Result result) throws ValueError;
 }

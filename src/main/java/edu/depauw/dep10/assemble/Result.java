@@ -12,13 +12,13 @@ import edu.depauw.dep10.preprocess.Line;
 public class Result {
     private List<Section> sections;
     private Section current;
-    private Map<String, Value> globals;
+    private Map<String, Value> symbols;
     private List<String> exports;
     
     public Result() {
         this.sections = new ArrayList<Section>();
         this.current = new Section(this);
-        this.globals = new HashMap<>();
+        this.symbols = new HashMap<>();
         this.exports = new ArrayList<>();
         
         sections.add(current);
@@ -29,7 +29,7 @@ public class Result {
     }
     
     public void addLabel(String label) {
-        current.addLabel(label);
+    	symbols.put(label, new Value.RelativeNumber(current, current.size()));
     }
 
     public String toObjectFile() {
@@ -44,7 +44,7 @@ public class Result {
     }
 
     public void equate(String label, Value value) {
-        current.equate(label, value);
+    	symbols.put(label, value);
     }
 
     public void align(int n) {
@@ -59,42 +59,23 @@ public class Result {
         current.addObject(value);
     }
     
-    public void addGlobal(String sym, ErrorLog log) {
-        var value = current.lookup(sym);
-        if (value != null) {
-            globals.put(sym, value);
-        } else {
-            log.error("Unknown symbol " + sym);
-        }
-    }
-
     public void org(int n) {
         current.org(n);
     }
 
     public void section(String name, String flags, ErrorLog log) {
         Line line = current.removeLastLine();
-        processExports(log);
         
         current = new Section(this); // TODO use the name and flags...
         sections.add(current);
         current.addLine(line);
     }
 
-    private void processExports(ErrorLog log) {
-        for (var export : exports) {
-            addGlobal(export, log);
-        }
-        exports.clear();
-    }
-
     public Value lookup(String sym) {
-        return globals.get(sym);
+        return symbols.get(sym);
     }
 
     public void resolveObjects(ErrorLog log) {
-        processExports(log);
-        
         // Pack the sections:
         // * First section (user) goes at 0, unless explicitly relocated
         // * Remaining sections pack to top of memory, unless explicitly relocated
@@ -130,8 +111,8 @@ public class Result {
     }
 
     public void printHeader(PrintWriter out) {
-        for (var entry : globals.entrySet()) {
-            out.println(entry.getKey() + ": .EQUATE " + entry.getValue());
+        for (var symbol : exports) {
+            out.println(symbol + ": .EQUATE " + lookup(symbol));
         }
     }
 }
