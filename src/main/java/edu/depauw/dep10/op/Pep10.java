@@ -724,7 +724,6 @@ public class Pep10 {
             var op = operand.value();
             var product = a * op;
             var low_bits = Word.of(product);
-            //var high_bits = Word.of(product >>> 16); 
 
             s.setA(low_bits);
 
@@ -746,17 +745,20 @@ public class Pep10 {
         public void exec(State s, Mode mode){
             var operand = mode.resolveWord(s);
             
-            var a = s.getA().value();
-            var op = operand.value();
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() -0x10000: s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+
             var product = a * op;
-            var high_bits = Word.of(product >>> 16); 
+            var high_bits = Word.of(product >> 16); 
 
             s.setA(high_bits);
 
-            s.setN(product < 0);
-            s.setZ(product == 0);
-            s.setV(product == 0);
-            s.setC(high_bits.value() != product);
+            s.setN(high_bits.isNegative());
+            s.setZ(high_bits.isZero());
+            // check these two: do we need them set like MULA?
+            s.setV(false);
+            s.setC(false);
         }
     };
 
