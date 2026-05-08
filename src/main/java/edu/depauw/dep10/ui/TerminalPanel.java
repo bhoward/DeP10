@@ -33,6 +33,7 @@ public class TerminalPanel extends JPanel {
     }
     
     public void clear() {
-        terminal.getTerminalController().clear();
+        var terminalController = terminal.getTerminalController();
+        terminalController.clear();
     }
 }

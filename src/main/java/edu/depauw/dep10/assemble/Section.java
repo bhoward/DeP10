@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 
+import javax.swing.text.StyledDocument;
+
 import edu.depauw.dep10.preprocess.Line;
 import edu.depauw.dep10.util.UByte;
 
@@ -151,6 +153,17 @@ public class Section {
             if (line.hasErrors()) {
                 out.print(line.getErrors());
             }
+        }
+    }
+
+    public void appendListing(StyledDocument document) {
+        int address = origin;
+        
+        for (var line : lines) {
+            if (line.isVisible()) {
+                line.appendListing(document, address);
+            }
+            address += line.getBytes().size();
         }
     }
 }

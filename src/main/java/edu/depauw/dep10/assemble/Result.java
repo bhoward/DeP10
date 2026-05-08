@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Document;
+import javax.swing.text.StyledDocument;
+
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 
@@ -114,5 +118,13 @@ public class Result {
         for (var symbol : exports) {
             out.println(symbol + ": .EQUATE " + lookup(symbol));
         }
+    }
+
+    public Document getListingDocument() {
+        StyledDocument document = new DefaultStyledDocument();
+        for (var section : sections) {
+            section.appendListing(document);
+        }
+        return document;
     }
 }

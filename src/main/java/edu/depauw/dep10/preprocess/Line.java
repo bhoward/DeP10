@@ -2,6 +2,8 @@ package edu.depauw.dep10.preprocess;
 
 import java.util.List;
 
+import javax.swing.text.StyledDocument;
+
 import edu.depauw.dep10.assemble.Value;
 import edu.depauw.dep10.util.UByte;
 
@@ -53,5 +55,9 @@ public record Line(String label, String command, List<Value> args, String commen
     
     public String getErrors() {
         return log.getErrors();
+    }
+
+    public void appendListing(StyledDocument document, int address) {
+        log.appendListing(document, this, address);
     }
 }
