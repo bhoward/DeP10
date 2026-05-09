@@ -86,7 +86,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         csp = new CollapsibleSectionPanel();
         this.add(csp);
 
-        textArea = new RSyntaxTextArea(25, 80);
+        textArea = new RSyntaxTextArea(25, 120);
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // TODO
         textArea.setPaintTabLines(true);
         textArea.setMarkOccurrences(true);

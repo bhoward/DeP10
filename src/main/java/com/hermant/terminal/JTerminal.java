@@ -40,7 +40,7 @@ public class JTerminal extends JScrollPane {
     private int verticalScrollBarMaximumValue;
     private final TerminalController controller;
 
-    private final JTextArea terminal = new JTextArea(25, 80);
+    private final JTextArea terminal = new JTextArea(25, 130);
 
     public JTerminal() {
         this(false, false);

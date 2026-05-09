@@ -1,14 +1,19 @@
 package edu.depauw.dep10.ui;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
 
 import org.fife.ui.rtextarea.RTextArea;
 
@@ -21,17 +26,16 @@ public class MainFrame extends JFrame {
     private OutputPanel listing;
     private OutputPanel object;
     private TerminalPanel terminal;
+    private JComboBox<String> sourceType;
 
     public MainFrame() {
-        setSize(400, 300);
+        setSize(800, 600);
         setTitle("DeP10 IDE");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-
-        var tabs = new JTabbedPane();
-        this.add(tabs);
-
+        
         source = new SourcePanel(this, "source");
-        tabs.add(source.getTitle(), source);
+
+        var tabs = new JTabbedPane(JTabbedPane.TOP);
 
         listing = new OutputPanel("listing");
         tabs.add(listing.getTitle(), listing);
@@ -41,15 +45,34 @@ public class MainFrame extends JFrame {
         
         terminal = new TerminalPanel("term");
         tabs.add(terminal.getTitle(), terminal);
+        
+        var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
+        this.add(split, BorderLayout.CENTER);
+        
+        var tools = new JToolBar(JToolBar.HORIZONTAL);
+        
+        String[] sourceTypes = new String[] {
+                "Pep/10 User Code",
+                "Pep/10 Bare Metal",
+                "Pep/10 System Code",
+                "DeCLan"
+        };
+        sourceType = new JComboBox<>(sourceTypes);
+        sourceType.setMaximumSize(sourceType.getPreferredSize());
+        tools.add(sourceType);
+        tools.add(new JToolBar.Separator());
+        
+        var menuBar = createMenuBar(tools);
+        setJMenuBar(menuBar);
+
+        this.add(tools, BorderLayout.NORTH);
 
         pack();
         setLocationRelativeTo(null);
-
-        var menuBar = createMenuBar();
-        setJMenuBar(menuBar);
+        split.setDividerLocation(0.5);
     }
 
-    public JMenuBar createMenuBar() {
+    public JMenuBar createMenuBar(JToolBar tools) {
         var menuBar = new JMenuBar();
 
         // File Menu
@@ -86,7 +109,9 @@ public class MainFrame extends JFrame {
 
         // Build Menu
         var buildMenu = new JMenu("Build");
-        buildMenu.add(createMenuItem(source.getAssembleAction(listing, object)));
+        var build = source.getAssembleAction(listing, object);
+        buildMenu.add(createMenuItem(build));
+        tools.add(new JButton(build));
         menuBar.add(buildMenu);
 
         // Debug Menu
@@ -95,7 +120,9 @@ public class MainFrame extends JFrame {
 
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
-        simulatorMenu.add(createMenuItem(source.getRunAction(object, terminal)));
+        var run = source.getRunAction(object, terminal);
+        simulatorMenu.add(createMenuItem(run));
+        tools.add(new JButton(run));
         menuBar.add(simulatorMenu);
 
         // Help Menu
