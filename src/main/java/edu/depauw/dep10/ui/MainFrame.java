@@ -22,20 +22,23 @@ import com.formdev.flatlaf.util.SystemInfo;
 // Largely based on RSTAUIDemoApp
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {    
+    static final String APP_TITLE = "DeP10 IDE";
+    
     private SourcePanel source;
     private OutputPanel listing;
     private OutputPanel object;
     private TerminalPanel terminal;
     private JComboBox<String> sourceType;
+    private JTabbedPane tabs;
 
     public MainFrame() {
         setSize(800, 600);
-        setTitle("DeP10 IDE");
+        setTitle(APP_TITLE);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         
         source = new SourcePanel(this, "source");
 
-        var tabs = new JTabbedPane(JTabbedPane.TOP);
+        tabs = new JTabbedPane(JTabbedPane.TOP);
 
         listing = new OutputPanel("listing");
         tabs.add(listing.getTitle(), listing);
@@ -121,6 +124,7 @@ public class MainFrame extends JFrame {
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
         var run = source.getRunAction(object, terminal);
+        run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
         menuBar.add(simulatorMenu);
@@ -154,5 +158,21 @@ public class MainFrame extends JFrame {
         JMenuItem item = new JMenuItem(action);
         item.setToolTipText(null); // Swing annoyingly adds tool tip text to the menu item
         return item;
+    }
+    
+    public void selectListingTab() {
+        tabs.setSelectedComponent(listing);
+    }
+    
+    public void selectTerminalTab() {
+        tabs.setSelectedComponent(terminal);
+    }
+    
+    public void updateTitle(String fileName) {
+        setTitle(fileName + " - " + APP_TITLE);
+    }
+
+    public boolean canQuit() {
+        return source.canQuit();
     }
 }

@@ -166,4 +166,14 @@ public class Section {
             address += line.getBytes().size();
         }
     }
+
+    public boolean hasErrors() {
+        for (var line : lines) {
+            if (line.hasErrors()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

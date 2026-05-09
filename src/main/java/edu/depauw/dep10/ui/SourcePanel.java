@@ -4,15 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Files;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -31,8 +30,9 @@ import org.fife.rsta.ui.search.ReplaceToolBar;
 import org.fife.rsta.ui.search.SearchEvent;
 import org.fife.rsta.ui.search.SearchListener;
 import org.fife.ui.rsyntaxtextarea.ErrorStrip;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.FileLocation;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -51,22 +51,39 @@ import edu.depauw.dep10.simulator.State;
 
 @SuppressWarnings("serial")
 public class SourcePanel extends JPanel implements SearchListener {
-    private JFrame parent;
-    private String name;
+    private static final String DEFAULT_FILENAME = "Untitled.pep";
+
+    private MainFrame parent;
 
     private FindDialog findDialog;
     private ReplaceDialog replaceDialog;
     private FindToolBar findToolBar;
     private ReplaceToolBar replaceToolBar;
-    private RSyntaxTextArea textArea;
+    private TextEditorPane textArea;
     private StatusBar statusBar;
     private CollapsibleSectionPanel csp;
 
     private JFileChooser chooser;
 
-    public SourcePanel(JFrame parent, String name) {
+    private Action showFindBarAction;
+    private Action showReplaceBarAction;
+    private Action hideSearchBarAction;
+    private Action showFindDialogAction;
+    private Action showReplaceDialogAction;
+    private Action goToLineAction;
+    private Action assembleAction;
+    private Action runAction;
+    private Action newAction;
+    private Action openDialogAction;
+    private Action saveAction;
+    private Action saveAsDialogAction;
+
+    public SourcePanel(MainFrame parent, String name) {
         this.parent = parent;
-        this.name = name;
+
+        this.chooser = new JFileChooser();
+        var filter = new FileNameExtensionFilter("Pep source", "pep");
+        chooser.setFileFilter(filter);
 
         this.findDialog = new FindDialog(parent, this);
         this.replaceDialog = new ReplaceDialog(parent, this);
@@ -86,96 +103,46 @@ public class SourcePanel extends JPanel implements SearchListener {
         csp = new CollapsibleSectionPanel();
         this.add(csp);
 
-        textArea = new RSyntaxTextArea(25, 120);
+        var file = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
+        try {
+            textArea = new TextEditorPane(TextEditorPane.INSERT_MODE, false, FileLocation.create(file));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        textArea.setRows(25);
+        textArea.setColumns(120);
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // TODO
         textArea.setPaintTabLines(true);
         textArea.setMarkOccurrences(true);
         RTextScrollPane sp = new RTextScrollPane(textArea);
         csp.add(sp);
 
+        updateTitle();
+
+        textArea.addPropertyChangeListener(TextEditorPane.DIRTY_PROPERTY, evt -> {
+            updateTitle();
+        });
+
+        textArea.addPropertyChangeListener(TextEditorPane.FULL_PATH_PROPERTY, evt -> {
+            updateTitle();
+        });
+
         ErrorStrip errorStrip = new ErrorStrip(textArea);
         this.add(errorStrip, BorderLayout.LINE_END);
 
         statusBar = new StatusBar();
         this.add(statusBar, BorderLayout.SOUTH);
-
-        this.chooser = new JFileChooser();
-        var filter = new FileNameExtensionFilter("Pep source", "pep");
-        chooser.setFileFilter(filter);
     }
 
-    public String getTitle() {
-        return name;
-    }
+    private void updateTitle() {
+        var title = (textArea.isDirty() ? "*" : "") + textArea.getFileName();
+        parent.updateTitle(title);
 
-    /**
-     * Opens the "Go to Line" dialog.
-     */
-    private class GoToLineAction extends AbstractAction {
-        public GoToLineAction() {
-            super("Go To Line...");
-            int c = getToolkit().getMenuShortcutKeyMaskEx();
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_L, c));
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (findDialog.isVisible()) {
-                findDialog.setVisible(false);
-            }
-            if (replaceDialog.isVisible()) {
-                replaceDialog.setVisible(false);
-            }
-            GoToDialog dialog = new GoToDialog(parent);
-            dialog.setMaxLineNumberAllowed(textArea.getLineCount());
-            dialog.setVisible(true);
-            int line = dialog.getLineNumber();
-            if (line > 0) {
-                try {
-                    textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
-                } catch (BadLocationException ble) { // Never happens
-                    UIManager.getLookAndFeel().provideErrorFeedback(textArea);
-                    ble.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
-     * Shows the Find dialog.
-     */
-    private class ShowFindDialogAction extends AbstractAction {
-        public ShowFindDialogAction() {
-            super("Find...");
-            int c = getToolkit().getMenuShortcutKeyMaskEx();
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, c));
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (replaceDialog.isVisible()) {
-                replaceDialog.setVisible(false);
-            }
-            findDialog.setVisible(true);
-        }
-    }
-
-    /**
-     * Shows the Replace dialog.
-     */
-    private class ShowReplaceDialogAction extends AbstractAction {
-        public ShowReplaceDialogAction() {
-            super("Replace...");
-            int c = getToolkit().getMenuShortcutKeyMaskEx();
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_H, c));
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (findDialog.isVisible()) {
-                findDialog.setVisible(false);
-            }
-            replaceDialog.setVisible(true);
+        if (textArea.getFileName().equals(DEFAULT_FILENAME) || !textArea.isDirty()) {
+            getSaveAction().setEnabled(false);
+        } else {
+            getSaveAction().setEnabled(true);
         }
     }
 
@@ -249,160 +216,369 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     public Action getShowFindBarAction() {
-        int ctrl = getToolkit().getMenuShortcutKeyMaskEx();
-        int shift = InputEvent.SHIFT_DOWN_MASK;
+        if (showFindBarAction == null) {
+            int ctrl = getToolkit().getMenuShortcutKeyMaskEx();
+            int shift = InputEvent.SHIFT_DOWN_MASK;
 
-        KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl | shift);
-        Action showFindBarAction = csp.addBottomComponent(ks, findToolBar);
-        showFindBarAction.putValue(Action.NAME, "Show Find Search Bar");
+            KeyStroke ks = KeyStroke.getKeyStroke(KeyEvent.VK_F, ctrl | shift);
+            showFindBarAction = csp.addBottomComponent(ks, findToolBar);
+            showFindBarAction.putValue(Action.NAME, "Show Find Search Bar");
+        }
+
         return showFindBarAction;
     }
 
     public Action getShowReplaceBarAction() {
-        int ctrl = getToolkit().getMenuShortcutKeyMaskEx();
-        int shift = InputEvent.SHIFT_DOWN_MASK;
+        if (showReplaceBarAction == null) {
+            int ctrl = getToolkit().getMenuShortcutKeyMaskEx();
+            int shift = InputEvent.SHIFT_DOWN_MASK;
 
-        var ks = KeyStroke.getKeyStroke(KeyEvent.VK_H, ctrl | shift);
-        Action showReplaceBarAction = csp.addBottomComponent(ks, replaceToolBar);
-        showReplaceBarAction.putValue(Action.NAME, "Show Replace Search Bar");
+            var ks = KeyStroke.getKeyStroke(KeyEvent.VK_H, ctrl | shift);
+            showReplaceBarAction = csp.addBottomComponent(ks, replaceToolBar);
+            showReplaceBarAction.putValue(Action.NAME, "Show Replace Search Bar");
+        }
+
         return showReplaceBarAction;
     }
 
     public Action getHideSearchBarAction() {
-        var ks = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0); // duplicates what csp already does, but this makes the
-        // accelerator key show in the menu
-        Action hideSearchBarAction = new AbstractAction("Hide Search Bar") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                csp.hideBottomComponent();
-            }
-        };
-        hideSearchBarAction.putValue(Action.ACCELERATOR_KEY, ks);
+        if (hideSearchBarAction == null) {
+            var ks = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0); // duplicates what csp already does, but this makes
+                                                                    // the
+            hideSearchBarAction = new AbstractAction("Hide Search Bar") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    csp.hideBottomComponent();
+                }
+            };
+            hideSearchBarAction.putValue(Action.ACCELERATOR_KEY, ks);
+        }
+
         return hideSearchBarAction;
     }
 
+    /**
+     * Shows the Find dialog.
+     */
+    private class ShowFindDialogAction extends AbstractAction {
+        public ShowFindDialogAction() {
+            super("Find...");
+            int c = getToolkit().getMenuShortcutKeyMaskEx();
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, c));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (replaceDialog.isVisible()) {
+                replaceDialog.setVisible(false);
+            }
+            findDialog.setVisible(true);
+        }
+    }
+
     public Action getShowFindDialogAction() {
-        return new ShowFindDialogAction();
+        if (showFindDialogAction == null) {
+            showFindDialogAction = new ShowFindDialogAction();
+        }
+
+        return showFindDialogAction;
+    }
+
+    /**
+     * Shows the Replace dialog.
+     */
+    private class ShowReplaceDialogAction extends AbstractAction {
+        public ShowReplaceDialogAction() {
+            super("Replace...");
+            int c = getToolkit().getMenuShortcutKeyMaskEx();
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_H, c));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (findDialog.isVisible()) {
+                findDialog.setVisible(false);
+            }
+            replaceDialog.setVisible(true);
+        }
     }
 
     public Action getShowReplaceDialogAction() {
-        return new ShowReplaceDialogAction();
+        if (showReplaceDialogAction == null) {
+            showReplaceDialogAction = new ShowReplaceDialogAction();
+        }
+
+        return showReplaceDialogAction;
+    }
+
+    /**
+     * Opens the "Go to Line" dialog.
+     */
+    private class GoToLineAction extends AbstractAction {
+        public GoToLineAction() {
+            super("Go To Line...");
+            int c = getToolkit().getMenuShortcutKeyMaskEx();
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_L, c));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (findDialog.isVisible()) {
+                findDialog.setVisible(false);
+            }
+            if (replaceDialog.isVisible()) {
+                replaceDialog.setVisible(false);
+            }
+            GoToDialog dialog = new GoToDialog(parent);
+            dialog.setMaxLineNumberAllowed(textArea.getLineCount());
+            dialog.setVisible(true);
+            int line = dialog.getLineNumber();
+            if (line > 0) {
+                try {
+                    textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
+                } catch (BadLocationException ble) { // Never happens
+                    UIManager.getLookAndFeel().provideErrorFeedback(textArea);
+                    ble.printStackTrace();
+                }
+            }
+        }
     }
 
     public Action getGoToLineAction() {
-        return new GoToLineAction();
+        if (goToLineAction == null) {
+            goToLineAction = new GoToLineAction();
+        }
+
+        return goToLineAction;
+    }
+
+    private class AssembleAction extends AbstractAction {
+        private OutputPanel listing;
+        private OutputPanel object;
+
+        public AssembleAction(OutputPanel listing, OutputPanel object) {
+            super("Assemble");
+            this.listing = listing;
+            this.object = object;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var log = new ErrorLog();
+            Sources sources = new Sources();
+            sources.addResource(Driver.FULL_OS_HEADER, log); // TODO change based on sourceType in MainFrame
+            sources.addString(textArea.getText());
+
+            var preprocessor = new Preprocessor(log);
+            Result result = null;
+
+            if (log.noErrors()) {
+                var lines = preprocessor.preprocess(sources);
+                var assembler = new Assembler(log);
+                result = assembler.assemble(lines);
+
+                // Print a listing for testing purposes
+                var writer = new StringWriter();
+                try (var out = new PrintWriter(writer)) {
+                    result.printListing(out);
+                }
+                
+                if (result.hasErrors()) {
+                    runAction.setEnabled(false);
+                } else {
+                    runAction.setEnabled(true);
+                }
+
+                listing.setContent(writer.toString());
+                object.setContent(result.toObjectFile());
+                parent.selectListingTab();
+            }
+
+            // TODO deal with errors; don't run on UI thread!
+        }
     }
 
     public Action getAssembleAction(OutputPanel listing, OutputPanel object) {
-        return new AbstractAction("Assemble") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                var log = new ErrorLog();
-                Sources sources = new Sources();
-                sources.addResource(Driver.FULL_OS_HEADER, log);
-                sources.addString(textArea.getText());
+        if (assembleAction == null) {
+            assembleAction = new AssembleAction(listing, object);
+        }
 
-                var preprocessor = new Preprocessor(log);
-                Result result = null;
+        return assembleAction;
+    }
 
-                if (log.noErrors()) {
-                    var lines = preprocessor.preprocess(sources);
-                    var assembler = new Assembler(log);
-                    result = assembler.assemble(lines);
+    private class RunAction extends AbstractAction {
+        private OutputPanel object;
+        private TerminalPanel terminal;
 
-                    // Print a listing for testing purposes
-                    var writer = new StringWriter();
-                    try (var out = new PrintWriter(writer)) {
-                        result.printListing(out);
-                    }
+        public RunAction(OutputPanel object, TerminalPanel terminal) {
+            super("Run");
+            this.object = object;
+            this.terminal = terminal;
+        }
 
-                    listing.setContent(writer.toString());
-                    object.setContent(result.toObjectFile());
-                }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            State state = new State();
+            state.loadString(object.getContent());
+            state.loadResource(Driver.FULL_OS_OBJECT);
 
-                // TODO deal with errors; don't run on UI thread!
-            }
-        };
+            terminal.clear();
+            state.setInput(terminal.getInputStream());
+            state.setOutput(terminal.getOutputStream());
+            state.setError(terminal.getOutputStream());
+            // TODO allow batch I/O
+
+            Simulator sim = new Simulator(state);
+
+            Controller control = new PlainController();
+            var t = new Thread(() -> sim.run(control));
+            t.start();
+
+            parent.selectTerminalTab();
+
+            // TODO tracing; errors, ...
+        }
     }
 
     public Action getRunAction(OutputPanel object, TerminalPanel terminal) {
-        return new AbstractAction("Run") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                State state = new State();
-                state.loadString(object.getContent());
-                state.loadResource(Driver.FULL_OS_OBJECT);
+        if (runAction == null) {
+            runAction = new RunAction(object, terminal);
+        }
 
-                terminal.clear();
-                state.setInput(terminal.getInputStream());
-                state.setOutput(terminal.getOutputStream());
-                state.setError(terminal.getOutputStream());
-                // TODO allow batch I/O
+        return runAction;
+    }
 
-                Simulator sim = new Simulator(state);
+    private class NewAction extends AbstractAction {
+        public NewAction() {
+            super("New");
+        }
 
-                Controller control = new PlainController();
-                var t = new Thread(() -> sim.run(control));
-                t.start();
-
-                // TODO tracing; errors, ...
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (textArea.isDirty()) {
+                var result = JOptionPane.showConfirmDialog(parent, "Save current file?");
+                if (result == JOptionPane.CANCEL_OPTION) {
+                    return;
+                } else if (result == JOptionPane.YES_OPTION) {
+                    try {
+                        textArea.save();
+                    } catch (IOException e1) {
+                        // TODO display error message?
+                        return;
+                    }
+                }
             }
 
-        };
+            try {
+                var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
+                textArea.load(FileLocation.create(newFile));
+                runAction.setEnabled(false);
+            } catch (IOException e1) {
+                // TODO display error message?
+            }
+        }
     }
 
     public Action getNewAction() {
-        return new AbstractAction("New") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // TODO offer to save first...
-                textArea.setText("");
+        if (newAction == null) {
+            newAction = new NewAction();
+        }
+
+        return newAction;
+    }
+
+    private class OpenDialogAction extends AbstractAction {
+        public OpenDialogAction() {
+            super("Open...");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    textArea.load(FileLocation.create(chooser.getSelectedFile()));
+                    runAction.setEnabled(false);
+                } catch (IOException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
             }
-        };
+        }
     }
 
     public Action getOpenDialogAction() {
-        return new AbstractAction("Open...") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
-                    try {
-                        var path = chooser.getSelectedFile().toPath();
-                        var content = Files.readString(path);
-                        textArea.setText(content);
-                    } catch (IOException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
-                }
-            }
-        };
+        if (openDialogAction == null) {
+            openDialogAction = new OpenDialogAction();
+        }
+
+        return openDialogAction;
     }
 
-    public Action getSaveAction() {
-        return new AbstractAction("Save") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // TODO need to have a file name already...
+    private class SaveAction extends AbstractAction {
+        public SaveAction() {
+            super("Save");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                textArea.save();
+            } catch (IOException e1) {
+                // TODO
+                e1.printStackTrace();
             }
-        };
+        }
+    }
+    
+    public Action getSaveAction() {
+        if (saveAction == null) {
+            saveAction = new SaveAction();
+        }
+        
+        return saveAction;
+    }
+    
+    private class SaveAsDialogAction extends AbstractAction {
+        public SaveAsDialogAction() {
+            super("Save As...");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    textArea.saveAs(FileLocation.create(chooser.getSelectedFile()));
+                } catch (IOException e1) {
+                    // TODO
+                    e1.printStackTrace();
+                }
+            }
+        }
     }
 
     public Action getSaveAsDialogAction() {
-        return new AbstractAction("Save As...") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
-                    try {
-                        var path = chooser.getSelectedFile().toPath();
-                        var content = textArea.getText();
-                        Files.writeString(path, content);
-                    } catch (IOException e1) {
-                        // TODO
-                        e1.printStackTrace();
-                    }
+        if (saveAsDialogAction == null) {
+            saveAsDialogAction = new SaveAsDialogAction();
+        }
+        
+        return saveAsDialogAction;
+    }
+
+    public boolean canQuit() {
+        if (textArea.isDirty()) {
+            var result = JOptionPane.showConfirmDialog(parent, "Save before quit?");
+            if (result == JOptionPane.CANCEL_OPTION) {
+                return false;
+            } else if (result == JOptionPane.YES_OPTION) {
+                try {
+                    textArea.save();
+                } catch (IOException e) {
+                    // TODO display error message?
+                    return false;
                 }
             }
-        };
+        }
+
+        return true;
     }
 }

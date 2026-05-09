@@ -32,6 +32,7 @@ class OutputPanel extends JPanel {
 
     public void setContent(String content) {
         text.setText(content);
+        text.setCaretPosition(0);
     }
     
     public void setDocument(Document document) {

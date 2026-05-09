@@ -12,10 +12,12 @@ public class Main {
         if (SystemInfo.isMacOS) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
             System.setProperty("apple.awt.application.appearance", "system");
-            System.setProperty("apple.awt.application.name", "DeP10 IDE");
+            System.setProperty("apple.awt.application.name", MainFrame.APP_TITLE);
         }
 
         FlatLightLaf.setup();
+        
+        var frame = new MainFrame();
 
         Desktop desktop = Desktop.getDesktop();
         if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
@@ -30,7 +32,7 @@ public class Main {
         }
         if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
             desktop.setQuitHandler((e, response) -> {
-                boolean canQuit = true; // TODO
+                boolean canQuit = frame.canQuit();
                 if (canQuit)
                     response.performQuit();
                 else
@@ -38,6 +40,6 @@ public class Main {
             });
         }
 
-        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+        SwingUtilities.invokeLater(() -> frame.setVisible(true));
     }
 }

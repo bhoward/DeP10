@@ -127,4 +127,14 @@ public class Result {
         }
         return document;
     }
+
+    public boolean hasErrors() {
+        for (var section : sections) {
+            if (section.hasErrors()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }
