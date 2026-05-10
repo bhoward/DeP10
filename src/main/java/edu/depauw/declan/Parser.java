@@ -116,7 +116,8 @@ public class Parser {
         } else if (match(REAL)) {
             return Type.REAL;
         } else {
-            throw error(peek(), "Expected type.");
+            error(peek(), "Expected type.");
+            return null;
         }
     }
 
@@ -376,7 +377,8 @@ public class Parser {
             return new Expr.Unary(operator, expr);
         }
 
-        throw error(peek(), "Expect expression.");
+        error(peek(), "Expect expression.");
+        return null;
     }
 
     private boolean match(TokenType... types) {
@@ -394,7 +396,8 @@ public class Parser {
         if (check(type))
             return advance();
 
-        throw error(peek(), message);
+        error(peek(), message);
+        return null;
     }
 
     private boolean check(TokenType type) {

@@ -1,8 +1,11 @@
 package edu.depauw.dep10.ui;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;
 import edu.depauw.dep10.assemble.Result;
 import edu.depauw.dep10.driver.Driver;
@@ -31,13 +34,7 @@ public interface SourceType {
             var assembler = new Assembler(log);
             result = assembler.assemble(lines);
 
-            // Print a listing for testing purposes
-            var writer = new StringWriter();
-            try (var out = new PrintWriter(writer)) {
-                result.printListing(out);
-            }
-
-            listing.setContent(writer.toString());
+            listing.setDocument(result.getListingDocument());
             object.setContent(result.toObjectFile());
             
             return !result.hasErrors();
@@ -129,7 +126,14 @@ public interface SourceType {
 
         @Override
         public boolean build(String source, OutputPanel listing, OutputPanel object) {
-            var pepSource = edu.depauw.declan.DeCLan.run(source);
+            var err = new ByteArrayOutputStream();
+            var reporter =  new Reporter(new PrintStream(err, true));
+            
+            var pepSource = edu.depauw.declan.DeCLan.run(source, reporter);
+            if (reporter.hadError()) {
+                pepSource = err.toString(); // this is a cheat...
+            }
+            
             return SourceType.super.build(pepSource, listing, object);
         }
 

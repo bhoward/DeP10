@@ -13,8 +13,6 @@ import edu.depauw.declan.ir.Instruction;
 import edu.depauw.declan.resolved.RProg;
 
 public class DeCLan {
-    private static Reporter reporter = new Reporter();
-
     private static final String SAMPLE = """
             CONST three = 3; seven = 7;
             VAR answer : INTEGER;
@@ -45,23 +43,24 @@ public class DeCLan {
             """;
 
     public static void main(String[] args) throws IOException {
+        var reporter = new Reporter(System.err);
         if (args.length > 1) {
             System.out.println("Usage: declan [file or -]");
             System.exit(64); // [64]
         } else if (args.length == 1) {
             if (args[0].equals("-")) {
-                System.out.print(runStdin());
+                System.out.print(runStdin(reporter));
             } else {
-                System.out.print(runFile(args[0]));
+                System.out.print(runFile(args[0], reporter));
             }
         } else {
-            System.out.print(run(SAMPLE));
+            System.out.print(run(SAMPLE, reporter));
         }
     }
 
-    private static String runFile(String path) throws IOException {
+    private static String runFile(String path, Reporter reporter) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
-        String result = run(new String(bytes, Charset.defaultCharset()));
+        String result = run(new String(bytes, Charset.defaultCharset()), reporter);
 
         // Indicate an error in the exit code.
         if (reporter.hadError())
@@ -70,7 +69,7 @@ public class DeCLan {
         return result;
     }
 
-    private static String runStdin() throws IOException {
+    private static String runStdin(Reporter reporter) throws IOException {
         InputStreamReader input = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input);
 
@@ -83,10 +82,10 @@ public class DeCLan {
             line = reader.readLine();
         }
 
-        return run(source.toString());
+        return run(source.toString(), reporter);
     }
 
-    public static String run(String source) {
+    public static String run(String source, Reporter reporter) {
         reporter.reset();
         Scanner scanner = new Scanner(source, reporter);
         List<Token> tokens = scanner.scanTokens();
@@ -112,10 +111,6 @@ public class DeCLan {
             }
         }
         
-        return out.toString();
-    }
-
-    static void reset() {
-        reporter.reset();
+        return out.toString(); // TODO report the errors somehow!
     }
 }
