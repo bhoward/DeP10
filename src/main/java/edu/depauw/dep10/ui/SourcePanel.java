@@ -73,6 +73,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action goToLineAction;
     private Action assembleAction;
     private Action runAction;
+    private Action debugAction;
     private Action newAction;
     private Action openDialogAction;
     private Action saveAction;
@@ -366,7 +367,17 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             var log = new ErrorLog();
             Sources sources = new Sources();
-            sources.addResource(Driver.FULL_OS_HEADER, log); // TODO change based on sourceType in MainFrame
+
+            if (parent.getSourceType() == SourceType.Pep10UserFull) {
+                sources.addResource(Driver.FULL_OS_HEADER, log);
+            } else if (parent.getSourceType() == SourceType.Pep10UserBare) {
+                sources.addResource(Driver.BARE_METAL_OS_HEADER, log);
+            } else if (parent.getSourceType() == SourceType.Pep10System) {
+                sources.addResource(Driver.STD_MACROS, log);
+            } else {
+                // TODO
+            }
+
             sources.addString(textArea.getText());
 
             var preprocessor = new Preprocessor(log);
@@ -382,11 +393,13 @@ public class SourcePanel extends JPanel implements SearchListener {
                 try (var out = new PrintWriter(writer)) {
                     result.printListing(out);
                 }
-                
+
                 if (result.hasErrors()) {
                     runAction.setEnabled(false);
+                    debugAction.setEnabled(false);
                 } else {
                     runAction.setEnabled(true);
+                    debugAction.setEnabled(true);
                 }
 
                 listing.setContent(writer.toString());
@@ -420,7 +433,14 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             State state = new State();
             state.loadString(object.getContent());
-            state.loadResource(Driver.FULL_OS_OBJECT);
+
+            if (parent.getSourceType() == SourceType.Pep10UserFull) {
+                state.loadResource(Driver.FULL_OS_OBJECT);
+            } else if (parent.getSourceType() == SourceType.Pep10UserBare) {
+                state.loadResource(Driver.BARE_METAL_OS_OBJECT);
+            } else {
+                // Do nothing
+            }
 
             terminal.clear();
             state.setInput(terminal.getInputStream());
@@ -448,6 +468,19 @@ public class SourcePanel extends JPanel implements SearchListener {
         return runAction;
     }
 
+    public Action getDebugAction(OutputPanel object, TerminalPanel terminal) {
+        if (debugAction == null) {
+            debugAction = new AbstractAction("Debug") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // TODO Auto-generated method stub
+                }
+            };
+        }
+
+        return debugAction;
+    }
+
     private class NewAction extends AbstractAction {
         public NewAction() {
             super("New");
@@ -473,10 +506,12 @@ public class SourcePanel extends JPanel implements SearchListener {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
                 textArea.load(FileLocation.create(newFile));
                 runAction.setEnabled(false);
+                debugAction.setEnabled(false);
             } catch (IOException e1) {
                 // TODO display error message?
             }
         }
+
     }
 
     public Action getNewAction() {
@@ -498,6 +533,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                 try {
                     textArea.load(FileLocation.create(chooser.getSelectedFile()));
                     runAction.setEnabled(false);
+                    debugAction.setEnabled(false);
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -518,7 +554,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         public SaveAction() {
             super("Save");
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -529,20 +565,20 @@ public class SourcePanel extends JPanel implements SearchListener {
             }
         }
     }
-    
+
     public Action getSaveAction() {
         if (saveAction == null) {
             saveAction = new SaveAction();
         }
-        
+
         return saveAction;
     }
-    
+
     private class SaveAsDialogAction extends AbstractAction {
         public SaveAsDialogAction() {
             super("Save As...");
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
@@ -560,7 +596,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         if (saveAsDialogAction == null) {
             saveAsDialogAction = new SaveAsDialogAction();
         }
-        
+
         return saveAsDialogAction;
     }
 

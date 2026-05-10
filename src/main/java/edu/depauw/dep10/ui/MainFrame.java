@@ -19,52 +19,51 @@ import org.fife.ui.rtextarea.RTextArea;
 
 import com.formdev.flatlaf.util.SystemInfo;
 
-// Largely based on RSTAUIDemoApp
 @SuppressWarnings("serial")
-public class MainFrame extends JFrame {    
+public class MainFrame extends JFrame {
     static final String APP_TITLE = "DeP10 IDE";
-    
+
     private SourcePanel source;
     private OutputPanel listing;
     private OutputPanel object;
     private TerminalPanel terminal;
-    private JComboBox<String> sourceType;
+    private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
 
     public MainFrame() {
         setSize(800, 600);
         setTitle(APP_TITLE);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        
+
         source = new SourcePanel(this, "source");
 
         tabs = new JTabbedPane(JTabbedPane.TOP);
 
         listing = new OutputPanel("listing");
         tabs.add(listing.getTitle(), listing);
-        
+
         object = new OutputPanel("object");
         tabs.add(object.getTitle(), object);
-        
+
         terminal = new TerminalPanel("term");
         tabs.add(terminal.getTitle(), terminal);
-        
+
         var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
         this.add(split, BorderLayout.CENTER);
-        
+
         var tools = new JToolBar(JToolBar.HORIZONTAL);
-        
-        String[] sourceTypes = new String[] {
-                "Pep/10 User Code",
-                "Pep/10 Bare Metal",
-                "Pep/10 System Code",
-                "DeCLan"
+
+        SourceType[] sourceTypes = new SourceType[] {
+                SourceType.Pep10UserFull,
+                SourceType.Pep10UserBare,
+                SourceType.Pep10System,
+                SourceType.DeCLan
         };
         sourceType = new JComboBox<>(sourceTypes);
         sourceType.setMaximumSize(sourceType.getPreferredSize());
         tools.add(sourceType);
         tools.add(new JToolBar.Separator());
-        
+
         var menuBar = createMenuBar(tools);
         setJMenuBar(menuBar);
 
@@ -117,16 +116,19 @@ public class MainFrame extends JFrame {
         tools.add(new JButton(build));
         menuBar.add(buildMenu);
 
-        // Debug Menu
-        var debugMenu = new JMenu("Debug");
-        menuBar.add(debugMenu);
-
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
+        
         var run = source.getRunAction(object, terminal);
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
+        
+        var debug = source.getDebugAction(object, terminal);
+        debug.setEnabled(false);
+        simulatorMenu.add(createMenuItem(debug));
+        tools.add(new JButton(debug));
+        
         menuBar.add(simulatorMenu);
 
         // Help Menu
@@ -159,20 +161,24 @@ public class MainFrame extends JFrame {
         item.setToolTipText(null); // Swing annoyingly adds tool tip text to the menu item
         return item;
     }
-    
+
     public void selectListingTab() {
         tabs.setSelectedComponent(listing);
     }
-    
+
     public void selectTerminalTab() {
         tabs.setSelectedComponent(terminal);
     }
-    
+
     public void updateTitle(String fileName) {
         setTitle(fileName + " - " + APP_TITLE);
     }
 
     public boolean canQuit() {
         return source.canQuit();
+    }
+
+    public SourceType getSourceType() {
+        return sourceType.getItemAt(sourceType.getSelectedIndex());
     }
 }

@@ -32,8 +32,7 @@ public class Main {
         }
         if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
             desktop.setQuitHandler((e, response) -> {
-                boolean canQuit = frame.canQuit();
-                if (canQuit)
+                if (frame.canQuit())
                     response.performQuit();
                 else
                     response.cancelQuit();
