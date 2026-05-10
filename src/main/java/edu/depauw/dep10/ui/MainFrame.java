@@ -109,16 +109,13 @@ public class MainFrame extends JFrame {
         searchMenu.add(new JMenuItem(source.getHideSearchBarAction()));
         menuBar.add(searchMenu);
 
-        // Build Menu
-        var buildMenu = new JMenu("Build");
-        var build = source.getAssembleAction(listing, object);
-        buildMenu.add(createMenuItem(build));
-        tools.add(new JButton(build));
-        menuBar.add(buildMenu);
-
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
         
+        var build = source.getBuildAction(listing, object);
+        simulatorMenu.add(createMenuItem(build));
+        tools.add(new JButton(build));
+
         var run = source.getRunAction(object, terminal);
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));

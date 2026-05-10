@@ -6,8 +6,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -38,17 +36,6 @@ import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.fife.ui.rtextarea.SearchResult;
 
-import edu.depauw.dep10.assemble.Assembler;
-import edu.depauw.dep10.assemble.Result;
-import edu.depauw.dep10.driver.Driver;
-import edu.depauw.dep10.driver.ErrorLog;
-import edu.depauw.dep10.preprocess.Preprocessor;
-import edu.depauw.dep10.preprocess.Sources;
-import edu.depauw.dep10.simulator.Controller;
-import edu.depauw.dep10.simulator.PlainController;
-import edu.depauw.dep10.simulator.Simulator;
-import edu.depauw.dep10.simulator.State;
-
 @SuppressWarnings("serial")
 public class SourcePanel extends JPanel implements SearchListener {
     private static final String DEFAULT_FILENAME = "Untitled.pep";
@@ -71,7 +58,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action showFindDialogAction;
     private Action showReplaceDialogAction;
     private Action goToLineAction;
-    private Action assembleAction;
+    private Action buildAction;
     private Action runAction;
     private Action debugAction;
     private Action newAction;
@@ -353,70 +340,35 @@ public class SourcePanel extends JPanel implements SearchListener {
         return goToLineAction;
     }
 
-    private class AssembleAction extends AbstractAction {
+    private class BuildAction extends AbstractAction {
         private OutputPanel listing;
         private OutputPanel object;
 
-        public AssembleAction(OutputPanel listing, OutputPanel object) {
-            super("Assemble");
+        public BuildAction(OutputPanel listing, OutputPanel object) {
+            super("Build");
             this.listing = listing;
             this.object = object;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            var log = new ErrorLog();
-            Sources sources = new Sources();
-
-            if (parent.getSourceType() == SourceType.Pep10UserFull) {
-                sources.addResource(Driver.FULL_OS_HEADER, log);
-            } else if (parent.getSourceType() == SourceType.Pep10UserBare) {
-                sources.addResource(Driver.BARE_METAL_OS_HEADER, log);
-            } else if (parent.getSourceType() == SourceType.Pep10System) {
-                sources.addResource(Driver.STD_MACROS, log);
-            } else {
-                // TODO
-            }
-
-            sources.addString(textArea.getText());
-
-            var preprocessor = new Preprocessor(log);
-            Result result = null;
-
-            if (log.noErrors()) {
-                var lines = preprocessor.preprocess(sources);
-                var assembler = new Assembler(log);
-                result = assembler.assemble(lines);
-
-                // Print a listing for testing purposes
-                var writer = new StringWriter();
-                try (var out = new PrintWriter(writer)) {
-                    result.printListing(out);
-                }
-
-                if (result.hasErrors()) {
-                    runAction.setEnabled(false);
-                    debugAction.setEnabled(false);
-                } else {
-                    runAction.setEnabled(true);
-                    debugAction.setEnabled(true);
-                }
-
-                listing.setContent(writer.toString());
-                object.setContent(result.toObjectFile());
+            if (parent.getSourceType().build(textArea.getText(), listing, object)) {
+                runAction.setEnabled(true);
+                debugAction.setEnabled(true);
                 parent.selectListingTab();
+            } else {
+                runAction.setEnabled(false);
+                debugAction.setEnabled(false);
             }
-
-            // TODO deal with errors; don't run on UI thread!
         }
     }
 
-    public Action getAssembleAction(OutputPanel listing, OutputPanel object) {
-        if (assembleAction == null) {
-            assembleAction = new AssembleAction(listing, object);
+    public Action getBuildAction(OutputPanel listing, OutputPanel object) {
+        if (buildAction == null) {
+            buildAction = new BuildAction(listing, object);
         }
 
-        return assembleAction;
+        return buildAction;
     }
 
     private class RunAction extends AbstractAction {
@@ -431,29 +383,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            State state = new State();
-            state.loadString(object.getContent());
-
-            if (parent.getSourceType() == SourceType.Pep10UserFull) {
-                state.loadResource(Driver.FULL_OS_OBJECT);
-            } else if (parent.getSourceType() == SourceType.Pep10UserBare) {
-                state.loadResource(Driver.BARE_METAL_OS_OBJECT);
-            } else {
-                // Do nothing
-            }
-
-            terminal.clear();
-            state.setInput(terminal.getInputStream());
-            state.setOutput(terminal.getOutputStream());
-            state.setError(terminal.getOutputStream());
-            // TODO allow batch I/O
-
-            Simulator sim = new Simulator(state);
-
-            Controller control = new PlainController();
-            var t = new Thread(() -> sim.run(control));
-            t.start();
-
+            parent.getSourceType().run(object, terminal);
             parent.selectTerminalTab();
 
             // TODO tracing; errors, ...
