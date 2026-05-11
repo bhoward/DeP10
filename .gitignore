@@ -33,3 +33,6 @@ replay_pid*
 # Pep files
 *.pepe
 *.pepl
+
+# OSX files
+.DS_Store
