@@ -133,7 +133,6 @@ public class Pep10 {
         pep10.out("       STWA 4,s");
         pep10.out("_id13: LDWX -6,s");
         pep10.out("       RET");
-        pep10.out(".END");
 
         return pep10.result;
     }

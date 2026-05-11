@@ -2,8 +2,6 @@ package edu.depauw.dep10.ui;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;

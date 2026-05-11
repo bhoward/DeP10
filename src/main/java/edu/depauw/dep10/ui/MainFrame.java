@@ -2,6 +2,7 @@ package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -14,7 +15,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaEditorKit;
 import org.fife.ui.rtextarea.RTextArea;
 
 import com.formdev.flatlaf.util.SystemInfo;
@@ -96,6 +99,16 @@ public class MainFrame extends JFrame {
         editMenu.add(createMenuItem(RTextArea.getAction(RTextArea.DELETE_ACTION)));
         editMenu.addSeparator();
         editMenu.add(createMenuItem(RTextArea.getAction(RTextArea.SELECT_ALL_ACTION)));
+        editMenu.addSeparator();
+        
+        var keyIncrease = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, getToolkit().getMenuShortcutKeyMaskEx());
+        var keyDecrease = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, getToolkit().getMenuShortcutKeyMaskEx());
+        var actionIncrease = new RSyntaxTextAreaEditorKit.IncreaseFontSizeAction("Increase Font Size", null, null, null, keyIncrease);
+        var actionDecrease = new RSyntaxTextAreaEditorKit.DecreaseFontSizeAction("Decrease Font Size", null, null, null, keyDecrease);
+        editMenu.add(createMenuItem(actionIncrease));
+        editMenu.add(createMenuItem(actionDecrease));
+        // TODO also change font size in OutputPanels and TerminalPanel
+        
         menuBar.add(editMenu);
 
         // Search Menu
@@ -130,6 +143,7 @@ public class MainFrame extends JFrame {
 
         // Help Menu
         var helpMenu = new JMenu("Help");
+        // TODO add reference info: Pep/10 instructions, directives; DeCLan syntax
         menuBar.add(helpMenu);
 
         if (!SystemInfo.isMacOS) {
