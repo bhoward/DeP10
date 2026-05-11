@@ -1,0 +1,137 @@
+<html><body>
+<h1>DeCLan</h1>
+<p>This is the grammar for the DePauw Compilers Language (DeCLan).
+It is based on the Oberon programming language, with no modules, arrays,
+records, pointers, case statements, sets, type declarations, function procedures, or procedure variables.</p>
+<h2>Lexical Rules</h2>
+<pre><code>letter -&gt; [A-Za-z]
+digit -&gt; [0-9]
+hexDigit -&gt; digit | [A-F]
+
+ident -&gt; letter (letter | digit)*  // except for the reserved words, listed below
+
+integer -&gt; digit digit* | digit hexDigit* H
+
+real -&gt; digit digit* . digit* scaleFactor?
+scaleFactor -&gt; E (+ | -)? digit digit*
+
+number -&gt; integer | real
+</code></pre>
+<p>Whitespace between tokens may be zero or more spaces, tabs, newlines, carriage returns, or comments.
+A comment is any sequence of characters, other than <code>*)</code>, surrounded by a leading <code>(*</code> and a trailing <code>*)</code>.
+The body of a comment may contain another comment, which must be properly closed (and which itself may
+contain further nested comments).</p>
+<h3>Reserved Words</h3>
+<pre><code>BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR,
+IF, INTEGER, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
+</code></pre>
+<h2>Syntax Rules</h2>
+<pre><code>Program -&gt; DeclSequence ProcedureDeclSequence BEGIN StatementSequence END .
+
+DeclSequence -&gt; Constants Variables
+
+Constants -&gt; CONST ConstDecl ; ConstDeclSequence
+Constants -&gt;
+
+ConstDeclSequence -&gt; ConstDecl ; ConstDeclSequence
+ConstDeclSequence -&gt;
+
+ConstDecl -&gt; ident = ConstExpr
+
+ConstExpr -&gt; Expression  // may only use idents defined in previous ConstDecls
+
+Variables -&gt; VAR VariableDecl ; VariableDeclSequence
+Variables -&gt;
+
+VariableDeclSequence -&gt; VariableDecl ; VariableDeclSequence
+VariableDeclSequence -&gt;
+
+VariableDecl -&gt; IdentList : Type
+
+IdentList -&gt; ident IdentListRest
+
+IdentListRest -&gt; , ident IdentListRest
+IdentListRest -&gt;
+
+Type -&gt; BOOLEAN | INTEGER | REAL
+
+ProcedureDeclSequence -&gt; ProcedureDecl ; ProcedureDeclSequence
+ProcedureDeclSequence -&gt;
+
+ProcedureDecl -&gt; ProcedureHead ; ProcedureBody ident  // same ident from ProcedureHead
+
+ProcedureHead -&gt; PROCEDURE ident FormalParameters
+
+ProcedureBody -&gt; DeclSequence BEGIN StatementSequence END
+
+FormalParameters -&gt; ( FPSection FPSectionSequence )
+FormalParameters -&gt; ( )
+
+FPSectionSequence -&gt; ; FPSection FPSectionSequence
+FPSectionSequence -&gt;
+
+FPSection -&gt; VAR IdentList : Type
+FPSection -&gt; IdentList : Type
+
+StatementSequence -&gt; Statement StatementSequenceRest
+
+StatementSequenceRest -&gt; ; Statement StatementSequenceRest
+StatementSequenceRest -&gt;
+
+Statement -&gt; Assignment | ProcedureCall | IfStatement | WhileStatement | RepeatStatement | ForStatement
+Statement -&gt;
+
+Assignment -&gt; ident := Expression
+
+ProcedureCall -&gt; ident ActualParameters
+
+ActualParameters -&gt; ( ExpList )
+ActualParameters -&gt; ( )
+
+ExpList -&gt; Expression ExpListRest
+
+ExpListRest -&gt; , Expression
+ExpListRest -&gt;
+
+IfStatement -&gt; IF Expression THEN StatementSequence ElsifThenSequence ELSE StatementSequence END
+IfStatement -&gt; IF Expression THEN StatementSequence ElsifThenSequence END
+
+ElsifThenSequence -&gt; ELSIF Expression THEN StatementSequence ElsifThenSequence
+ElsifThenSequence -&gt;
+
+WhileStatement -&gt; WHILE Expression DO StatementSequence ElsifDoSequence END
+
+ElsifDoSequence -&gt; ELSIF Expression DO StatementSequence ElsifDoSequence
+ElsifDoSequence -&gt;
+
+RepeatStatement -&gt; REPEAT StatementSequence UNTIL Expression
+
+ForStatement -&gt; FOR ident := Expression TO Expression BY ConstExpr DO StatementSequence END
+ForStatement -&gt; FOR ident := Expression TO Expression DO StatementSequence END
+
+Expression -&gt; SimpleExpr
+Expression -&gt; SimpleExpr Relation SimpleExpr
+
+Relation -&gt; = | # | &lt; | &lt;= | &gt; | &gt;=
+
+SimpleExpr -&gt; + Term SimpleExprRest
+SimpleExpr -&gt; - Term SimpleExprRest
+SimpleExpr -&gt; Term SimpleExprRest
+
+SimpleExprRest -&gt; AddOperator Term SimpleExprRest
+SimpleExprRest -&gt;
+
+AddOperator -&gt; + | - | OR
+
+Term -&gt; Factor TermRest
+
+TermRest -&gt; MulOperator Factor TermRest
+TermRest -&gt;
+
+MulOperator -&gt; * | / | DIV | MOD | &amp;
+
+Factor -&gt; number | TRUE | FALSE | ident
+Factor -&gt; ( Expression )
+Factor -&gt; ~ Factor
+</code></pre>
+</body></html>

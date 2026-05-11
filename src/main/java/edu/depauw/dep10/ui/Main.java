@@ -22,7 +22,7 @@ public class Main {
         Desktop desktop = Desktop.getDesktop();
         if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
             desktop.setAboutHandler(e -> {
-                // TODO show about dialog
+                frame.showHelpDialog("aboutdep10.html");
             });
         }
         if (desktop.isSupported(Desktop.Action.APP_PREFERENCES)) {

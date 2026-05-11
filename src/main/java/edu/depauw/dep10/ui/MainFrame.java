@@ -1,21 +1,33 @@
 package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextAreaEditorKit;
 import org.fife.ui.rtextarea.RTextArea;
@@ -30,6 +42,8 @@ public class MainFrame extends JFrame {
     private OutputPanel listing;
     private OutputPanel object;
     private TerminalPanel terminal;
+    private OutputPanel resourceView;
+
     private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
 
@@ -50,6 +64,9 @@ public class MainFrame extends JFrame {
 
         terminal = new TerminalPanel("term");
         tabs.add(terminal.getTitle(), terminal);
+
+        resourceView = new OutputPanel("resource");
+        tabs.add(resourceView.getTitle(), resourceView);
 
         var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
         this.add(split, BorderLayout.CENTER);
@@ -100,15 +117,17 @@ public class MainFrame extends JFrame {
         editMenu.addSeparator();
         editMenu.add(createMenuItem(RTextArea.getAction(RTextArea.SELECT_ALL_ACTION)));
         editMenu.addSeparator();
-        
+
         var keyIncrease = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, getToolkit().getMenuShortcutKeyMaskEx());
         var keyDecrease = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, getToolkit().getMenuShortcutKeyMaskEx());
-        var actionIncrease = new RSyntaxTextAreaEditorKit.IncreaseFontSizeAction("Increase Font Size", null, null, null, keyIncrease);
-        var actionDecrease = new RSyntaxTextAreaEditorKit.DecreaseFontSizeAction("Decrease Font Size", null, null, null, keyDecrease);
+        var actionIncrease = new RSyntaxTextAreaEditorKit.IncreaseFontSizeAction("Increase Font Size", null, null, null,
+                keyIncrease);
+        var actionDecrease = new RSyntaxTextAreaEditorKit.DecreaseFontSizeAction("Decrease Font Size", null, null, null,
+                keyDecrease);
         editMenu.add(createMenuItem(actionIncrease));
         editMenu.add(createMenuItem(actionDecrease));
         // TODO also change font size in OutputPanels and TerminalPanel
-        
+
         menuBar.add(editMenu);
 
         // Search Menu
@@ -124,7 +143,7 @@ public class MainFrame extends JFrame {
 
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
-        
+
         var build = source.getBuildAction(listing, object);
         simulatorMenu.add(createMenuItem(build));
         tools.add(new JButton(build));
@@ -133,16 +152,21 @@ public class MainFrame extends JFrame {
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
-        
+
         var debug = source.getDebugAction(object, terminal);
         debug.setEnabled(false);
         simulatorMenu.add(createMenuItem(debug));
         tools.add(new JButton(debug));
-        
+
         menuBar.add(simulatorMenu);
 
         // Help Menu
         var helpMenu = new JMenu("Help");
+        helpMenu.add(new JMenuItem(viewHelp("DeCLan Grammar", "declan.html")));
+        helpMenu.addSeparator();
+        helpMenu.add(new JMenuItem(viewResource("View Pep/10 Full OS Listing", "pep10os.pepl")));
+        helpMenu.add(new JMenuItem(viewResource("View Pep/10 Bare Metal OS Listing", "pep10baremetal.pepl")));
+        helpMenu.add(new JMenuItem(viewResource("View Standard Macros", "stdmacro.pep")));
         // TODO add reference info: Pep/10 instructions, directives; DeCLan syntax
         menuBar.add(helpMenu);
 
@@ -159,10 +183,29 @@ public class MainFrame extends JFrame {
             editMenu.add(new JMenuItem("Preferences..."));
 
             helpMenu.addSeparator();
-            helpMenu.add(new JMenuItem("About..."));
+            helpMenu.add(new JMenuItem(viewHelp("About...", "aboutdep10.html")));
         }
 
         return menuBar;
+    }
+
+    private Action viewHelp(String description, String resource) {
+        return new AbstractAction(description) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showHelpDialog(resource);
+            }
+        };
+    }
+
+    private Action viewResource(String description, String resource) {
+        return new AbstractAction(description) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resourceView.setContent(getResourceAsString(resource));
+                tabs.setSelectedComponent(resourceView);
+            }
+        };
     }
 
     // Source:
@@ -191,5 +234,45 @@ public class MainFrame extends JFrame {
 
     public SourceType getSourceType() {
         return sourceType.getItemAt(sourceType.getSelectedIndex());
+    }
+
+    public String getResourceAsString(String resource) {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        try (InputStream is = classLoader.getResourceAsStream(resource)) {
+            if (is != null) {
+                try (
+                        InputStreamReader isr = new InputStreamReader(is);
+                        BufferedReader reader = new BufferedReader(isr)) {
+                    return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+                }
+            }
+        } catch (IOException e1) {
+            // TODO print a message?
+        }
+        return null;
+    }
+
+    public void showHelpDialog(String resource) {
+        JEditorPane helpPane = new JEditorPane("text/html", getResourceAsString(resource));
+        helpPane.setEditable(false);
+        helpPane.addHyperlinkListener(new HyperlinkListener() {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                    if (Desktop.isDesktopSupported()) {
+                        try {
+                            Desktop.getDesktop().browse(e.getURL().toURI());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        helpPane.setCaretPosition(0);
+        JScrollPane scrollPane = new JScrollPane(helpPane);
+        scrollPane.setPreferredSize(new Dimension(800, 400));
+        JOptionPane.showMessageDialog(this, scrollPane, "Help Documentation",
+                JOptionPane.PLAIN_MESSAGE);
     }
 }
