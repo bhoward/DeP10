@@ -39,9 +39,8 @@ public class Driver {
     public static final String STD_MACROS = "/stdmacro.pep";
 
     public static void main(String[] args) {
-        if (System.console() == null &&
-                (args.length == 0 || args[0].equals("-g") || args[0].equals("--gui"))) {
-            // assume GUI mode: no console, no args, or explicit -g/--gui first arg
+        if (args.length == 0 || args[0].equals("-g") || args[0].equals("--gui")) {
+            // assume GUI mode: no args, or explicit -g/--gui first arg
             Main.main(args);
         } else {
             InitialArgs init = new InitialArgs();
