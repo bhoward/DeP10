@@ -9,7 +9,7 @@ import javax.swing.JTextPane;
 import javax.swing.text.Document;
 
 @SuppressWarnings("serial")
-class OutputPanel extends JPanel {
+class OutputPanel extends JPanel implements TabPanel {
     private final String name;
     private final JTextPane text;
 
@@ -18,28 +18,32 @@ class OutputPanel extends JPanel {
 
         text = new JTextPane();
         text.setEditable(false);
-        text.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        text.setFont(SourcePanel.DEFAULT_FONT);
         text.setContentType("text/plain");
-        
+
         JScrollPane sp = new JScrollPane(text);
         this.setLayout(new BorderLayout());
         this.add(sp);
     }
 
-	public String getTitle() {
-		return name;
-	}
+    public String getTitle() {
+        return name;
+    }
 
     public void setContent(String content) {
         text.setText(content);
         text.setCaretPosition(0);
     }
-    
+
     public void setDocument(Document document) {
         text.setDocument(document);
     }
 
-	public String getContent() {
-		return text.getText();
-	}
+    public String getContent() {
+        return text.getText();
+    }
+
+    public void setPanelFont(Font font) {
+        text.setFont(font);
+    }
 }

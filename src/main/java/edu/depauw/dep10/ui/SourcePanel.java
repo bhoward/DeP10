@@ -1,6 +1,7 @@
 package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -40,6 +41,8 @@ import org.fife.ui.rtextarea.SearchResult;
 public class SourcePanel extends JPanel implements SearchListener {
     private static final String DEFAULT_FILENAME = "Untitled.pep";
 
+    public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+
     private MainFrame parent;
 
     private FindDialog findDialog;
@@ -70,8 +73,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         this.parent = parent;
 
         this.chooser = new JFileChooser();
-        var filter = new FileNameExtensionFilter("Pep source", "pep");
-        chooser.setFileFilter(filter);
+        var pepFilter = new FileNameExtensionFilter("Pep source", "pep");
+        var dclFilter = new FileNameExtensionFilter("DeCLan source", "dcl");
+        chooser.setFileFilter(pepFilter);
+        chooser.addChoosableFileFilter(dclFilter);
 
         this.findDialog = new FindDialog(parent, this);
         this.replaceDialog = new ReplaceDialog(parent, this);
@@ -100,6 +105,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
         textArea.setRows(25);
         textArea.setColumns(120);
+        textArea.setFont(DEFAULT_FONT);
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // TODO
         textArea.setPaintTabLines(true);
         textArea.setMarkOccurrences(true);
@@ -546,5 +552,9 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
 
         return true;
+    }
+
+    public Font getPanelFont() {
+        return textArea.getFont();
     }
 }

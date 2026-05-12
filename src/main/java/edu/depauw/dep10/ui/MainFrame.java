@@ -26,6 +26,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -118,15 +119,8 @@ public class MainFrame extends JFrame {
         editMenu.add(createMenuItem(RTextArea.getAction(RTextArea.SELECT_ALL_ACTION)));
         editMenu.addSeparator();
 
-        var keyIncrease = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, getToolkit().getMenuShortcutKeyMaskEx());
-        var keyDecrease = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, getToolkit().getMenuShortcutKeyMaskEx());
-        var actionIncrease = new RSyntaxTextAreaEditorKit.IncreaseFontSizeAction("Increase Font Size", null, null, null,
-                keyIncrease);
-        var actionDecrease = new RSyntaxTextAreaEditorKit.DecreaseFontSizeAction("Decrease Font Size", null, null, null,
-                keyDecrease);
-        editMenu.add(createMenuItem(actionIncrease));
-        editMenu.add(createMenuItem(actionDecrease));
-        // TODO also change font size in OutputPanels and TerminalPanel
+        editMenu.add(createMenuItem(getIncreaseFontAction()));
+        editMenu.add(createMenuItem(getDecreaseFontAction()));
 
         menuBar.add(editMenu);
 
@@ -187,6 +181,44 @@ public class MainFrame extends JFrame {
         }
 
         return menuBar;
+    }
+
+    private Action getDecreaseFontAction() {
+        var keyDecrease = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, getToolkit().getMenuShortcutKeyMaskEx());
+        var decreaseSource = new RSyntaxTextAreaEditorKit.DecreaseFontSizeAction();
+
+        var result = new AbstractAction("Decrease Font Size") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                decreaseSource.actionPerformed(e);
+                for (var tab : tabs.getComponents()) {
+                    ((TabPanel) tab).setPanelFont(source.getPanelFont());
+                }
+                SwingUtilities.updateComponentTreeUI(MainFrame.this);
+            }
+        };
+
+        result.putValue(Action.ACCELERATOR_KEY, keyDecrease);
+        return result;
+    }
+
+    private Action getIncreaseFontAction() {
+        var keyIncrease = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, getToolkit().getMenuShortcutKeyMaskEx());
+        var increaseSource = new RSyntaxTextAreaEditorKit.IncreaseFontSizeAction();
+
+        var result = new AbstractAction("Increase Font Size") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                increaseSource.actionPerformed(e);
+                for (var tab : tabs.getComponents()) {
+                    ((TabPanel) tab).setPanelFont(source.getPanelFont());
+                }
+                SwingUtilities.updateComponentTreeUI(MainFrame.this);
+            }
+        };
+
+        result.putValue(Action.ACCELERATOR_KEY, keyIncrease);
+        return result;
     }
 
     private Action viewHelp(String description, String resource) {
