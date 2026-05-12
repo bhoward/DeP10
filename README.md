@@ -9,6 +9,12 @@ usage below.
 
 ## Running
 
+### GUI
+
+Double-click on the jar, or run `java -jar dep10.jar --gui`
+
+### Command Line
+
 Given the following source in `test.pep`:
 
 ```
