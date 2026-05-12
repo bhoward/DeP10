@@ -9,6 +9,7 @@ TODO
 * Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
 * References: instructions, modes, directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter
+* New syntax for macros
 
 Document the CLI options
 -------
