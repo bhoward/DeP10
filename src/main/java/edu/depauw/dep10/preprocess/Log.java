@@ -21,9 +21,9 @@ public class Log {
     private static final int ARG_START = 40;
     private static final int COMMENT_START = 52;
 
-    private static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
-    private static final MutableAttributeSet DEFAULT_ATTRS = new SimpleAttributeSet();
-    private static final MutableAttributeSet ERROR_ATTRS = new SimpleAttributeSet();
+    public static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
+    public static final MutableAttributeSet DEFAULT_ATTRS = new SimpleAttributeSet();
+    public static final MutableAttributeSet ERROR_ATTRS = new SimpleAttributeSet();
 
     static {
         StyleConstants.setForeground(DEFAULT_ATTRS, Color.BLACK);

@@ -1,17 +1,21 @@
 package edu.depauw.dep10.assemble;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Document;
 import javax.swing.text.StyledDocument;
 
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
+import edu.depauw.dep10.preprocess.Log;
 
 public class Result {
     private List<Section> sections;
@@ -106,6 +110,26 @@ public class Result {
         for (var section : sections) {
             section.printListing(out);
         }
+        
+        printSymbols(out);
+    }
+    
+    public void printSymbols(PrintWriter out) {
+        var syms = new ArrayList<>(symbols.keySet());
+        Collections.sort(syms);
+        int width = syms.stream().map(s -> s.length()).max(Integer::compare).get();
+        
+        out.println();
+        out.println("Symbol Table");
+        out.println("------------");
+        for (var sym : syms) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(sym);
+            builder.repeat(' ', Math.max(width - sym.length(), 0));
+            builder.append(" = ");
+            builder.append(Log.HEX_FORMAT.toHexDigits(Integer.valueOf(lookup(sym).toString()).shortValue()));
+            out.println(builder.toString());
+        }
     }
 
     public void printErrors(PrintWriter out) {
@@ -125,6 +149,17 @@ public class Result {
         for (var section : sections) {
             section.appendListing(document);
         }
+        
+        var writer = new StringWriter();
+        PrintWriter out = new PrintWriter(writer);
+        printSymbols(out);
+        out.close();
+        try {
+            document.insertString(document.getLength(), writer.toString(), Log.DEFAULT_ATTRS);
+        } catch (BadLocationException e) {
+            // Should not happen
+        }
+        
         return document;
     }
 

@@ -1,7 +1,6 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Symbol table view
 * Better I/O console?
 * Batch input file -- editable
 * Batch output
