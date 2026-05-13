@@ -44,6 +44,7 @@ public class MainFrame extends JFrame {
     private OutputPanel object;
     private TerminalPanel terminal;
     private OutputPanel resourceView;
+    private OutputPanel tracePanel;
 
     private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
@@ -68,6 +69,9 @@ public class MainFrame extends JFrame {
 
         resourceView = new OutputPanel("resource");
         tabs.add(resourceView.getTitle(), resourceView);
+        
+        tracePanel = new OutputPanel("trace");
+        tabs.add(tracePanel.getTitle(), tracePanel);
 
         var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
         this.add(split, BorderLayout.CENTER);
@@ -146,6 +150,11 @@ public class MainFrame extends JFrame {
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
+
+        var trace = source.getTraceAction(object, terminal, tracePanel);
+        trace.setEnabled(false);
+        simulatorMenu.add(createMenuItem(trace));
+        tools.add(new JButton(trace));
 
         var debug = source.getDebugAction(object, terminal);
         debug.setEnabled(false);

@@ -11,11 +11,16 @@ import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
 import edu.depauw.dep10.simulator.Controller;
+import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.simulator.StepController;
+import edu.depauw.dep10.simulator.TracingController;
 
 public interface SourceType {
+    int DEFAULT_STEP_LIMIT = 10000; // TODO make this a setting
+
     default boolean build(String source, OutputPanel listing, OutputPanel object) {
         var log = new ErrorLog();
         Sources sources = new Sources();
@@ -34,7 +39,7 @@ public interface SourceType {
 
             listing.setDocument(result.getListingDocument());
             object.setContent(result.toObjectFile());
-            
+
             return !result.hasErrors();
         } else {
             return false;
@@ -43,8 +48,8 @@ public interface SourceType {
         // TODO deal with errors; don't run on UI thread!
     }
 
-    default void run(OutputPanel object, TerminalPanel terminal) {
-        State state = new State();
+    default void run(OutputPanel object, TerminalPanel terminal, OutputPanel trace) {
+        State state = (trace == null) ? new State() : new DebugState();
         state.loadString(object.getContent());
         loadOSObject(state);
 
@@ -56,15 +61,35 @@ public interface SourceType {
 
         Simulator sim = new Simulator(state);
 
-        Controller control = new PlainController();
-        var t = new Thread(() -> sim.run(control));
+        Controller control;
+        TracingController tc;
+
+        if (trace != null) {
+            tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
+            control = tc;
+        } else {
+            tc = null;
+            control = new PlainController();
+        }
+
+        var t = new Thread(() -> {
+            sim.run(control);
+            
+            if (tc != null) {
+                var bytes = new ByteArrayOutputStream();
+                var out = new PrintStream(bytes);
+                tc.printTrace(out);
+                out.close();
+                trace.setContent(bytes.toString());
+            }
+        });
         t.start();
     }
-    
+
     void loadOSHeader(Sources sources, ErrorLog log);
-    
+
     void loadOSObject(State state);
-    
+
     SourceType Pep10UserFull = new SourceType() {
         @Override
         public String toString() {
@@ -81,7 +106,7 @@ public interface SourceType {
             state.loadResource(Driver.FULL_OS_OBJECT);
         }
     };
-    
+
     SourceType Pep10UserBare = new SourceType() {
         @Override
         public String toString() {
@@ -98,7 +123,7 @@ public interface SourceType {
             state.loadResource(Driver.BARE_METAL_OS_OBJECT);
         }
     };
-    
+
     SourceType Pep10System = new SourceType() {
         @Override
         public String toString() {
@@ -115,7 +140,7 @@ public interface SourceType {
             // Do nothing
         }
     };
-    
+
     SourceType DeCLan = new SourceType() {
         @Override
         public String toString() {
@@ -125,13 +150,13 @@ public interface SourceType {
         @Override
         public boolean build(String source, OutputPanel listing, OutputPanel object) {
             var err = new ByteArrayOutputStream();
-            var reporter =  new Reporter(new PrintStream(err, true));
-            
+            var reporter = new Reporter(new PrintStream(err, true));
+
             var pepSource = edu.depauw.declan.DeCLan.run(source, reporter);
             if (reporter.hadError()) {
                 pepSource = err.toString(); // this is a cheat...
             }
-            
+
             return SourceType.super.build(pepSource, listing, object);
         }
 

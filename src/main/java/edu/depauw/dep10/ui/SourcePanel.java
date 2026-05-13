@@ -63,6 +63,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action goToLineAction;
     private Action buildAction;
     private Action runAction;
+    private Action traceAction;
     private Action debugAction;
     private Action newAction;
     private Action openDialogAction;
@@ -360,10 +361,12 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             if (parent.getSourceType().build(textArea.getText(), listing, object)) {
                 runAction.setEnabled(true);
+                traceAction.setEnabled(true);
                 debugAction.setEnabled(true);
                 parent.selectListingTab();
             } else {
                 runAction.setEnabled(false);
+                traceAction.setEnabled(false);
                 debugAction.setEnabled(false);
             }
         }
@@ -389,10 +392,10 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal);
+            parent.getSourceType().run(object, terminal, null);
             parent.selectTerminalTab();
 
-            // TODO tracing; errors, ...
+            // TODO errors, ...
         }
     }
 
@@ -402,6 +405,33 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
 
         return runAction;
+    }
+    
+    private class TraceAction extends AbstractAction {
+        private OutputPanel object;
+        private TerminalPanel terminal;
+        private OutputPanel trace;
+
+        public TraceAction(OutputPanel object, TerminalPanel terminal, OutputPanel trace) {
+            super("Trace");
+            this.object = object;
+            this.terminal = terminal;
+            this.trace = trace;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            parent.getSourceType().run(object, terminal, trace);
+            parent.selectTerminalTab();
+        }
+    }
+
+    public Action getTraceAction(OutputPanel object, TerminalPanel terminal, OutputPanel trace) {
+        if (traceAction == null) {
+            traceAction = new TraceAction(object, terminal, trace);
+        }
+        
+        return traceAction;
     }
 
     public Action getDebugAction(OutputPanel object, TerminalPanel terminal) {
@@ -442,6 +472,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
                 textArea.load(FileLocation.create(newFile));
                 runAction.setEnabled(false);
+                traceAction.setEnabled(false);
                 debugAction.setEnabled(false);
             } catch (IOException e1) {
                 // TODO display error message?
@@ -469,6 +500,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                 try {
                     textArea.load(FileLocation.create(chooser.getSelectedFile()));
                     runAction.setEnabled(false);
+                    traceAction.setEnabled(false);
                     debugAction.setEnabled(false);
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
