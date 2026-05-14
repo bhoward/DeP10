@@ -63,6 +63,18 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
                 case '\'':
                     currentTokenType = Token.LITERAL_CHAR;
                     break;
+                    
+                case '.':
+                    currentTokenType = Token.PREPROCESSOR;
+                    break;
+                    
+                case '@':
+                    currentTokenType = Token.OPERATOR;
+                    break;
+
+                case ',':
+                    currentTokenType = Token.SEPARATOR;
+                    break;
 
                 case ';':
                     currentTokenType = Token.COMMENT_EOL;
@@ -107,6 +119,24 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
                     currentTokenType = Token.LITERAL_CHAR;
                     break;
 
+                case '.':
+                    addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.PREPROCESSOR;
+                    break;
+                    
+                case '@':
+                    addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.OPERATOR;
+                    break;
+                    
+                case ',':
+                    addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.SEPARATOR;
+                    break;
+
                 case ';':
                     addToken(text, currentTokenStart, i - 1, Token.WHITESPACE, newStartOffset + currentTokenStart);
                     currentTokenStart = i;
@@ -145,6 +175,12 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
                     currentTokenType = Token.WHITESPACE;
                     break;
 
+                case ',':
+                    addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.SEPARATOR;
+                    break;
+
                 case '"':
                     addToken(text, currentTokenStart, i - 1, Token.IDENTIFIER, newStartOffset + currentTokenStart);
                     currentTokenStart = i;
@@ -162,6 +198,142 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
                         break; // Still an identifier of some type.
                     }
                     // Otherwise, we're still an identifier (?).
+                } // End of switch (c).
+
+                break;
+
+            case Token.PREPROCESSOR:
+                switch (c) {
+                case ' ':
+                case '\t':
+                case '\n':
+                case '\13': // VTAB
+                case '\f':
+                case '\r':
+                    addToken(text, currentTokenStart, i - 1, Token.PREPROCESSOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.WHITESPACE;
+                    break;
+
+                case '"':
+                    addToken(text, currentTokenStart, i - 1, Token.PREPROCESSOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
+                    break;
+
+                case '\'':
+                    addToken(text, currentTokenStart, i - 1, Token.PREPROCESSOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_CHAR;
+                    break;
+
+               default:
+                    if (RSyntaxUtilities.isLetterOrDigit(c)) {
+                        break; // Still a directive of some type.
+                    }
+                    // Otherwise, we're still a directive (?).
+                } // End of switch (c).
+
+                break;
+
+            case Token.OPERATOR:
+                switch (c) {
+                case ' ':
+                case '\t':
+                case '\n':
+                case '\13': // VTAB
+                case '\f':
+                case '\r':
+                    addToken(text, currentTokenStart, i - 1, Token.OPERATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.WHITESPACE;
+                    break;
+
+                case '"':
+                    addToken(text, currentTokenStart, i - 1, Token.OPERATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
+                    break;
+
+                case '\'':
+                    addToken(text, currentTokenStart, i - 1, Token.OPERATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_CHAR;
+                    break;
+
+               default:
+                    if (RSyntaxUtilities.isLetterOrDigit(c)) {
+                        break; // Still an operator of some type.
+                    }
+                    // Otherwise, we're still an operator (?).
+                } // End of switch (c).
+
+                break;
+
+            case Token.SEPARATOR:
+                switch (c) {
+
+                case ' ':
+                case '\t':
+                case '\n':
+                case '\13': // VTAB
+                case '\f':
+                case '\r':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.WHITESPACE;
+                    break;
+
+                case '"':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_STRING_DOUBLE_QUOTE;
+                    break;
+
+                case '\'':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.LITERAL_CHAR;
+                    break;
+
+                case '.':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.PREPROCESSOR;
+                    break;
+                    
+                case '@':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.OPERATOR;
+                    break;
+                    
+                case ',':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.SEPARATOR;
+                    break;
+
+                case ';':
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+                    currentTokenType = Token.COMMENT_EOL;
+                    break;
+
+                default:
+                    addToken(text, currentTokenStart, i - 1, Token.SEPARATOR, newStartOffset + currentTokenStart);
+                    currentTokenStart = i;
+
+                    if (RSyntaxUtilities.isDigit(c) || c == '-') {
+                        currentTokenType = Token.LITERAL_NUMBER_DECIMAL_INT;
+                        break;
+                    } else if (RSyntaxUtilities.isLetter(c)) {
+                        currentTokenType = Token.IDENTIFIER;
+                        break;
+                    }
+
+                    // Anything not currently handled - mark as identifier
+                    currentTokenType = Token.IDENTIFIER;
                 } // End of switch (c).
 
                 break;
@@ -282,7 +454,7 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
 
     @Override
     public TokenMap getWordsToHighlight() {
-        TokenMap tokenMap = new TokenMap();
+        TokenMap tokenMap = new TokenMap(true); // case-insensitive
 
         tokenMap.put("RET", Token.FUNCTION);
         tokenMap.put("SRET", Token.FUNCTION);
@@ -339,6 +511,8 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
         tokenMap.put("ADDSP", Token.FUNCTION);
         tokenMap.put("SUBSP", Token.FUNCTION);
 
+        // TODO easy way to extend the list of opcodes?
+        
         return tokenMap;
     }
 }
