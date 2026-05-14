@@ -4,7 +4,7 @@ TODO
 * Better I/O console?
 * Batch input file -- editable
 * Batch output
-* Tracing view
+* Improved syntax highlighting, etc.
 * Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
 * References: instructions, modes, directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter

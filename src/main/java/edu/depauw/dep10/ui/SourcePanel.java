@@ -31,6 +31,7 @@ import org.fife.rsta.ui.search.SearchListener;
 import org.fife.ui.rsyntaxtextarea.ErrorStrip;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
@@ -406,7 +407,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         return runAction;
     }
-    
+
     private class TraceAction extends AbstractAction {
         private OutputPanel object;
         private TerminalPanel terminal;
@@ -430,7 +431,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         if (traceAction == null) {
             traceAction = new TraceAction(object, terminal, trace);
         }
-        
+
         return traceAction;
     }
 
@@ -588,5 +589,19 @@ public class SourcePanel extends JPanel implements SearchListener {
 
     public Font getPanelFont() {
         return textArea.getFont();
+    }
+
+    public void setPanelFont(Font font) {
+        if (font != null) {
+            SyntaxScheme ss = textArea.getSyntaxScheme();
+            ss = (SyntaxScheme) ss.clone();
+            for (int i = 0; i < ss.getStyleCount(); i++) {
+                if (ss.getStyle(i) != null) {
+                    ss.getStyle(i).font = font;
+                }
+            }
+            textArea.setSyntaxScheme(ss);
+            textArea.setFont(font);
+        }
     }
 }

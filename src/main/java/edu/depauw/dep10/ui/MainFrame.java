@@ -125,6 +125,7 @@ public class MainFrame extends JFrame {
 
         editMenu.add(createMenuItem(getIncreaseFontAction()));
         editMenu.add(createMenuItem(getDecreaseFontAction()));
+        editMenu.add(createMenuItem(getResetFontAction()));
 
         menuBar.add(editMenu);
 
@@ -227,6 +228,24 @@ public class MainFrame extends JFrame {
         };
 
         result.putValue(Action.ACCELERATOR_KEY, keyIncrease);
+        return result;
+    }
+
+    private Action getResetFontAction() {
+        var keyReset = KeyStroke.getKeyStroke(KeyEvent.VK_0, getToolkit().getMenuShortcutKeyMaskEx());
+
+        var result = new AbstractAction("Reset Font Size") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                source.setPanelFont(SourcePanel.DEFAULT_FONT);
+                for (var tab : tabs.getComponents()) {
+                    ((TabPanel) tab).setPanelFont(source.getPanelFont());
+                }
+                SwingUtilities.updateComponentTreeUI(MainFrame.this);
+            }
+        };
+
+        result.putValue(Action.ACCELERATOR_KEY, keyReset);
         return result;
     }
 
