@@ -8,8 +8,8 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 
 public class Pep10TokenMaker extends AbstractTokenMaker {
-    private static final int SINGLE_QUOTE_ESCAPE = Token.LITERAL_CHAR + 100;
-    private static final int DOUBLE_QUOTE_ESCAPE = Token.LITERAL_STRING_DOUBLE_QUOTE + 100;
+    private static final int SINGLE_QUOTE_ESCAPE = Token.DEFAULT_NUM_TOKEN_TYPES + 1;
+    private static final int DOUBLE_QUOTE_ESCAPE = Token.DEFAULT_NUM_TOKEN_TYPES + 2;
 
     // See
     // https://github.com/bobbylight/RSyntaxTextArea/wiki/Adding-Syntax-Highlighting-for-a-new-Language

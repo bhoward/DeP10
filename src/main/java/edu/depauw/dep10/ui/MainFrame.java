@@ -295,6 +295,10 @@ public class MainFrame extends JFrame {
     public SourceType getSourceType() {
         return sourceType.getItemAt(sourceType.getSelectedIndex());
     }
+    
+    public void setSourceType(SourceType type) {
+        sourceType.setSelectedItem(type);
+    }
 
     public String getResourceAsString(String resource) {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();

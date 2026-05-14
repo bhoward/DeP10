@@ -114,7 +114,8 @@ public class SourcePanel extends JPanel implements SearchListener {
         
         AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance();
         atmf.putMapping("text/pep10", "edu.depauw.dep10.ui.Pep10TokenMaker");
-        textArea.setSyntaxEditingStyle("text/pep10"); // TODO also handle DeCLan...
+        atmf.putMapping("text/declan", "edu.depauw.dep10.ui.DeCLanTokenMaker");
+        textArea.setSyntaxEditingStyle("text/pep10");
         
         RTextScrollPane sp = new RTextScrollPane(textArea);
         csp.add(sp);
@@ -456,6 +457,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     private class NewAction extends AbstractAction {
         public NewAction() {
             super("New");
+            var key = KeyStroke.getKeyStroke(KeyEvent.VK_N, getToolkit().getMenuShortcutKeyMaskEx());
+            this.putValue(ACCELERATOR_KEY, key);
         }
 
         @Override
@@ -505,6 +508,24 @@ public class SourcePanel extends JPanel implements SearchListener {
             if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
                 try {
                     textArea.load(FileLocation.create(chooser.getSelectedFile()));
+                    
+                    if (chooser.getSelectedFile().getName().endsWith(".dcl")) {
+                        textArea.setSyntaxEditingStyle("text/declan"); // TODO use constants
+                        parent.setSourceType(SourceType.DeCLan);
+                    } else {
+                        textArea.setSyntaxEditingStyle("text/pep10");
+                        
+                        // Attempt to guess SourceType from content
+                        String content = textArea.getText();
+                        if (content.contains(".SECTION")) {
+                            parent.setSourceType(SourceType.Pep10System);
+                        } else if (content.contains("@DECO") || content.contains("@STRO")) {
+                            parent.setSourceType(SourceType.Pep10UserFull);
+                        } else {
+                            parent.setSourceType(SourceType.Pep10UserBare);
+                        }
+                    }
+                    
                     runAction.setEnabled(false);
                     traceAction.setEnabled(false);
                     debugAction.setEnabled(false);
@@ -527,6 +548,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     private class SaveAction extends AbstractAction {
         public SaveAction() {
             super("Save");
+            var key = KeyStroke.getKeyStroke(KeyEvent.VK_S, getToolkit().getMenuShortcutKeyMaskEx());
+            this.putValue(ACCELERATOR_KEY, key);
         }
 
         @Override
