@@ -1,7 +1,9 @@
 package edu.depauw.dep10.ui;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;
@@ -48,16 +50,19 @@ public interface SourceType {
         // TODO deal with errors; don't run on UI thread!
     }
 
-    default void run(OutputPanel object, TerminalPanel terminal, OutputPanel trace) {
+    default void run(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace) {
         State state = (trace == null) ? new State() : new DebugState();
         state.loadString(object.getContent());
         loadOSObject(state);
 
         terminal.clear();
-        state.setInput(terminal.getInputStream());
+        if (batch.isActive()) {
+            state.setInput(new ByteArrayInputStream(batch.getContent().getBytes(StandardCharsets.UTF_8)));
+        } else {
+            state.setInput(terminal.getInputStream());
+        }
         state.setOutput(terminal.getOutputStream());
         state.setError(terminal.getOutputStream());
-        // TODO allow batch I/O
 
         Simulator sim = new Simulator(state);
 
@@ -74,7 +79,7 @@ public interface SourceType {
 
         var t = new Thread(() -> {
             sim.run(control);
-            
+
             if (tc != null) {
                 var bytes = new ByteArrayOutputStream();
                 var out = new PrintStream(bytes);

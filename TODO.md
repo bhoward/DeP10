@@ -1,10 +1,6 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Better I/O console?
-* Batch input file -- editable
-* Batch output
-* Improved syntax highlighting, etc.
 * Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
 * References: instructions, modes, directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter

@@ -43,6 +43,7 @@ public class MainFrame extends JFrame {
     private OutputPanel listing;
     private OutputPanel object;
     private TerminalPanel terminal;
+    private InputPanel batch;
     private OutputPanel resourceView;
     private OutputPanel tracePanel;
 
@@ -66,6 +67,9 @@ public class MainFrame extends JFrame {
 
         terminal = new TerminalPanel("term");
         tabs.add(terminal.getTitle(), terminal);
+        
+        batch = new InputPanel("batch in");
+        tabs.add(batch.getTitle(), batch);
 
         resourceView = new OutputPanel("resource");
         tabs.add(resourceView.getTitle(), resourceView);
@@ -147,17 +151,17 @@ public class MainFrame extends JFrame {
         simulatorMenu.add(createMenuItem(build));
         tools.add(new JButton(build));
 
-        var run = source.getRunAction(object, terminal);
+        var run = source.getRunAction(object, terminal, batch);
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
 
-        var trace = source.getTraceAction(object, terminal, tracePanel);
+        var trace = source.getTraceAction(object, terminal, batch, tracePanel);
         trace.setEnabled(false);
         simulatorMenu.add(createMenuItem(trace));
         tools.add(new JButton(trace));
 
-        var debug = source.getDebugAction(object, terminal);
+        var debug = source.getDebugAction(object, terminal, batch);
         debug.setEnabled(false);
         simulatorMenu.add(createMenuItem(debug));
         tools.add(new JButton(debug));
