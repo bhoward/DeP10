@@ -5,6 +5,7 @@ TODO
 * References: instructions, modes, directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
+* Tests!
 
 Document the CLI options
 -------
