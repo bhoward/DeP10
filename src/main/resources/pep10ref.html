@@ -1,0 +1,416 @@
+<html><head>
+    <style>
+        table {
+			border: 1px solid black;
+			border-top: 1px solid black;
+			border-bottom: none;
+			border-left: 1px solid black;
+			border-right: none;
+			border-spacing: 0px;
+        }
+		tr {
+			border: 1px solid black;
+			border-top: none;
+			border-bottom: 1px solid black;
+			border-left: none;
+			border-right: none;
+		}
+        th, td {
+            border: 1px solid black;
+            border-top: none;
+            border-bottom: none;
+            border-left: none;
+            border-right: 1px solid black;
+			vertical-align: top;
+        }
+    </style>
+</head><body>
+	<h1>Pep/10 Reference</h1>
+	<h2>Operations</h2>
+	<table>
+		<tbody>
+			<tr>
+				<th>Mnemonic</th>
+				<th>Opcode</th>
+				<th>Modes</th>
+				<th>Effect</th>
+			</tr>
+			<tr>
+				<td valign="top">RET</td>
+				<td valign="top">0000 0001</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">PC ← Mem[SP]<br>
+					SP ← SP + 2</td>
+			</tr>
+			<tr>
+				<td valign="top">SRET</td>
+				<td valign="top">0000 0010</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">NZVC ← Mem[SP][4 : 7]<br>
+					A ← Mem[SP + 1]<br>
+					X ← Mem[SP + 3]<br>
+					PC ← Mem[SP + 5]<br>
+					SP ← Mem[SP + 7]</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVSPA</td>
+				<td valign="top">0000 0011</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A ← SP</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVASP</td>
+				<td valign="top">0000 0100</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">SP ← A</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVFLGA</td>
+				<td valign="top">0000 0101</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A[0 : 11] ← 0 , A[12 : 15] ← NZVC</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVAFLG</td>
+				<td valign="top">0000 0110</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">NZVC ← A[12 : 15]</td>
+			</tr>
+			<tr>
+				<td valign="top">NOP</td>
+				<td valign="top">0000 0111</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">{No operation}</td>
+			</tr>
+			<tr>
+				<td valign="top">NEGr</td>
+				<td valign="top">0001 100r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">r ← −r<br>
+					N ← r &lt; 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}</td>
+			</tr>
+			<tr>
+				<td valign="top">ASLr</td>
+				<td valign="top">0001 101r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">C ← r[0] , r[0 : 14] ← r[1 : 15] , r[15] ← 0<br>
+					N ← r &lt; 0 , Z ← r = 0 , V ← {overflow}</td>
+			</tr>
+			<tr>
+				<td valign="top">ASRr</td>
+				<td valign="top">0001 110r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">C ← r[15] , r[1 : 15] ← r[0 : 14]<br>
+					N ← r &lt; 0 , Z ← r = 0 , V ← 0</td>
+			</tr>
+			<tr>
+				<td valign="top">NOTr</td>
+				<td valign="top">0001 111r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">r ← ¬r<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">ROLr</td>
+				<td valign="top">0010 000r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">C ← r[0] , r[0 : 14] ← r[1 : 15] , r[15] ← C<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">RORr</td>
+				<td valign="top">0010 001r</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">C ← r[15] , r[1 : 15] ← r[0 : 14] , r[0] ← C<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">BR</td>
+				<td valign="top">0010 010a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRLE</td>
+				<td valign="top">0010 011a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">N = 1 ∨ Z = 1 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRLT</td>
+				<td valign="top">0010 100a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">N = 1 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BREQ</td>
+				<td valign="top">0010 101a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">Z = 1 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRNE</td>
+				<td valign="top">0010 110a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">Z = 0 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRGE</td>
+				<td valign="top">0010 111a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">N = 0 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRGT</td>
+				<td valign="top">0011 000a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">N = 0 ∧ Z = 0 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRV</td>
+				<td valign="top">0011 001a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">V = 1 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">BRC</td>
+				<td valign="top">0011 010a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">C = 1 ⇒ PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">CALL</td>
+				<td valign="top">0011 011a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">SP ← SP − 2<br>
+					Mem[SP] ← PC<br>
+					PC ← Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">SCALL</td>
+				<td valign="top">0011 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Y ← Mem[FFFB]<br>
+					Mem[Y − 3] ← IR[0 : 23]<br>
+					Mem[Y − 5] ← SP<br>
+					Mem[Y − 7] ← PC<br>
+					Mem[Y − 9] ← X<br>
+					Mem[Y − 11] ← A<br>
+					Mem[Y − 12][4 : 7] ← NZVC , Mem[Y - 12][0 : 3] ← 0<br>
+					SP ← Y − 12<br>
+					PC ← Mem[FFF7]</td>
+			</tr>
+			<tr>
+				<td valign="top">ADDSP</td>
+				<td valign="top">0100 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">SP ← SP + Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">SUBSP</td>
+				<td valign="top">0100 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">SP ← SP - Operand</td>
+			</tr>
+			<tr>
+				<td valign="top">ADDr</td>
+				<td valign="top">0101 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← r + Operand<br>
+					N ← r &lt; 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}</td>
+			</tr>
+			<tr>
+				<td valign="top">SUBr</td>
+				<td valign="top">0110 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← r − Operand<br>
+					N ← r &lt; 0 , Z ← r = 0 , V ← {overflow} , C ← {carry}</td>
+			</tr>
+			<tr>
+				<td valign="top">ANDr</td>
+				<td valign="top">0111 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← r ∧ Operand<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">ORr</td>
+				<td valign="top">1000 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← r ∨ Operand<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">XORr</td>
+				<td valign="top">1001 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← r ⊕ Operand<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">CPWr</td>
+				<td valign="top">1010 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Y ← r − Operand<br>
+					N ← Y &lt; 0 , Z ← Y = 0 , V ← {overflow} , C ← {carry}<br>
+					N ← N ⊕ V</td>
+			</tr>
+			<tr>
+				<td valign="top">CPBr</td>
+				<td valign="top">1011 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Y ← r[8 : 15] − byte Operand<br>
+					N ← Y &lt; 0 , Z ← Y = 0 , V ← 0 , C ← 0</td>
+			</tr>
+			<tr>
+				<td valign="top">LDWr</td>
+				<td valign="top">1100 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r ← Operand<br>
+					N ← r &lt; 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">LDBr</td>
+				<td valign="top">1101 raaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">r[8 : 15] ← byte Operand , r[0 : 7] ← 0<br>
+					N ← 0 , Z ← r = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">STWr</td>
+				<td valign="top">1110 raaa</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Operand ← r</td>
+			</tr>
+			<tr>
+				<td valign="top">STBr</td>
+				<td valign="top">1111 raaa</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">byte Operand ← r[8 : 15]</td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<h2>Addressing Modes</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Suffix</th>
+			<th>aaa</th>
+			<th>a</th>
+			<th>Effect</th>
+		</tr>
+		<tr>
+			<td>Immediate</td>
+			<td>,i</td>
+			<td>000</td>
+			<td>0</td>
+			<td>Operand</td>
+		</tr>
+		<tr>
+			<td>Direct</td>
+			<td>,d</td>
+			<td>001</td>
+			<td></td>
+			<td>Mem[Operand]</td>
+		</tr>
+		<tr>
+			<td>Indirect</td>
+			<td>,n</td>
+			<td>010</td>
+			<td></td>
+			<td>Mem[Mem[Operand]]</td>
+		</tr>
+		<tr>
+			<td>Stack-relative</td>
+			<td>,s</td>
+			<td>011</td>
+			<td></td>
+			<td>Mem[SP + Operand]</td>
+		</tr>
+		<tr>
+			<td>Stack-relative Deferred</td>
+			<td>,sf</td>
+			<td>100</td>
+			<td></td>
+			<td>Mem[Mem[SP + Operand]]</td>
+		</tr>
+		<tr>
+			<td>Indexed</td>
+			<td>,x</td>
+			<td>101</td>
+			<td>1</td>
+			<td>Mem[Operand + X]</td>
+		</tr>
+		<tr>
+			<td>Stack-indexed</td>
+			<td>,sx</td>
+			<td>110</td>
+			<td></td>
+			<td>Mem[SP + Operand + X]</td>
+		</tr>
+		<tr>
+			<td>Stack-deferred Indexed</td>
+			<td>,sfx</td>
+			<td>111</td>
+			<td></td>
+			<td>Mem[Mem[SP + Operand] + X]</td>
+		</tr>
+	</table>
+	
+	<h2>Registers</h2>
+	<table>
+		<tr>
+			<th>Name</th>
+			<th>Symbol</th>
+			<th>r</th>
+			<th>Width</th>
+		</tr>
+		<tr>
+			<td>Accumulator</td>
+			<td>A</td>
+			<td>0</td>
+			<td>2 bytes</td>
+		</tr>
+		<tr>
+			<td>Index</td>
+			<td>X</td>
+			<td>1</td>
+			<td>2 bytes</td>
+		</tr>
+		<tr>
+			<td>Program Counter</td>
+			<td>PC</td>
+			<td></td>
+			<td>2 bytes</td>
+		</tr>
+		<tr>
+			<td>Stack Pointer</td>
+			<td>SP</td>
+			<td></td>
+			<td>2 bytes</td>
+		</tr>
+		<tr>
+			<td>Instruction</td>
+			<td>IR</td>
+			<td></td>
+			<td>3 bytes</td>
+		</tr>
+		<tr>
+			<td>Flags</td>
+			<td>NZVC</td>
+			<td></td>
+			<td>1 byte (low 4 bits)</td>
+		</tr>
+	</table>
+	
+	<h2>Special Memory Locations</h2>
+	<ul>
+		<li>FFF7,FFF8: Trap handler</li>
+		<li>FFF9,FFFA: Boot address</li>
+		<li>FFFB,FFFC: Initial stack pointer</li>
+		<li>FFFD: Character input (charIn)</li>
+		<li>FFFE: Character output (charOut)</li>
+		<li>FFFF: Power off (pwrOff)</li>
+	</ul>
+</body></html>
