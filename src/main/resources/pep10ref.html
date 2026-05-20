@@ -46,35 +46,37 @@
 				<td valign="top">SRET</td>
 				<td valign="top">0000 0010</td>
 				<td valign="top">Monadic</td>
-				<td valign="top">NZVC ← Mem[SP][4 : 7]<br>
-					A ← Mem[SP + 1]<br>
-					X ← Mem[SP + 3]<br>
-					PC ← Mem[SP + 5]<br>
-					SP ← Mem[SP + 7]</td>
-			</tr>
-			<tr>
-				<td valign="top">MOVSPA</td>
-				<td valign="top">0000 0011</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">A ← SP</td>
-			</tr>
-			<tr>
-				<td valign="top">MOVASP</td>
-				<td valign="top">0000 0100</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">SP ← A</td>
+				<td valign="top">T ← SP<br>
+					NZVC ← Mem[T][4 : 7]<br>
+					A ← Mem[T + 1]<br>
+					X ← Mem[T + 3]<br>
+					PC ← Mem[T + 5]<br>
+					SP ← Mem[T + 7]<br>
+					Mem[FFFB] ← T + 12</td>
 			</tr>
 			<tr>
 				<td valign="top">MOVFLGA</td>
-				<td valign="top">0000 0101</td>
+				<td valign="top">0000 0011</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">A[0 : 11] ← 0 , A[12 : 15] ← NZVC</td>
 			</tr>
 			<tr>
 				<td valign="top">MOVAFLG</td>
-				<td valign="top">0000 0110</td>
+				<td valign="top">0000 0100</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">NZVC ← A[12 : 15]</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVSPA</td>
+				<td valign="top">0000 0101</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A ← SP</td>
+			</tr>
+			<tr>
+				<td valign="top">MOVASP</td>
+				<td valign="top">0000 0110</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">SP ← A</td>
 			</tr>
 			<tr>
 				<td valign="top">NOP</td>
@@ -190,14 +192,14 @@
 				<td valign="top">SCALL</td>
 				<td valign="top">0011 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">Y ← Mem[FFFB]<br>
-					Mem[Y − 3] ← IR[0 : 23]<br>
-					Mem[Y − 5] ← SP<br>
-					Mem[Y − 7] ← PC<br>
-					Mem[Y − 9] ← X<br>
-					Mem[Y − 11] ← A<br>
-					Mem[Y − 12][4 : 7] ← NZVC , Mem[Y - 12][0 : 3] ← 0<br>
-					SP ← Y − 12<br>
+				<td valign="top">T ← Mem[FFFB]<br>
+					Mem[T − 3] ← IR[0 : 23]<br>
+					Mem[T − 5] ← SP<br>
+					Mem[T − 7] ← PC<br>
+					Mem[T − 9] ← X<br>
+					Mem[T − 11] ← A<br>
+					Mem[T − 12][4 : 7] ← NZVC , Mem[T - 12][0 : 3] ← 0<br>
+					SP ← T − 12<br>
 					PC ← Mem[FFF7]</td>
 			</tr>
 			<tr>
@@ -413,4 +415,18 @@
 		<li>FFFE: Character output (charOut)</li>
 		<li>FFFF: Power off (pwrOff)</li>
 	</ul>
+	
+	<h2>Operation Cycle</h2>
+<pre>
+PC ← Mem[FFF9]
+SP ← Mem[FFFB]
+do
+    IR[0:7] ← Mem[PC]
+    PC ← PC + 1
+    if IR[0:7] is dyadic
+        IR[8:23] ← Mem[PC]
+        PC ← PC + 2
+    Execute the instruction in the IR
+while not power off && instruction was legal
+</pre>
 </body></html>

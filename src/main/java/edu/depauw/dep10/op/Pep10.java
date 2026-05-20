@@ -22,23 +22,13 @@ public class Pep10 {
 
     public static final Operation SRET = new Operation.Unary("SRET") {
         public void exec(State s) {
-            s.setFlags(s.mem1(s.getSP()));
-            s.setA(s.mem2(s.getSP().plus(1)));
-            s.setX(s.mem2(s.getSP().plus(3)));
-            s.setPC(s.mem2(s.getSP().plus(5)));
-            s.setSP(s.mem2(s.getSP().plus(7)));
-        }
-    };
-
-    public static final Operation MOVSPA = new Operation.Unary("MOVSPA") {
-        public void exec(State s) {
-            s.setA(s.getSP());
-        }
-    };
-
-    public static final Operation MOVASP = new Operation.Unary("MOVASP") {
-        public void exec(State s) {
-            s.setSP(s.getA());
+            var t = s.getSP();
+            s.setFlags(s.mem1(t));
+            s.setA(s.mem2(t.plus(1)));
+            s.setX(s.mem2(t.plus(3)));
+            s.setPC(s.mem2(t.plus(5)));
+            s.setSP(s.mem2(t.plus(7)));
+            s.setMem2(SYSTEM_STACK_POINTER, t.plus(12));
         }
     };
 
@@ -51,6 +41,18 @@ public class Pep10 {
     public static final Operation MOVAFLG = new Operation.Unary("MOVAFLG") {
         public void exec(State s) {
             s.setFlags(s.getA().lo());
+        }
+    };
+
+    public static final Operation MOVSPA = new Operation.Unary("MOVSPA") {
+        public void exec(State s) {
+            s.setA(s.getSP());
+        }
+    };
+
+    public static final Operation MOVASP = new Operation.Unary("MOVASP") {
+        public void exec(State s) {
+            s.setSP(s.getA());
         }
     };
 
@@ -72,7 +74,7 @@ public class Pep10 {
             s.setA(a2);
             s.setN(sign2);
             s.setZ(zero2);
-            s.setV(sign1 == sign2);
+            s.setV(sign1 && sign2);
             s.setC(zero1);
         }
     };
@@ -90,7 +92,7 @@ public class Pep10 {
             s.setX(x2);
             s.setN(sign2);
             s.setZ(zero2);
-            s.setV(sign1 == sign2);
+            s.setV(sign1 && sign2);
             s.setC(zero1);
         }
     };
@@ -335,17 +337,17 @@ public class Pep10 {
 
     public static final OpCore SCALL = new OpCore("SCALL", Modes.All) {
         public void exec(State s, Mode mode) {
-            var y = s.mem2(SYSTEM_STACK_POINTER);
+            var t = s.mem2(SYSTEM_STACK_POINTER);
 
-            s.setMem2(y.plus(-2), s.getOperand()); // don't resolve yet; the handler will do that
-            s.setMem1(y.plus(-3), s.getOpCode());
-            s.setMem2(y.plus(-5), s.getSP());
-            s.setMem2(y.plus(-7), s.getPC());
-            s.setMem2(y.plus(-9), s.getX());
-            s.setMem2(y.plus(-11), s.getA());
-            s.setMem1(y.plus(-12), s.getFlags());
+            s.setMem2(t.plus(-2), s.getOperand()); // don't resolve yet; the handler will do that
+            s.setMem1(t.plus(-3), s.getOpCode());
+            s.setMem2(t.plus(-5), s.getSP());
+            s.setMem2(t.plus(-7), s.getPC());
+            s.setMem2(t.plus(-9), s.getX());
+            s.setMem2(t.plus(-11), s.getA());
+            s.setMem1(t.plus(-12), s.getFlags());
 
-            s.setSP(y.plus(-12));
+            s.setSP(t.plus(-12));
             s.setPC(s.mem2(TRAP_HANDLER_POINTER));
         }
     };
