@@ -2,7 +2,7 @@ TODO
 -------
 * Settings -- allow choice of version/extensions?
 * Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
-* References: instructions, modes, directives, macros
+* References: directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
 * Tests!
