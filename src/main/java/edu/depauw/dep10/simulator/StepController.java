@@ -15,8 +15,8 @@ public class StepController implements Controller {
     }
 
     @Override
-    public void perform(Operation op, State s, Word pc) {
-        parent.perform(op, s, pc);
+    public void perform(Operation op, State s, Word origPC) {
+        parent.perform(op, s, origPC);
         
         step++;
         if (step >= max) {

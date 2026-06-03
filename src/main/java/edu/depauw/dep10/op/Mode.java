@@ -24,11 +24,15 @@ public abstract class Mode {
     public abstract Word getAddress(State s);
     
     public Word resolveWord(State s) {
-        return s.mem2(getAddress(s));
+        var address = getAddress(s);
+        s.setEA(address);
+        return s.mem2(address);
     }
     
     public UByte resolveByte(State s) {
-        return s.mem1(getAddress(s));
+        var address = getAddress(s);
+        s.setEA(address);
+        return s.mem1(address);
     }
     
     public static final Mode I = new Mode(0, "i") {

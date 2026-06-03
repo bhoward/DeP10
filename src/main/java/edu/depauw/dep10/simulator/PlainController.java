@@ -5,7 +5,7 @@ import edu.depauw.dep10.util.Word;
 
 public class PlainController implements Controller {
     @Override
-    public void perform(Operation op, State s, Word pc) {
+    public void perform(Operation op, State s, Word origPC) {
         op.exec(s);
     }
 }

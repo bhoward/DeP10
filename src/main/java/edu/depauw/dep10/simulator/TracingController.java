@@ -17,11 +17,11 @@ public class TracingController implements Controller {
     }
 
     @Override
-    public void perform(Operation op, State s, Word pc) {
+    public void perform(Operation op, State s, Word origPC) {
         if (s instanceof DebugState ds) {
             ds.clearAccesses();
-            parent.perform(op, s, pc);
-            steps.add(new Step(pc, op, s.getOperand(), ds.trace()));
+            parent.perform(op, s, origPC);
+            steps.add(new Step(origPC, op, s.getOperand(), ds.trace()));
         }
     }
     
