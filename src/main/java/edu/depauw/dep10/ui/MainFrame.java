@@ -46,6 +46,7 @@ public class MainFrame extends JFrame {
     private InputPanel batch;
     private OutputPanel resourceView;
     private OutputPanel tracePanel;
+    private StatePanel statePanel;
 
     private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
@@ -76,6 +77,9 @@ public class MainFrame extends JFrame {
         
         tracePanel = new OutputPanel("trace");
         tabs.add(tracePanel.getTitle(), tracePanel);
+        
+        statePanel = new StatePanel();
+        tabs.add(statePanel.getTitle(), statePanel);
 
         var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
         this.add(split, BorderLayout.CENTER);
