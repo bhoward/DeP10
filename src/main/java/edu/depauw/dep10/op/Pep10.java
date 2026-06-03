@@ -400,7 +400,8 @@ public class Pep10 {
 
     public static final OpCore STWA = new OpCore("STWA", Modes.NotI) {
         public void exec(State s, Mode mode) {
-            s.setMem2(mode.getAddress(s), s.getA());
+            var address = mode.getAddress(s);
+            s.setMem2(address, s.getA());
         }
     };
 

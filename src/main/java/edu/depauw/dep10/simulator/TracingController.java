@@ -21,7 +21,7 @@ public class TracingController implements Controller {
         if (s instanceof DebugState ds) {
             ds.clearAccesses();
             parent.perform(op, s, origPC);
-            steps.add(new Step(origPC, op, s.getOperand(), ds.trace()));
+            steps.add(new Step(origPC, s.getPrefix(), s.getOpCode(), op, s.getOperand(), s.getEA(), ds.trace()));
         }
     }
     
