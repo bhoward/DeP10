@@ -1,5 +1,6 @@
 package edu.depauw.dep10.assemble;
 
+import edu.depauw.dep10.util.Util;
 import edu.depauw.dep10.util.Word;
 
 public interface Value {

@@ -70,9 +70,19 @@ public class State {
         return memory[addr.value()];
     }
 
+    public UByte mem1Safe(Word addr) {
+        return memory[addr.value()];
+    }
+    
     public Word mem2(Word addr) {
         var hi = mem1(addr);
         var lo = mem1(addr.plus(1));
+        return Word.of((hi.value() << 8) + lo.value());
+    }
+
+    public Word mem2Safe(Word addr) {
+        var hi = mem1Safe(addr);
+        var lo = mem1Safe(addr.plus(1));
         return Word.of((hi.value() << 8) + lo.value());
     }
 

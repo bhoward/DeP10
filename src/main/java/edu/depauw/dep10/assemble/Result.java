@@ -16,6 +16,7 @@ import javax.swing.text.StyledDocument;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Line;
 import edu.depauw.dep10.preprocess.Log;
+import edu.depauw.dep10.util.Util;
 
 public class Result {
     private List<Section> sections;
@@ -127,7 +128,7 @@ public class Result {
             builder.append(sym);
             builder.repeat(' ', Math.max(width - sym.length(), 0));
             builder.append(" = ");
-            builder.append(Log.HEX_FORMAT.toHexDigits(Integer.valueOf(lookup(sym).toString()).shortValue()));
+            builder.append(Util.HEX_FORMAT.toHexDigits(Integer.valueOf(lookup(sym).toString()).shortValue()));
             out.println(builder.toString());
         }
     }

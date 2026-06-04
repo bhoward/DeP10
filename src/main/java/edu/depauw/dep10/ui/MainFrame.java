@@ -155,17 +155,17 @@ public class MainFrame extends JFrame {
         simulatorMenu.add(createMenuItem(build));
         tools.add(new JButton(build));
 
-        var run = source.getRunAction(object, terminal, batch);
+        var run = source.getRunAction(object, terminal, batch, statePanel);
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
 
-        var trace = source.getTraceAction(object, terminal, batch, tracePanel);
+        var trace = source.getTraceAction(object, terminal, batch, tracePanel, statePanel);
         trace.setEnabled(false);
         simulatorMenu.add(createMenuItem(trace));
         tools.add(new JButton(trace));
 
-        var debug = source.getDebugAction(object, terminal, batch);
+        var debug = source.getDebugAction(object, terminal, batch, statePanel);
         debug.setEnabled(false);
         simulatorMenu.add(createMenuItem(debug));
         tools.add(new JButton(debug));

@@ -50,7 +50,7 @@ public interface SourceType {
         // TODO deal with errors; don't run on UI thread!
     }
 
-    default void run(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace) {
+    default void run(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
         State state = (trace == null) ? new State() : new DebugState();
         state.loadString(object.getContent());
         loadOSObject(state);
@@ -65,6 +65,7 @@ public interface SourceType {
         state.setError(terminal.getOutputStream());
 
         Simulator sim = new Simulator(state);
+        sp.attach(state);
 
         Controller control;
         TracingController tc;
@@ -80,6 +81,8 @@ public interface SourceType {
         var t = new Thread(() -> {
             sim.run(control);
 
+            sp.refresh();
+            
             if (tc != null) {
                 var bytes = new ByteArrayOutputStream();
                 var out = new PrintStream(bytes);

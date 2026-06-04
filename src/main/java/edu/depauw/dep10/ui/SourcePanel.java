@@ -391,26 +391,28 @@ public class SourcePanel extends JPanel implements SearchListener {
         private OutputPanel object;
         private TerminalPanel terminal;
         private InputPanel batch;
+        private StatePanel sp;
 
-        public RunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch) {
+        public RunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
             super("Run");
             this.object = object;
             this.terminal = terminal;
             this.batch = batch;
+            this.sp = sp;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal, batch, null);
+            parent.getSourceType().run(object, terminal, batch, null, sp);
             parent.selectTerminalTab();
 
             // TODO errors, ...
         }
     }
 
-    public Action getRunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch) {
+    public Action getRunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
         if (runAction == null) {
-            runAction = new RunAction(object, terminal, batch);
+            runAction = new RunAction(object, terminal, batch, sp);
         }
 
         return runAction;
@@ -421,31 +423,33 @@ public class SourcePanel extends JPanel implements SearchListener {
         private TerminalPanel terminal;
         private InputPanel batch;
         private OutputPanel trace;
+        private StatePanel sp;
 
-        public TraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace) {
+        public TraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
             super("Trace");
             this.object = object;
             this.terminal = terminal;
             this.batch = batch;
             this.trace = trace;
+            this.sp = sp;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal, batch, trace);
+            parent.getSourceType().run(object, terminal, batch, trace, sp);
             parent.selectTerminalTab();
         }
     }
 
-    public Action getTraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace) {
+    public Action getTraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
         if (traceAction == null) {
-            traceAction = new TraceAction(object, terminal, batch, trace);
+            traceAction = new TraceAction(object, terminal, batch, trace, sp);
         }
 
         return traceAction;
     }
 
-    public Action getDebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch) {
+    public Action getDebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
         if (debugAction == null) {
             debugAction = new AbstractAction("Debug") {
                 @Override

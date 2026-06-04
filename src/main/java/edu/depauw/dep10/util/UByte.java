@@ -64,6 +64,6 @@ public class UByte {
     
     @Override
     public String toString() {
-        return Integer.toHexString(value);
+        return Util.HEX_FORMAT.toHexDigits((byte) value);
     }
 }
