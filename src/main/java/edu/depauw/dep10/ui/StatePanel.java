@@ -39,6 +39,7 @@ public class StatePanel extends JPanel implements TabPanel {
     private JTextField txtIR1;
     private JTextField txtIR2;
     private JTextField txtEA;
+    private JTextField txtOperation;
 
     private State state;
     private Font font;
@@ -230,6 +231,14 @@ public class StatePanel extends JPanel implements TabPanel {
         txtMem.setEditable(false);
         add(txtMem);
         txtMem.setFont(font);
+
+        txtOperation = new JTextField();
+        springLayout.putConstraint(SpringLayout.NORTH, txtOperation, 0, SpringLayout.NORTH, txtSP);
+        springLayout.putConstraint(SpringLayout.WEST, txtOperation, 0, SpringLayout.WEST, txtX);
+        add(txtOperation);
+        txtOperation.setColumns(10);
+        txtOperation.setEditable(false);
+        txtOperation.setFont(font);
     }
 
     public void attach(State state) {
@@ -248,18 +257,22 @@ public class StatePanel extends JPanel implements TabPanel {
             txtIR2.setText(state.getOperand().toString());
             txtEA.setText(state.getEA().toString());
 
+            if (state.getOp() != null) {
+                txtOperation.setText(state.getOp().toString());
+            }
+
             String flags = (state.getN() ? "1" : "0") +
                     (state.getZ() ? "1" : "0") +
                     (state.getV() ? "1" : "0") +
                     (state.getC() ? "1" : "0");
             txtNZVC.setText(flags);
-            
+
             var stackOffset = ((Integer) spnStack.getValue()).intValue();
             var builder = new StringBuilder();
             for (int i = stackOffset; i < stackOffset + 2 * STACK_ROWS; i += 2) {
                 var address = state.getSP().plus(i);
                 var contents = state.mem2Safe(address);
-                
+
                 builder.append(i == 0 ? '>' : ' ');
                 builder.append(address);
                 builder.append(" ");
@@ -267,13 +280,13 @@ public class StatePanel extends JPanel implements TabPanel {
                 builder.append("\n");
             }
             txtStack.setText(builder.toString());
-            
+
             var memStart = ((Integer) spnMem.getValue()).intValue();
             builder = new StringBuilder();
             for (int i = memStart; i < memStart + 8 * MEM_ROWS; i += 8) {
                 var address = Word.of(i);
                 builder.append(address);
-                
+
                 for (int col = 0; col < 8; col++) {
                     var contents = state.mem1Safe(address.plus(col));
                     builder.append(" ");

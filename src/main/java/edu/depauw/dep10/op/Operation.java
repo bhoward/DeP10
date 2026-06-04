@@ -29,6 +29,7 @@ public sealed interface Operation extends TableEntry {
         }
         
         public void perform(State s, Word origPC, Controller control) {
+            s.setOp(this);
             control.perform(this, s, origPC);
         }
         
@@ -65,6 +66,7 @@ public sealed interface Operation extends TableEntry {
         }
         
         public void perform(State s, Word origPC, Controller control) {
+            s.setOp(this);
             control.perform(this, s, origPC);
         }
         

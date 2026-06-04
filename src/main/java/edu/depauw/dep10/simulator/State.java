@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Scanner;
 
+import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.op.Pep10;
 import edu.depauw.dep10.op.Table;
 import edu.depauw.dep10.util.UByte;
@@ -27,6 +28,7 @@ public class State {
     private Word EA;
     private UByte Flags;
     private boolean running;
+    private Operation op;
 
     private UByte[] memory = new UByte[65536];
     
@@ -45,6 +47,7 @@ public class State {
         EA = Word.of(0);
         Flags = UByte.of(0);
         running = false;
+        op = null;
 
         for (int i = 0; i < memory.length; i++) {
             memory[i] = UByte.of(0);
@@ -216,6 +219,14 @@ public class State {
 
     public boolean isRunning() {
         return running;
+    }
+    
+    public Operation getOp() {
+        return op;
+    }
+    
+    public void setOp(Operation op) {
+        this.op = op;
     }
     
     public void pause() {
