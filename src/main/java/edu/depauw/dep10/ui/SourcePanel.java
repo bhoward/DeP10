@@ -449,14 +449,32 @@ public class SourcePanel extends JPanel implements SearchListener {
         return traceAction;
     }
 
-    public Action getDebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
+    private class DebugAction extends AbstractAction {
+        private OutputPanel object;
+        private TerminalPanel terminal;
+        private InputPanel batch;
+        private OutputPanel trace;
+        private StatePanel sp;
+
+        public DebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
+            super("Debug");
+            this.object = object;
+            this.terminal = terminal;
+            this.batch = batch;
+            this.trace = trace;
+            this.sp = sp;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            parent.getSourceType().debug(object, terminal, batch, trace, sp);
+            parent.selectStateTab();
+        }
+    }
+
+    public Action getDebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
         if (debugAction == null) {
-            debugAction = new AbstractAction("Debug") {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // TODO Auto-generated method stub
-                }
-            };
+            debugAction = new DebugAction(object, terminal, batch, trace, sp);
         }
 
         return debugAction;

@@ -12,6 +12,7 @@ import edu.depauw.dep10.driver.Driver;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
+import edu.depauw.dep10.simulator.BreakpointController;
 import edu.depauw.dep10.simulator.Controller;
 import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
@@ -19,6 +20,7 @@ import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepController;
 import edu.depauw.dep10.simulator.TracingController;
+import edu.depauw.dep10.util.Word;
 
 public interface SourceType {
     int DEFAULT_STEP_LIMIT = 10000; // TODO make this a setting
@@ -82,6 +84,54 @@ public interface SourceType {
             sim.run(control);
 
             sp.refresh();
+            
+            if (tc != null) {
+                var bytes = new ByteArrayOutputStream();
+                var out = new PrintStream(bytes);
+                tc.printTrace(out);
+                out.close();
+                trace.setContent(bytes.toString());
+            }
+        });
+        t.start();
+    }
+
+    // TODO avoid duplication from run()
+    default void debug(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
+        State state = (trace == null) ? new State() : new DebugState();
+        state.loadString(object.getContent());
+        loadOSObject(state);
+
+        terminal.clear();
+        if (batch.isActive()) {
+            state.setInput(new ByteArrayInputStream(batch.getContent().getBytes(StandardCharsets.UTF_8)));
+        } else {
+            state.setInput(terminal.getInputStream());
+        }
+        state.setOutput(terminal.getOutputStream());
+        state.setError(terminal.getOutputStream());
+
+        Simulator sim = new Simulator(state);
+        sp.attach(state);
+
+        Controller control1;
+        TracingController tc;
+
+        if (trace != null) {
+            tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
+            control1 = tc;
+        } else {
+            tc = null;
+            control1 = new PlainController();
+        }
+        
+        // This is the different part
+        Controller control = new BreakpointController(control1, s -> s.getPC().equals(Word.of(0)));
+
+        var t = new Thread(() -> {
+            sim.run(control);
+
+            sp.refresh(); // Now allow the execution to be resumed or single-stepped
             
             if (tc != null) {
                 var bytes = new ByteArrayOutputStream();

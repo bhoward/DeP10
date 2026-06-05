@@ -275,9 +275,9 @@ public class StatePanel extends JPanel implements TabPanel {
 
                 builder.append(i == 0 ? '>' : ' ');
                 builder.append(address);
-                builder.append(" ");
+                builder.append(' ');
                 builder.append(contents);
-                builder.append("\n");
+                builder.append('\n');
             }
             txtStack.setText(builder.toString());
 
@@ -289,10 +289,10 @@ public class StatePanel extends JPanel implements TabPanel {
 
                 for (int col = 0; col < 8; col++) {
                     var contents = state.mem1Safe(address.plus(col));
-                    builder.append(" ");
+                    builder.append(' ');
                     builder.append(contents);
                 }
-                builder.append("\n");
+                builder.append('\n');
             }
             txtMem.setText(builder.toString());
         }

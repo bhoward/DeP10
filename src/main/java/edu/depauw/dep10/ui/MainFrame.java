@@ -165,7 +165,7 @@ public class MainFrame extends JFrame {
         simulatorMenu.add(createMenuItem(trace));
         tools.add(new JButton(trace));
 
-        var debug = source.getDebugAction(object, terminal, batch, statePanel);
+        var debug = source.getDebugAction(object, terminal, batch, tracePanel, statePanel);
         debug.setEnabled(false);
         simulatorMenu.add(createMenuItem(debug));
         tools.add(new JButton(debug));
@@ -291,6 +291,10 @@ public class MainFrame extends JFrame {
 
     public void selectTerminalTab() {
         tabs.setSelectedComponent(terminal);
+    }
+
+    public void selectStateTab() {
+        tabs.setSelectedComponent(statePanel);
     }
 
     public void updateTitle(String fileName) {
