@@ -30,4 +30,9 @@ public class TracingController implements Controller {
             output.println(step);
         }
     }
+
+    @Override
+    public void end() {
+        parent.end();
+    }
 }

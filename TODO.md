@@ -1,11 +1,29 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Debugging view: registers, stack, memory, next instruction, single-step controls; breakpoints?
+* Debugging view: breakpoints? option to skip system code?
 * References: directives, macros
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
 * Tests!
+
+Controls:
+[not assembled] build -> [assembled] (et seq)
+Build xRun xDebug xStep xBack
+
+[assembled] run -> [run], debug -> [debug]
+Build Run Debug xStep xBack
+
+[run] end -> [assembled] (et seq), halt -> [assembled] -- PlainController
+Build End xDebug xStep xBack
+
+[debug] pause -> [paused], halt -> [paused] -- TraceController
+Build End Pause xStep xBack
+
+[paused] resume -> [debug], step -> [paused], back -> [paused] -- SingleStepController
+Build End Resume Step Back
+
+edit -> [not assembled] (and end if running/debugging?)
 
 Document the CLI options
 -------

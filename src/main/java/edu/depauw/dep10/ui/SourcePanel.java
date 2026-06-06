@@ -65,7 +65,6 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action goToLineAction;
     private Action buildAction;
     private Action runAction;
-    private Action traceAction;
     private Action debugAction;
     private Action newAction;
     private Action openDialogAction;
@@ -368,12 +367,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             if (parent.getSourceType().build(textArea.getText(), listing, object)) {
                 runAction.setEnabled(true);
-                traceAction.setEnabled(true);
                 debugAction.setEnabled(true);
                 parent.selectListingTab();
             } else {
                 runAction.setEnabled(false);
-                traceAction.setEnabled(false);
                 debugAction.setEnabled(false);
             }
         }
@@ -388,93 +385,55 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class RunAction extends AbstractAction {
-        private OutputPanel object;
-        private TerminalPanel terminal;
-        private InputPanel batch;
-        private StatePanel sp;
-
-        public RunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
+        public RunAction() {
             super("Run");
-            this.object = object;
-            this.terminal = terminal;
-            this.batch = batch;
-            this.sp = sp;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal, batch, null, sp);
-            parent.selectTerminalTab();
-
-            // TODO errors, ...
+            var control = parent.getController();
+            
+            if (control == null) {
+                runAction.putValue(NAME, "End");
+                debugAction.setEnabled(false);
+                
+                parent.getSourceType().run(parent, SourcePanel.this);
+                
+                parent.selectTerminalTab();
+    
+                // TODO errors, ...
+            } else {
+                control.end();
+                
+                runAction.putValue(NAME, "Run");
+                debugAction.setEnabled(true);
+            }
         }
     }
 
-    public Action getRunAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, StatePanel sp) {
+    public Action getRunAction() {
         if (runAction == null) {
-            runAction = new RunAction(object, terminal, batch, sp);
+            runAction = new RunAction();
         }
 
         return runAction;
     }
 
-    private class TraceAction extends AbstractAction {
-        private OutputPanel object;
-        private TerminalPanel terminal;
-        private InputPanel batch;
-        private OutputPanel trace;
-        private StatePanel sp;
-
-        public TraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
-            super("Trace");
-            this.object = object;
-            this.terminal = terminal;
-            this.batch = batch;
-            this.trace = trace;
-            this.sp = sp;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal, batch, trace, sp);
-            parent.selectTerminalTab();
-        }
-    }
-
-    public Action getTraceAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
-        if (traceAction == null) {
-            traceAction = new TraceAction(object, terminal, batch, trace, sp);
-        }
-
-        return traceAction;
-    }
-
     private class DebugAction extends AbstractAction {
-        private OutputPanel object;
-        private TerminalPanel terminal;
-        private InputPanel batch;
-        private OutputPanel trace;
-        private StatePanel sp;
-
-        public DebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
+        public DebugAction() {
             super("Debug");
-            this.object = object;
-            this.terminal = terminal;
-            this.batch = batch;
-            this.trace = trace;
-            this.sp = sp;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().debug(object, terminal, batch, trace, sp);
+            parent.getSourceType().debug(parent);
             parent.selectStateTab();
         }
     }
 
-    public Action getDebugAction(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
+    public Action getDebugAction() {
         if (debugAction == null) {
-            debugAction = new DebugAction(object, terminal, batch, trace, sp);
+            debugAction = new DebugAction();
         }
 
         return debugAction;
@@ -507,7 +466,6 @@ public class SourcePanel extends JPanel implements SearchListener {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
                 textArea.load(FileLocation.create(newFile));
                 runAction.setEnabled(false);
-                traceAction.setEnabled(false);
                 debugAction.setEnabled(false);
             } catch (IOException e1) {
                 // TODO display error message?
@@ -553,7 +511,6 @@ public class SourcePanel extends JPanel implements SearchListener {
                     }
                     
                     runAction.setEnabled(false);
-                    traceAction.setEnabled(false);
                     debugAction.setEnabled(false);
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block

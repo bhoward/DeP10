@@ -5,6 +5,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
+import javax.swing.Action;
+
 import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;
 import edu.depauw.dep10.assemble.Result;
@@ -52,8 +54,13 @@ public interface SourceType {
         // TODO deal with errors; don't run on UI thread!
     }
 
-    default void run(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
-        State state = (trace == null) ? new State() : new DebugState();
+    default void run(MainFrame frame, SourcePanel source) {
+        var object = frame.object;
+        var terminal = frame.terminal;
+        var batch = frame.batch;
+        var sp = frame.statePanel;
+
+        State state = new State();
         state.loadString(object.getContent());
         loadOSObject(state);
 
@@ -69,36 +76,30 @@ public interface SourceType {
         Simulator sim = new Simulator(state);
         sp.attach(state);
 
-        Controller control;
-        TracingController tc;
-
-        if (trace != null) {
-            tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
-            control = tc;
-        } else {
-            tc = null;
-            control = new PlainController();
-        }
+        Controller control = new PlainController();
+        frame.setController(control);
 
         var t = new Thread(() -> {
             sim.run(control);
 
-            sp.refresh();
+            frame.setController(null);
+            source.getRunAction().putValue(Action.NAME, "Run");
+            source.getDebugAction().setEnabled(true);
             
-            if (tc != null) {
-                var bytes = new ByteArrayOutputStream();
-                var out = new PrintStream(bytes);
-                tc.printTrace(out);
-                out.close();
-                trace.setContent(bytes.toString());
-            }
+            sp.refresh();
         });
         t.start();
     }
 
     // TODO avoid duplication from run()
-    default void debug(OutputPanel object, TerminalPanel terminal, InputPanel batch, OutputPanel trace, StatePanel sp) {
-        State state = (trace == null) ? new State() : new DebugState();
+    default void debug(MainFrame frame) {
+        var object = frame.object;
+        var terminal = frame.terminal;
+        var batch = frame.batch;
+        var trace = frame.tracePanel;
+        var sp = frame.statePanel;
+
+        State state = new DebugState();
         state.loadString(object.getContent());
         loadOSObject(state);
 
@@ -114,32 +115,21 @@ public interface SourceType {
         Simulator sim = new Simulator(state);
         sp.attach(state);
 
-        Controller control1;
-        TracingController tc;
+        TracingController tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
 
-        if (trace != null) {
-            tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
-            control1 = tc;
-        } else {
-            tc = null;
-            control1 = new PlainController();
-        }
-        
         // This is the different part
-        Controller control = new BreakpointController(control1, s -> s.getPC().equals(Word.of(0)));
+        Controller control = new BreakpointController(tc, s -> s.getPC().equals(Word.of(0)));
 
         var t = new Thread(() -> {
             sim.run(control);
 
             sp.refresh(); // Now allow the execution to be resumed or single-stepped
-            
-            if (tc != null) {
-                var bytes = new ByteArrayOutputStream();
-                var out = new PrintStream(bytes);
-                tc.printTrace(out);
-                out.close();
-                trace.setContent(bytes.toString());
-            }
+
+            var bytes = new ByteArrayOutputStream();
+            var out = new PrintStream(bytes);
+            tc.printTrace(out);
+            out.close();
+            trace.setContent(bytes.toString());
         });
         t.start();
     }

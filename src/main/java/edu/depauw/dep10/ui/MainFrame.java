@@ -35,18 +35,22 @@ import org.fife.ui.rtextarea.RTextArea;
 
 import com.formdev.flatlaf.util.SystemInfo;
 
+import edu.depauw.dep10.simulator.Controller;
+
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
     static final String APP_TITLE = "DeP10 IDE";
 
-    private SourcePanel source;
-    private OutputPanel listing;
-    private OutputPanel object;
-    private TerminalPanel terminal;
-    private InputPanel batch;
-    private OutputPanel resourceView;
-    private OutputPanel tracePanel;
-    private StatePanel statePanel;
+    SourcePanel source;
+    OutputPanel listing;
+    OutputPanel object;
+    TerminalPanel terminal;
+    InputPanel batch;
+    OutputPanel resourceView;
+    OutputPanel tracePanel;
+    StatePanel statePanel;
+    
+    private Controller control;
 
     private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
@@ -155,17 +159,12 @@ public class MainFrame extends JFrame {
         simulatorMenu.add(createMenuItem(build));
         tools.add(new JButton(build));
 
-        var run = source.getRunAction(object, terminal, batch, statePanel);
+        var run = source.getRunAction();
         run.setEnabled(false); // not enabled until assembly successful
         simulatorMenu.add(createMenuItem(run));
         tools.add(new JButton(run));
 
-        var trace = source.getTraceAction(object, terminal, batch, tracePanel, statePanel);
-        trace.setEnabled(false);
-        simulatorMenu.add(createMenuItem(trace));
-        tools.add(new JButton(trace));
-
-        var debug = source.getDebugAction(object, terminal, batch, tracePanel, statePanel);
+        var debug = source.getDebugAction();
         debug.setEnabled(false);
         simulatorMenu.add(createMenuItem(debug));
         tools.add(new JButton(debug));
@@ -351,5 +350,13 @@ public class MainFrame extends JFrame {
         scrollPane.setPreferredSize(new Dimension(800, 400));
         JOptionPane.showMessageDialog(this, scrollPane, "Help Documentation",
                 JOptionPane.PLAIN_MESSAGE);
+    }
+
+    public synchronized void setController(Controller control) {
+        this.control = control;
+    }
+    
+    public Controller getController() {
+        return control;
     }
 }

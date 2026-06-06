@@ -15,4 +15,9 @@ public class SingleStepController implements Controller {
         parent.perform(op, s, origPC);
         s.pause();
     }
+
+    @Override
+    public void end() {
+        parent.end();
+    }
 }

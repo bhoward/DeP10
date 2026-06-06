@@ -21,4 +21,9 @@ public class BreakpointController implements Controller {
             s.pause();
         }
     }
+
+    @Override
+    public void end() {
+        parent.end();
+    }
 }

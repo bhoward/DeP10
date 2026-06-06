@@ -23,4 +23,9 @@ public class StepController implements Controller {
             s.stop();
         }
     }
+
+    @Override
+    public void end() {
+        parent.end();
+    }
 }
