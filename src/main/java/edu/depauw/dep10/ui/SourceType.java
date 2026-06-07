@@ -12,13 +12,15 @@ import edu.depauw.dep10.driver.Driver;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
+import edu.depauw.dep10.simulator.BreakpointController;
 import edu.depauw.dep10.simulator.Controller;
 import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
+import edu.depauw.dep10.simulator.SingleStepController;
 import edu.depauw.dep10.simulator.State;
-import edu.depauw.dep10.simulator.StepController;
 import edu.depauw.dep10.simulator.TracingController;
+import edu.depauw.dep10.util.Word;
 
 public interface SourceType {
     int DEFAULT_STEP_LIMIT = 100000000; // TODO make this a setting
@@ -50,7 +52,8 @@ public interface SourceType {
         // TODO deal with errors; don't run on UI thread!
     }
 
-    default void run(MainFrame frame, SourcePanel source) {
+    default void run(MainFrame frame) {
+        var source = frame.source;
         var object = frame.object;
         var terminal = frame.terminal;
         var batch = frame.batch;
@@ -78,9 +81,9 @@ public interface SourceType {
         var t = new Thread(() -> {
             sim.run(control);
             frame.setController(null);
-            
+
             source.setStopped();
-            
+
             sp.refresh();
         });
         t.start();
@@ -88,6 +91,7 @@ public interface SourceType {
 
     // TODO avoid duplication from run()
     default void debug(MainFrame frame) {
+        var source = frame.source;
         var object = frame.object;
         var terminal = frame.terminal;
         var batch = frame.batch;
@@ -110,13 +114,17 @@ public interface SourceType {
         Simulator sim = new Simulator(state);
         sp.attach(state);
 
-        TracingController control = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
+        // initially just run to PC == 0
+        TracingController control = new TracingController(
+                new BreakpointController(new PlainController(), s -> s.getPC().equals(Word.of(0))));
         frame.setController(control);
-        
+
         var t = new Thread(() -> {
             sim.run(control);
             // leave controller in place for single-step or resume
             
+            source.setPaused();
+
             sp.refresh();
 
             var bytes = new ByteArrayOutputStream();
@@ -127,19 +135,24 @@ public interface SourceType {
         });
         t.start();
     }
-    
-    default Controller resume(MainFrame frame, State state) {
+
+    default void resume(MainFrame frame, State state) {
+        var source = frame.source;
         var sp = frame.statePanel;
         var trace = frame.tracePanel;
-        
-        Simulator sim = new Simulator(state);
 
-        TracingController control = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
-        
+        Simulator sim = new Simulator(state, false);
+        state.resume();
+
+        TracingController control = new TracingController(new PlainController());
+        frame.setController(control);
+
         var t = new Thread(() -> {
             sim.run(control);
             // leave controller in place for single-step or resume
             
+            source.setPaused();
+
             sp.refresh();
 
             var bytes = new ByteArrayOutputStream();
@@ -149,8 +162,35 @@ public interface SourceType {
             trace.setContent(bytes.toString());
         });
         t.start();
+    }
+
+    default void forward(MainFrame frame, State state) {
+        var source = frame.source;
+        var sp = frame.statePanel;
+        var trace = frame.tracePanel;
+
+        Simulator sim = new Simulator(state, false);
+        state.resume();
+
+        // TODO preserve the trace from the old controller
+        TracingController control = new TracingController(new SingleStepController(new PlainController()));
+        frame.setController(control);
         
-        return control; // TODO
+        var t = new Thread(() -> {
+            sim.run(control);
+            // leave controller in place for single-step or resume
+            
+            source.setPaused();
+
+            sp.refresh();
+
+            var bytes = new ByteArrayOutputStream();
+            var out = new PrintStream(bytes);
+            control.printTrace(out);
+            out.close();
+            trace.setContent(bytes.toString());
+        });
+        t.start();
     }
 
     void loadOSHeader(Sources sources, ErrorLog log);

@@ -13,5 +13,7 @@ public interface Controller {
     
     boolean isPaused();
 
-    Controller resume(MainFrame frame);
+    void resume(MainFrame frame);
+
+    void forward(MainFrame frame);
 }

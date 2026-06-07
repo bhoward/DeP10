@@ -20,7 +20,7 @@ import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
-import edu.depauw.dep10.simulator.StepController;
+import edu.depauw.dep10.simulator.StepCountController;
 import edu.depauw.dep10.simulator.TracingController;
 import edu.depauw.dep10.ui.Main;
 
@@ -223,7 +223,7 @@ public class Driver {
 
         Controller control = new PlainController();
         if (run.max > 0) {
-            control = new StepController(control, run.max);
+            control = new StepCountController(control, run.max);
         }
 
         TracingController tc = null;

@@ -6,8 +6,14 @@ public class Simulator {
 	private State s;
 	
 	public Simulator(State s) {
+	    this(s, true);
+	}
+	
+	public Simulator(State s, boolean init) {
 	    this.s = s;
-        s.initialize(Pep10.DISPATCHER_POINTER, Pep10.SYSTEM_STACK_POINTER);
+	    if (init) {
+	        s.initialize(Pep10.DISPATCHER_POINTER, Pep10.SYSTEM_STACK_POINTER);
+	    }
 	}
     
     public void run(Controller control) {

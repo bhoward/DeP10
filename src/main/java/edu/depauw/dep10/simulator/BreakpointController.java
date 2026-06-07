@@ -19,7 +19,7 @@ public class BreakpointController implements Controller {
     public void perform(Operation op, State s, Word origPC) {
         parent.perform(op, s, origPC);
         if (pred.test(s)) {
-            s.pause();
+            pause();
         }
     }
 
@@ -39,7 +39,12 @@ public class BreakpointController implements Controller {
     }
 
     @Override
-    public Controller resume(MainFrame frame) {
-        return parent.resume(frame);
+    public void resume(MainFrame frame) {
+        parent.resume(frame);
+    }
+
+    @Override
+    public void forward(MainFrame frame) {
+        parent.forward(frame);
     }
 }

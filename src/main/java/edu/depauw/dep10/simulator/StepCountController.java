@@ -4,12 +4,12 @@ import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
-public class StepController implements Controller {
+public class StepCountController implements Controller {
     private Controller parent;
     private int max;
     private int step;
 
-    public StepController(Controller parent, int max) {
+    public StepCountController(Controller parent, int max) {
         this.parent = parent;
         this.max = max;
         this.step = 0;
@@ -21,7 +21,6 @@ public class StepController implements Controller {
         
         step++;
         if (step >= max) {
-            System.out.println("Step limit reached");
             pause();
         }
     }
@@ -42,7 +41,12 @@ public class StepController implements Controller {
     }
 
     @Override
-    public Controller resume(MainFrame frame) {
-        return parent.resume(frame);
+    public void resume(MainFrame frame) {
+        parent.resume(frame);
+    }
+
+    @Override
+    public void forward(MainFrame frame) {
+        parent.forward(frame);
     }
 }

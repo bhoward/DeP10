@@ -66,6 +66,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action buildAction;
     private Action runAction;
     private Action debugAction;
+    private Action stepAction;
     private Action newAction;
     private Action openDialogAction;
     private Action saveAction;
@@ -393,7 +394,7 @@ public class SourcePanel extends JPanel implements SearchListener {
             
             if (control == null) {
                 setRunning();
-                parent.getSourceType().run(parent, SourcePanel.this);
+                parent.getSourceType().run(parent);
                 parent.selectTerminalTab();
     
                 // TODO errors, ...
@@ -430,7 +431,7 @@ public class SourcePanel extends JPanel implements SearchListener {
             } else {
                 if (control.isPaused()) {
                     setDebugging();
-                    parent.setController(control.resume(parent));
+                    control.resume(parent);
                 } else {
                     control.pause();
                     setPaused();
@@ -445,6 +446,26 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
 
         return debugAction;
+    }
+    
+    private class StepAction extends AbstractAction {
+        public StepAction() {
+            super("Step");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var control = parent.getController();
+            control.forward(parent);
+        }
+    }
+    
+    public Action getStepAction() {
+        if (stepAction == null) {
+            stepAction = new StepAction();
+        }
+        
+        return stepAction;
     }
 
     private class NewAction extends AbstractAction {
@@ -627,6 +648,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         runAction.setEnabled(false);
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(false);
+        stepAction.setEnabled(false);
     }
 
     public void setRunning() {
@@ -634,6 +656,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         runAction.setEnabled(true);
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(false);
+        stepAction.setEnabled(false);
     }
     
     public void setDebugging() {
@@ -641,6 +664,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         runAction.setEnabled(true);
         debugAction.putValue(Action.NAME, "Pause");
         debugAction.setEnabled(true);
+        stepAction.setEnabled(false);
     }
     
     public void setStopped() {
@@ -648,6 +672,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         runAction.setEnabled(true);
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(true);
+        stepAction.setEnabled(false);
     }
     
     public void setPaused() {
@@ -655,6 +680,6 @@ public class SourcePanel extends JPanel implements SearchListener {
         runAction.setEnabled(true);
         debugAction.putValue(Action.NAME, "Resume");
         debugAction.setEnabled(true);
-        // also enable step controls
+        stepAction.setEnabled(true);
     }
 }

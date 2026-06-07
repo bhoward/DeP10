@@ -14,6 +14,7 @@ public class PlainController implements Controller {
         if (ended) {
             s.stop();
         } else if (paused) {
+            s.setPC(origPC);
             saved = s;
             s.pause();
         } else {
@@ -37,7 +38,12 @@ public class PlainController implements Controller {
     }
 
     @Override
-    public Controller resume(MainFrame frame) {
-        return frame.getSourceType().resume(frame, saved);
+    public void resume(MainFrame frame) {
+        frame.getSourceType().resume(frame, saved);
+    }
+    
+    @Override
+    public void forward(MainFrame frame) {
+        frame.getSourceType().forward(frame, saved);
     }
 }
