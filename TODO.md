@@ -23,8 +23,6 @@ Build End Pause xStep xBack
 [paused] resume -> [debug], step -> [paused], back -> [paused] -- SingleStepController
 Build End Resume Step Back
 
-edit -> [not assembled] (and end if running/debugging?)
-
 Document the CLI options
 -------
 dep10 asm [OPTIONS] source

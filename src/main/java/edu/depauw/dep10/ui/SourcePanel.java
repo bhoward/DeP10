@@ -366,12 +366,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (parent.getSourceType().build(textArea.getText(), listing, object)) {
-                runAction.setEnabled(true);
-                debugAction.setEnabled(true);
+                setStopped();
                 parent.selectListingTab();
             } else {
-                runAction.setEnabled(false);
-                debugAction.setEnabled(false);
+                setBuildNeeded();
             }
         }
     }
@@ -394,19 +392,16 @@ public class SourcePanel extends JPanel implements SearchListener {
             var control = parent.getController();
             
             if (control == null) {
-                runAction.putValue(NAME, "End");
-                debugAction.setEnabled(false);
-                
+                setRunning();
                 parent.getSourceType().run(parent, SourcePanel.this);
-                
                 parent.selectTerminalTab();
     
                 // TODO errors, ...
             } else {
                 control.end();
+                setStopped();
                 
-                runAction.putValue(NAME, "Run");
-                debugAction.setEnabled(true);
+                parent.setController(null);
             }
         }
     }
@@ -426,8 +421,21 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().debug(parent);
-            parent.selectStateTab();
+            var control = parent.getController();
+            
+            if (control == null) {
+                setDebugging();
+                parent.getSourceType().debug(parent);
+                parent.selectStateTab();
+            } else {
+                if (control.isPaused()) {
+                    setDebugging();
+                    parent.setController(control.resume(parent));
+                } else {
+                    control.pause();
+                    setPaused();
+                }
+            }
         }
     }
 
@@ -465,8 +473,7 @@ public class SourcePanel extends JPanel implements SearchListener {
             try {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
                 textArea.load(FileLocation.create(newFile));
-                runAction.setEnabled(false);
-                debugAction.setEnabled(false);
+                setBuildNeeded();
             } catch (IOException e1) {
                 // TODO display error message?
             }
@@ -510,8 +517,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                         }
                     }
                     
-                    runAction.setEnabled(false);
-                    debugAction.setEnabled(false);
+                    setBuildNeeded();
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -614,5 +620,41 @@ public class SourcePanel extends JPanel implements SearchListener {
             textArea.setSyntaxScheme(ss);
             textArea.setFont(font);
         }
+    }
+    
+    public void setBuildNeeded() {
+        runAction.putValue(Action.NAME, "Run");
+        runAction.setEnabled(false);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(false);
+    }
+
+    public void setRunning() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(false);
+    }
+    
+    public void setDebugging() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Pause");
+        debugAction.setEnabled(true);
+    }
+    
+    public void setStopped() {
+        runAction.putValue(Action.NAME, "Run");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(true);
+    }
+    
+    public void setPaused() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Resume");
+        debugAction.setEnabled(true);
+        // also enable step controls
     }
 }

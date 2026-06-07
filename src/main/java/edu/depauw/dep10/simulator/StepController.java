@@ -1,6 +1,7 @@
 package edu.depauw.dep10.simulator;
 
 import edu.depauw.dep10.op.Operation;
+import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public class StepController implements Controller {
@@ -20,12 +21,28 @@ public class StepController implements Controller {
         
         step++;
         if (step >= max) {
-            s.stop();
+            System.out.println("Step limit reached");
+            pause();
         }
     }
 
     @Override
     public void end() {
         parent.end();
+    }
+
+    @Override
+    public void pause() {
+        parent.pause();
+    }
+
+    @Override
+    public boolean isPaused() {
+        return parent.isPaused();
+    }
+
+    @Override
+    public Controller resume(MainFrame frame) {
+        return parent.resume(frame);
     }
 }

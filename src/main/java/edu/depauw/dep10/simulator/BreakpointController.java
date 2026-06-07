@@ -3,6 +3,7 @@ package edu.depauw.dep10.simulator;
 import java.util.function.Predicate;
 
 import edu.depauw.dep10.op.Operation;
+import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public class BreakpointController implements Controller {
@@ -25,5 +26,20 @@ public class BreakpointController implements Controller {
     @Override
     public void end() {
         parent.end();
+    }
+
+    @Override
+    public void pause() {
+        parent.pause();
+    }
+
+    @Override
+    public boolean isPaused() {
+        return parent.isPaused();
+    }
+
+    @Override
+    public Controller resume(MainFrame frame) {
+        return parent.resume(frame);
     }
 }

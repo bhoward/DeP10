@@ -1,19 +1,31 @@
 package edu.depauw.dep10.simulator;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Collection;
 
 import edu.depauw.dep10.op.Operation;
+import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public class TracingController implements Controller {
+    public static int MAX_TRACE_LENGTH = 1000;
+    
     private Controller parent;
-    private List<Step> steps;
+    private Collection<Step> steps;
     
     public TracingController(Controller parent) {
         this.parent = parent;
-        this.steps = new ArrayList<>();
+        this.steps = new ArrayDeque<>(MAX_TRACE_LENGTH) {
+            @Override
+            public boolean add(Step e) {
+                // Throw away old elements if full
+                if (size() >= MAX_TRACE_LENGTH) {
+                    super.remove();
+                }
+                return super.add(e);
+            }
+        };
     }
 
     @Override
@@ -34,5 +46,20 @@ public class TracingController implements Controller {
     @Override
     public void end() {
         parent.end();
+    }
+
+    @Override
+    public void pause() {
+        parent.pause();
+    }
+
+    @Override
+    public boolean isPaused() {
+        return parent.isPaused();
+    }
+
+    @Override
+    public Controller resume(MainFrame frame) {
+        return parent.resume(frame);
     }
 }

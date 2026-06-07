@@ -5,8 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
-import javax.swing.Action;
-
 import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;
 import edu.depauw.dep10.assemble.Result;
@@ -14,7 +12,6 @@ import edu.depauw.dep10.driver.Driver;
 import edu.depauw.dep10.driver.ErrorLog;
 import edu.depauw.dep10.preprocess.Preprocessor;
 import edu.depauw.dep10.preprocess.Sources;
-import edu.depauw.dep10.simulator.BreakpointController;
 import edu.depauw.dep10.simulator.Controller;
 import edu.depauw.dep10.simulator.DebugState;
 import edu.depauw.dep10.simulator.PlainController;
@@ -22,10 +19,9 @@ import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepController;
 import edu.depauw.dep10.simulator.TracingController;
-import edu.depauw.dep10.util.Word;
 
 public interface SourceType {
-    int DEFAULT_STEP_LIMIT = 10000; // TODO make this a setting
+    int DEFAULT_STEP_LIMIT = 100000000; // TODO make this a setting
 
     default boolean build(String source, OutputPanel listing, OutputPanel object) {
         var log = new ErrorLog();
@@ -81,10 +77,9 @@ public interface SourceType {
 
         var t = new Thread(() -> {
             sim.run(control);
-
             frame.setController(null);
-            source.getRunAction().putValue(Action.NAME, "Run");
-            source.getDebugAction().setEnabled(true);
+            
+            source.setStopped();
             
             sp.refresh();
         });
@@ -115,23 +110,47 @@ public interface SourceType {
         Simulator sim = new Simulator(state);
         sp.attach(state);
 
-        TracingController tc = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
-
-        // This is the different part
-        Controller control = new BreakpointController(tc, s -> s.getPC().equals(Word.of(0)));
-
+        TracingController control = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
+        frame.setController(control);
+        
         var t = new Thread(() -> {
             sim.run(control);
-
-            sp.refresh(); // Now allow the execution to be resumed or single-stepped
+            // leave controller in place for single-step or resume
+            
+            sp.refresh();
 
             var bytes = new ByteArrayOutputStream();
             var out = new PrintStream(bytes);
-            tc.printTrace(out);
+            control.printTrace(out);
             out.close();
             trace.setContent(bytes.toString());
         });
         t.start();
+    }
+    
+    default Controller resume(MainFrame frame, State state) {
+        var sp = frame.statePanel;
+        var trace = frame.tracePanel;
+        
+        Simulator sim = new Simulator(state);
+
+        TracingController control = new TracingController(new StepController(new PlainController(), DEFAULT_STEP_LIMIT));
+        
+        var t = new Thread(() -> {
+            sim.run(control);
+            // leave controller in place for single-step or resume
+            
+            sp.refresh();
+
+            var bytes = new ByteArrayOutputStream();
+            var out = new PrintStream(bytes);
+            control.printTrace(out);
+            out.close();
+            trace.setContent(bytes.toString());
+        });
+        t.start();
+        
+        return control; // TODO
     }
 
     void loadOSHeader(Sources sources, ErrorLog log);
