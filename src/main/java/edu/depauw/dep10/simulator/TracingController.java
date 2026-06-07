@@ -69,6 +69,7 @@ public class TracingController implements Controller {
             state.setSP(prev.trace().sp());
             state.setPC(last.pc());
             state.setOp(prev.op());
+            state.setPrefix(prev.prefix());
             state.setOpCode(prev.opCode());
             state.setOperand(prev.operand());
             state.setEA(prev.address());
