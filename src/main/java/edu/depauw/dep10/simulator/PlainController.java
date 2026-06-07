@@ -49,4 +49,9 @@ public class PlainController implements Controller {
     public void forward(MainFrame frame) {
         frame.getSourceType().forward(frame, saved);
     }
+    
+    @Override
+    public void backward(MainFrame frame) {
+        frame.getSourceType().backward(frame, saved);
+    }
 }

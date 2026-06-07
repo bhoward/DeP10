@@ -15,7 +15,7 @@ public interface MemoryAccess {
         }
     }
     
-    public record WB(Word addr, UByte value) implements MemoryAccess {
+    public record WB(Word addr, UByte value, UByte prev) implements MemoryAccess {
         @Override
         public String toString() {
             var format = HexFormat.of().withUpperCase();

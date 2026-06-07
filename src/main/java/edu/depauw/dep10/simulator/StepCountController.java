@@ -50,4 +50,9 @@ public class StepCountController implements Controller {
     public void forward(MainFrame frame) {
         parent.forward(frame);
     }
+
+    @Override
+    public void backward(MainFrame frame) {
+        parent.backward(frame);
+    }
 }

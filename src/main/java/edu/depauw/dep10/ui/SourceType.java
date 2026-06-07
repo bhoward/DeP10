@@ -122,7 +122,7 @@ public interface SourceType {
         var t = new Thread(() -> {
             sim.run(control);
             // leave controller in place for single-step or resume
-            
+
             source.setPaused();
 
             sp.refresh();
@@ -150,7 +150,7 @@ public interface SourceType {
         var t = new Thread(() -> {
             sim.run(control);
             // leave controller in place for single-step or resume
-            
+
             source.setPaused();
 
             sp.refresh();
@@ -172,13 +172,14 @@ public interface SourceType {
         Simulator sim = new Simulator(state, false);
         state.resume();
 
-        TracingController control = new TracingController(new SingleStepController(new PlainController()), frame.getController());
+        TracingController control = new TracingController(new SingleStepController(new PlainController()),
+                frame.getController());
         frame.setController(control);
-        
+
         var t = new Thread(() -> {
             sim.run(control);
             // leave controller in place for single-step or resume
-            
+
             source.setPaused();
 
             sp.refresh();
@@ -190,6 +191,26 @@ public interface SourceType {
             trace.setContent(bytes.toString());
         });
         t.start();
+    }
+
+    default void backward(MainFrame frame, State state) {
+        var source = frame.source;
+        var sp = frame.statePanel;
+        var trace = frame.tracePanel;
+
+        var control = frame.getController();
+        if (control instanceof TracingController tc) {
+            tc.goBackward(state);
+            source.setPaused();
+
+            sp.refresh();
+
+            var bytes = new ByteArrayOutputStream();
+            var out = new PrintStream(bytes);
+            tc.printTrace(out);
+            out.close();
+            trace.setContent(bytes.toString());
+        }
     }
 
     void loadOSHeader(Sources sources, ErrorLog log);

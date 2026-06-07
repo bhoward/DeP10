@@ -16,4 +16,6 @@ public interface Controller {
     void resume(MainFrame frame);
 
     void forward(MainFrame frame);
+    
+    void backward(MainFrame frame);
 }

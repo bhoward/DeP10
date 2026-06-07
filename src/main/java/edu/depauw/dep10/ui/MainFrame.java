@@ -173,6 +173,11 @@ public class MainFrame extends JFrame {
         step.setEnabled(false);
         simulatorMenu.add(createMenuItem(step));
         tools.add(new JButton(step));
+        
+        var back = source.getBackAction();
+        back.setEnabled(false);
+        simulatorMenu.add(createMenuItem(back));
+        tools.add(new JButton(back));
 
         menuBar.add(simulatorMenu);
 

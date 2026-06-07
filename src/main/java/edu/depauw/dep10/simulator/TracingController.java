@@ -58,6 +58,27 @@ public class TracingController implements Controller {
             output.println(step);
         }
     }
+    
+    public void goBackward(State state) {
+        if (steps.size() >= 2) {
+            var last = steps.removeLast();
+            var prev = steps.getLast();
+            state.setA(prev.trace().a());
+            state.setX(prev.trace().x());
+            state.setFlags(prev.trace().flags());
+            state.setSP(prev.trace().sp());
+            state.setPC(last.pc());
+            state.setOp(prev.op());
+            state.setOpCode(prev.opCode());
+            state.setOperand(prev.operand());
+            state.setEA(prev.address());
+            for (var access : last.trace().accesses()) {
+                if (access instanceof MemoryAccess.WB write) {
+                    state.setMem1(write.addr(), write.prev()); // TODO handle charIn
+                }
+            }
+        }
+    }
 
     @Override
     public void end() {
@@ -82,5 +103,10 @@ public class TracingController implements Controller {
     @Override
     public void forward(MainFrame frame) {
         parent.forward(frame);
+    }
+
+    @Override
+    public void backward(MainFrame frame) {
+        parent.backward(frame);
     }
 }

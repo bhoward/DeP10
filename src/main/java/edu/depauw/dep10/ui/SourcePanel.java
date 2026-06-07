@@ -67,6 +67,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action runAction;
     private Action debugAction;
     private Action stepAction;
+    private Action backAction;
     private Action newAction;
     private Action openDialogAction;
     private Action saveAction;
@@ -467,6 +468,26 @@ public class SourcePanel extends JPanel implements SearchListener {
         
         return stepAction;
     }
+    
+    private class BackAction extends AbstractAction {
+        public BackAction() {
+            super("Back");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var control = parent.getController();
+            control.backward(parent);
+        }
+    }
+    
+    public Action getBackAction() {
+        if (backAction == null) {
+            backAction = new BackAction();
+        }
+        
+        return backAction;
+    }
 
     private class NewAction extends AbstractAction {
         public NewAction() {
@@ -649,6 +670,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(false);
         stepAction.setEnabled(false);
+        backAction.setEnabled(false);
     }
 
     public void setRunning() {
@@ -657,6 +679,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(false);
         stepAction.setEnabled(false);
+        backAction.setEnabled(false);
     }
     
     public void setDebugging() {
@@ -665,6 +688,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.putValue(Action.NAME, "Pause");
         debugAction.setEnabled(true);
         stepAction.setEnabled(false);
+        backAction.setEnabled(false);
     }
     
     public void setStopped() {
@@ -673,6 +697,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.putValue(Action.NAME, "Debug");
         debugAction.setEnabled(true);
         stepAction.setEnabled(false);
+        backAction.setEnabled(false);
     }
     
     public void setPaused() {
@@ -681,5 +706,6 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.putValue(Action.NAME, "Resume");
         debugAction.setEnabled(true);
         stepAction.setEnabled(true);
+        backAction.setEnabled(true);
     }
 }
