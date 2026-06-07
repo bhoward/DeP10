@@ -2,7 +2,7 @@ package edu.depauw.dep10.simulator;
 
 import java.io.PrintStream;
 import java.util.ArrayDeque;
-import java.util.Collection;
+import java.util.Deque;
 
 import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
@@ -10,10 +10,10 @@ import edu.depauw.dep10.util.Word;
 
 public class TracingController implements Controller {
     public static int MAX_TRACE_LENGTH = 1000;
-    
+
     private Controller parent;
-    private Collection<Step> steps;
-    
+    private Deque<Step> steps;
+
     public TracingController(Controller parent) {
         this.parent = parent;
         this.steps = new ArrayDeque<>(MAX_TRACE_LENGTH) {
@@ -28,6 +28,15 @@ public class TracingController implements Controller {
         };
     }
 
+    public TracingController(Controller parent, Controller previous) {
+        this(parent);
+        if (previous instanceof TracingController tc) {
+            // Preserve old trace, minus the last one
+            this.steps = tc.steps;
+            this.steps.removeLast();
+        }
+    }
+
     @Override
     public void perform(Operation op, State s, Word origPC) {
         if (s instanceof DebugState ds) {
@@ -36,7 +45,7 @@ public class TracingController implements Controller {
             steps.add(new Step(origPC, s.getPrefix(), s.getOpCode(), op, s.getOperand(), s.getEA(), ds.trace()));
         }
     }
-    
+
     public void printTrace(PrintStream output) {
         for (var step : steps) {
             output.println(step);

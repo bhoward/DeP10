@@ -144,7 +144,7 @@ public interface SourceType {
         Simulator sim = new Simulator(state, false);
         state.resume();
 
-        TracingController control = new TracingController(new PlainController());
+        TracingController control = new TracingController(new PlainController(), frame.getController());
         frame.setController(control);
 
         var t = new Thread(() -> {
@@ -172,8 +172,7 @@ public interface SourceType {
         Simulator sim = new Simulator(state, false);
         state.resume();
 
-        // TODO preserve the trace from the old controller
-        TracingController control = new TracingController(new SingleStepController(new PlainController()));
+        TracingController control = new TracingController(new SingleStepController(new PlainController()), frame.getController());
         frame.setController(control);
         
         var t = new Thread(() -> {
