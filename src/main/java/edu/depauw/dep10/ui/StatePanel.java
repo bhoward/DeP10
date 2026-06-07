@@ -24,7 +24,6 @@ public class StatePanel extends JPanel implements TabPanel {
     private static final long serialVersionUID = 1L;
     private static final int WORD_COLUMNS = 5;
     private static final int BYTE_COLUMNS = 3;
-    private static final int FONT_SIZE = 11;
     private static final int STACK_COLUMNS = 10;
     private static final int STACK_ROWS = 10;
     private static final int MEM_COLUMNS = 30;
@@ -53,7 +52,7 @@ public class StatePanel extends JPanel implements TabPanel {
      */
     public StatePanel() {
         this.state = null;
-        this.font = new Font(Font.MONOSPACED, Font.PLAIN, FONT_SIZE);
+        this.font = SourcePanel.DEFAULT_FONT;
 
         SpringLayout springLayout = new SpringLayout();
         setLayout(springLayout);
@@ -111,12 +110,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtPC.setFont(font);
 
         JLabel lblPX = new JLabel("PX");
-        springLayout.putConstraint(SpringLayout.NORTH, lblPX, 10, SpringLayout.SOUTH, lblA);
         springLayout.putConstraint(SpringLayout.EAST, lblPX, 0, SpringLayout.EAST, lblA);
         add(lblPX);
 
         txtPX = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtPX, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, lblPX, 0, SpringLayout.NORTH, txtPX);
+        springLayout.putConstraint(SpringLayout.NORTH, txtPX, 10, SpringLayout.SOUTH, txtA);
         springLayout.putConstraint(SpringLayout.WEST, txtPX, 10, SpringLayout.EAST, lblPX);
         txtPX.setEditable(false);
         add(txtPX);
@@ -124,12 +123,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtPX.setFont(font);
 
         JLabel lblIR1 = new JLabel("IR1");
-        springLayout.putConstraint(SpringLayout.NORTH, lblIR1, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, lblIR1, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.EAST, lblIR1, 0, SpringLayout.EAST, lblX);
         add(lblIR1);
 
         txtIR1 = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtIR1, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, txtIR1, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.WEST, txtIR1, 10, SpringLayout.EAST, lblIR1);
         txtIR1.setEditable(false);
         add(txtIR1);
@@ -137,12 +136,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtIR1.setFont(font);
 
         JLabel lblIR2 = new JLabel("IR2");
-        springLayout.putConstraint(SpringLayout.NORTH, lblIR2, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, lblIR2, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.EAST, lblIR2, 0, SpringLayout.EAST, lblNZVC);
         add(lblIR2);
 
         txtIR2 = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtIR2, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, txtIR2, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.WEST, txtIR2, 10, SpringLayout.EAST, lblIR2);
         txtIR2.setEditable(false);
         add(txtIR2);
@@ -150,12 +149,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtIR2.setFont(font);
 
         JLabel lblEA = new JLabel("EA");
-        springLayout.putConstraint(SpringLayout.NORTH, lblEA, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, lblEA, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.EAST, lblEA, 0, SpringLayout.EAST, lblPC);
         add(lblEA);
 
         txtEA = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtEA, 0, SpringLayout.NORTH, lblPX);
+        springLayout.putConstraint(SpringLayout.NORTH, txtEA, 0, SpringLayout.NORTH, txtPX);
         springLayout.putConstraint(SpringLayout.WEST, txtEA, 10, SpringLayout.EAST, lblEA);
         txtEA.setEditable(false);
         add(txtEA);
@@ -163,12 +162,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtEA.setFont(font);
 
         JLabel lblSP = new JLabel("SP");
-        springLayout.putConstraint(SpringLayout.NORTH, lblSP, 10, SpringLayout.SOUTH, lblPX);
         springLayout.putConstraint(SpringLayout.EAST, lblSP, 0, SpringLayout.EAST, lblA);
         add(lblSP);
 
         txtSP = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtSP, 0, SpringLayout.NORTH, lblSP);
+        springLayout.putConstraint(SpringLayout.NORTH, lblSP, 0, SpringLayout.NORTH, txtSP);
+        springLayout.putConstraint(SpringLayout.NORTH, txtSP, 10, SpringLayout.SOUTH, txtPX);
         springLayout.putConstraint(SpringLayout.WEST, txtSP, 10, SpringLayout.EAST, lblSP);
         add(txtSP);
         txtSP.setEditable(false);
@@ -176,12 +175,12 @@ public class StatePanel extends JPanel implements TabPanel {
         txtSP.setFont(font);
 
         JLabel lblStack = new JLabel("S");
-        springLayout.putConstraint(SpringLayout.NORTH, lblStack, 10, SpringLayout.SOUTH, lblSP);
         springLayout.putConstraint(SpringLayout.EAST, lblStack, 0, SpringLayout.EAST, lblA);
         add(lblStack);
 
         spnStack = new JSpinner();
-        springLayout.putConstraint(SpringLayout.NORTH, spnStack, 0, SpringLayout.NORTH, lblStack);
+        springLayout.putConstraint(SpringLayout.NORTH, lblStack, 0, SpringLayout.NORTH, spnStack);
+        springLayout.putConstraint(SpringLayout.NORTH, spnStack, 10, SpringLayout.SOUTH, txtSP);
         springLayout.putConstraint(SpringLayout.WEST, spnStack, 10, SpringLayout.EAST, lblStack);
         spnStack.setModel(new SpinnerNumberModel(0, -100, 100, 2));
         springLayout.putConstraint(SpringLayout.EAST, spnStack, 20, SpringLayout.EAST, txtSP);
@@ -201,13 +200,13 @@ public class StatePanel extends JPanel implements TabPanel {
         txtStack.setFont(font);
 
         JLabel lblMem = new JLabel("MEM");
-        springLayout.putConstraint(SpringLayout.NORTH, lblMem, 0, SpringLayout.NORTH, lblStack);
+        springLayout.putConstraint(SpringLayout.NORTH, lblMem, 0, SpringLayout.NORTH, spnStack);
         springLayout.putConstraint(SpringLayout.EAST, lblMem, 0, SpringLayout.EAST, lblNZVC);
         add(lblMem);
 
         spnMem = new JSpinner();
         spnMem.setFont(new Font("Monospaced", Font.PLAIN, 11));
-        springLayout.putConstraint(SpringLayout.NORTH, spnMem, 0, SpringLayout.NORTH, lblMem);
+        springLayout.putConstraint(SpringLayout.NORTH, spnMem, 0, SpringLayout.NORTH, spnStack);
         springLayout.putConstraint(SpringLayout.WEST, spnMem, 10, SpringLayout.EAST, lblMem);
         springLayout.putConstraint(SpringLayout.EAST, spnMem, 20, SpringLayout.EAST, txtNZVC);
         spnMem.setModel(new SpinnerNumberModel(0, 0, 65535, 8));
@@ -220,7 +219,6 @@ public class StatePanel extends JPanel implements TabPanel {
         // https://github.com/aterai/java-swing-tips/blob/main/examples/HexFormatterSpinner/src/java/example/MainPanel.java
         JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) spnMem.getEditor();
         JFormattedTextField ftf = editor.getTextField();
-        ftf.setFont(font);
         ftf.setFormatterFactory(createFormatterFactory());
 
         txtMem = new JTextArea();
@@ -322,8 +320,20 @@ public class StatePanel extends JPanel implements TabPanel {
 
     @Override
     public void setPanelFont(Font font) {
-        // TODO Auto-generated method stub
-
+        txtA.setFont(font);
+        txtX.setFont(font);
+        txtNZVC.setFont(font);
+        txtPC.setFont(font);
+        txtSP.setFont(font);
+        txtPX.setFont(font);
+        txtIR1.setFont(font);
+        txtIR2.setFont(font);
+        txtEA.setFont(font);
+        txtOperation.setFont(font);
+        txtStack.setFont(font);
+        txtMem.setFont(font);
+        spnStack.setFont(font);
+        spnMem.setFont(font);
     }
 
     @Override

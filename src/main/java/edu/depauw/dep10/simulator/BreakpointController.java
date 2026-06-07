@@ -35,6 +35,11 @@ public class BreakpointController implements Controller {
     }
 
     @Override
+    public boolean isEnded() {
+        return parent.isEnded();
+    }
+
+    @Override
     public boolean isPaused() {
         return parent.isPaused();
     }

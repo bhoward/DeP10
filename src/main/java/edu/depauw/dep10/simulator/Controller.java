@@ -11,6 +11,8 @@ public interface Controller {
     
     void pause();
     
+    boolean isEnded();
+    
     boolean isPaused();
 
     void resume(MainFrame frame);

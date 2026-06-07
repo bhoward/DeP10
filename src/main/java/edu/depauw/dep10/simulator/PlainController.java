@@ -21,6 +21,9 @@ public class PlainController implements Controller {
             return false;
         } else {
             op.exec(s);
+            if (!s.isRunning()) {
+                saved = s; // in case of shutdown
+            }
             return true;
         }
     }
@@ -33,6 +36,11 @@ public class PlainController implements Controller {
     @Override
     public synchronized void pause() {
         paused = true;
+    }
+    
+    @Override
+    public boolean isEnded() {
+        return ended;
     }
 
     @Override
