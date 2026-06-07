@@ -5,7 +5,7 @@ import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public interface Controller {
-    void perform(Operation op, State s, Word pc);
+    boolean perform(Operation op, State s, Word pc);
     
     void end();
     

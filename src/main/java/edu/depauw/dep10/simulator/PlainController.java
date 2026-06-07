@@ -10,15 +10,18 @@ public class PlainController implements Controller {
     State saved = null;
 
     @Override
-    public synchronized void perform(Operation op, State s, Word origPC) {
+    public synchronized boolean perform(Operation op, State s, Word origPC) {
         if (ended) {
             s.stop();
+            return false;
         } else if (paused) {
             s.setPC(origPC);
             saved = s;
             s.pause();
+            return false;
         } else {
             op.exec(s);
+            return true;
         }
     }
 

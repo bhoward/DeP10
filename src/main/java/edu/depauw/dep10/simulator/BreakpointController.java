@@ -16,11 +16,12 @@ public class BreakpointController implements Controller {
     }
 
     @Override
-    public void perform(Operation op, State s, Word origPC) {
-        parent.perform(op, s, origPC);
+    public boolean perform(Operation op, State s, Word origPC) {
+        var result = parent.perform(op, s, origPC);
         if (pred.test(s)) {
             pause();
         }
+        return result;
     }
 
     @Override

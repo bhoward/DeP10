@@ -31,18 +31,25 @@ public class TracingController implements Controller {
     public TracingController(Controller parent, Controller previous) {
         this(parent);
         if (previous instanceof TracingController tc) {
-            // Preserve old trace, minus the last one
+            // Preserve old trace
             this.steps = tc.steps;
-            this.steps.removeLast();
         }
     }
 
     @Override
-    public void perform(Operation op, State s, Word origPC) {
+    public boolean perform(Operation op, State s, Word origPC) {
         if (s instanceof DebugState ds) {
             ds.clearAccesses();
-            parent.perform(op, s, origPC);
-            steps.add(new Step(origPC, s.getPrefix(), s.getOpCode(), op, s.getOperand(), s.getEA(), ds.trace()));
+            if (parent.perform(op, s, origPC)) {
+                // Only save completed steps
+                steps.add(new Step(origPC, s.getPrefix(), s.getOpCode(), op, s.getOperand(), s.getEA(), ds.trace()));
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            // shouldn't happen
+            return false;
         }
     }
 
