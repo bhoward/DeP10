@@ -421,12 +421,51 @@
 PC ← Mem[FFF9]
 SP ← Mem[FFFB]
 do
-    IR[0:7] ← Mem[PC]
+    IR[0:7] ← Mem[PC], PX ← 0
     PC ← PC + 1
-    if IR[0:7] is dyadic
+	if IR[0:7] is prefix
+	    PX ← IR[0:7]
+		IR[0:7] ← Mem[PC]
+		PC ← PC + 1
+    if PX,IR[0:7] is dyadic
         IR[8:23] ← Mem[PC]
         PC ← PC + 2
-    Execute the instruction in the IR
+    Execute the instruction in PX,IR
 while not power off && instruction was legal
 </pre>
+
+	<h2>Directives</h2>
+	<dl>
+		<dt><samp>.ASCII "string"</samp></dt>
+		<dd>insert the ASCII character code bytes for the string</dd>
+		<dt><samp>.BLOCK n</samp></dt>
+		<dd>insert a block of n zero bytes</dd>
+		<dt><samp>.BYTE x</samp></dt>
+		<dd>insert a single byte given by x (low byte if x is a word)</dd>
+		<dt><samp>label: .EQUATE x</samp></dt>
+		<dd>associate the label with the value x in the symbol table</dd>
+		<dt><samp>.WORD x</samp></dt>
+		<dd>insert a two-byte word given by x</dd>
+		<dt><b>The following are intended for OS-level code</b></dt>
+		<dt><samp>.ALIGN 1|2|4|8</samp></dt>
+		<dd>advance the current position to a multiple of the given number</dd>
+		<dt><samp>.DEFMACRO name[, nargs]</samp></dt>
+		<dd>define a macro <samp>@name</samp> with the given number of arguments (<samp>$1</samp>, <samp>$2</samp>, ...)</dd>
+		<dt><samp>.ENDMACRO</samp></dt>
+		<dd>terminate a macro definition</dd>
+		<dt><samp>.EXPORT sym</samp></dt>
+		<dd>add the symbol to the export list</dd>
+		<dt><samp>.INCLUDE "file"</samp></dt>
+		<dd>assemble the contents of the given file at the current location</dd>
+		<dt><samp>.INPUT sym</samp></dt>
+		<dd>mark the symbol as memory-mapped input</dd>
+		<dt><samp>.ORG addr</samp></dt>
+		<dd>shift this section so that the given address is the current position</dd>
+		<dt><samp>.OUTPUT sym</samp></dt>
+		<dd>mark the symbol as memory-mapped output</dd>
+		<dt><samp>.SCALL sym</samp></dt>
+		<dd>generate a system call macro for the given symbol</dd>
+		<dt><samp>.SECTION "name", "permissions"</samp></dt>
+		<dd>start a named section with the given permissions (<b>r</b>ead/<b>w</b>rite/e<b>x</b>ecute/<b>z</b>ero)</dd>
+	</dl>
 </body></html>

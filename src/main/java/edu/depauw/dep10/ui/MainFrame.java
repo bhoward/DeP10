@@ -83,10 +83,12 @@ public class MainFrame extends JFrame {
         tabs.add(tracePanel.getTitle(), tracePanel);
         
         statePanel = new StatePanel();
-        tabs.add(statePanel.getTitle(), statePanel);
+//        tabs.add(statePanel.getTitle(), statePanel);
+        
+        var hsplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tabs, statePanel);
 
-        var split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, tabs);
-        this.add(split, BorderLayout.CENTER);
+        var vsplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, source, hsplit);
+        this.add(vsplit, BorderLayout.CENTER);
 
         var tools = new JToolBar(JToolBar.HORIZONTAL);
 
@@ -108,7 +110,8 @@ public class MainFrame extends JFrame {
 
         pack();
         setLocationRelativeTo(null);
-        split.setDividerLocation(0.5);
+        vsplit.setDividerLocation(0.5);
+        hsplit.setDividerLocation(0.5);
     }
 
     public JMenuBar createMenuBar(JToolBar tools) {
@@ -189,7 +192,6 @@ public class MainFrame extends JFrame {
         helpMenu.add(new JMenuItem(viewResource("View Pep/10 Full OS Listing", "pep10os.pepl")));
         helpMenu.add(new JMenuItem(viewResource("View Pep/10 Bare Metal OS Listing", "pep10baremetal.pepl")));
         helpMenu.add(new JMenuItem(viewResource("View Standard Macros", "stdmacro.pep")));
-        // TODO add reference info: Pep/10 instructions, directives; DeCLan syntax
         menuBar.add(helpMenu);
 
         if (!SystemInfo.isMacOS) {
@@ -222,6 +224,7 @@ public class MainFrame extends JFrame {
                 for (var tab : tabs.getComponents()) {
                     ((TabPanel) tab).setPanelFont(source.getPanelFont());
                 }
+                statePanel.setPanelFont(source.getPanelFont());
                 SwingUtilities.updateComponentTreeUI(MainFrame.this);
             }
         };
@@ -303,7 +306,8 @@ public class MainFrame extends JFrame {
     }
 
     public void selectStateTab() {
-        tabs.setSelectedComponent(statePanel);
+        // Do nothing, since the State panel is not in the tabs
+//        tabs.setSelectedComponent(statePanel);
     }
 
     public void updateTitle(String fileName) {

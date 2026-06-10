@@ -1,8 +1,7 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Debugging view: breakpoints? option to skip system code? highlight current line? show state and listing side-by-side?
-* References: directives, macros
+* Debugging view: breakpoints? option to skip system code? highlight current line?
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
 * Tests!
