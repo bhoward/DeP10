@@ -737,10 +737,74 @@ public class Pep10 {
             s.setZ(product == 0);
             
             // V: overflow value needs to be cleared, so don't set at all (?)
-            s.setV(product == 0);
+            s.setV(false);
 
             // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
             s.setC(low_bits.value() != product);
+        }
+    };
+
+    public static final OpCore DIVA = new OpCore("DIVA", Modes.All) {
+        public void exec(State s, Mode mode) {
+            var operand = mode.resolveWord(s);
+            
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+            
+            if (op == 0) {
+                s.setC(true);
+                s.setV(true); // ???
+                return;
+            }
+            
+            var quotient = a / op;
+
+            s.setA(Word.of(quotient));
+
+            // N: set if quotient is <0, cleared otherwise
+            s.setN(quotient < 0);
+
+            // Z: set if quotient is 0, cleared otherwise
+            s.setZ(quotient == 0);
+            
+            // V: overflow value needs to be cleared
+            s.setV(false);
+
+            // C: Carry false unless divide by zero
+            s.setC(false);
+        }
+    };
+
+    public static final OpCore MODA = new OpCore("MODA", Modes.All) {
+        public void exec(State s, Mode mode) {
+            var operand = mode.resolveWord(s);
+            
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+            
+            if (op == 0) {
+                s.setC(true);
+                s.setV(true); // ???
+                return;
+            }
+            
+            var remainder = a % op;
+
+            s.setA(Word.of(remainder));
+
+            // N: set if remainder is <0, cleared otherwise
+            s.setN(remainder < 0);
+
+            // Z: set if remainder is 0, cleared otherwise
+            s.setZ(remainder == 0);
+            
+            // V: overflow value needs to be cleared
+            s.setV(false);
+
+            // C: Carry false unless divide by zero
+            s.setC(false);
         }
     };
 
@@ -749,7 +813,7 @@ public class Pep10 {
             var operand = mode.resolveWord(s);
             
             // update logic for signed * signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000: s.getA().value();
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             var product = a * op;
@@ -812,7 +876,8 @@ public class Pep10 {
         var MulDiv = new Table();
         MulDiv.install(8, MULA); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
         MulDiv.install(16, MULHA);
-        //MulDiv.install(16, DIV);
+        MulDiv.install(24, DIVA);
+        MulDiv.install(32, MODA);
 
         table.install(8,  MulDiv);
         

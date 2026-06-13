@@ -106,7 +106,8 @@ public class DeCLan {
 //                System.out.println("; " + instr);
 //            }
 
-            for (String s : Pep10.translate(instructions)) {
+            var pep10 = new Pep10X();
+            for (String s : pep10.translate(instructions)) {
                 out.append(s + "\n");
             }
         }

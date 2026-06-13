@@ -17,10 +17,46 @@ PROCEDURE fact(n: INTEGER; VAR factn: INTEGER);
     ELSE fact(n - 1, factnm1); factn := n * factnm1;
     END
   END fact;
+PROCEDURE mulTable(lo, hi: INTEGER);
+  VAR i, j : INTEGER;
+  BEGIN
+    FOR i := lo TO hi DO
+      FOR j := lo TO hi DO
+        WriteInt(i * j);
+      END;
+      WriteLn()
+    END
+  END mulTable;
+PROCEDURE divTable(lo, hi: INTEGER);
+  VAR i, j : INTEGER;
+  BEGIN
+    FOR i := lo TO hi DO
+      FOR j := lo TO hi DO
+        WriteInt(i DIV j);
+      END;
+      WriteLn()
+    END
+  END divTable;
+PROCEDURE modTable(lo, hi: INTEGER);
+  VAR i, j : INTEGER;
+  BEGIN
+    FOR i := lo TO hi DO
+      FOR j := lo TO hi DO
+        WriteInt(i MOD j);
+      END;
+      WriteLn()
+    END
+  END modTable;
 BEGIN
   fact(three, answer);
   gcd(answer, seven, answer);
   answer := three * seven * (answer + answer);
   WriteInt(answer);
+  WriteLn();
+  mulTable(-5, 5);
+  WriteLn();
+  divTable(-5, 5);
+  WriteLn();
+  modTable(-5, 5);
   WriteLn()
 END. (* Don't forget the ending period! *)
