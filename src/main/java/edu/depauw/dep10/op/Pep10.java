@@ -754,7 +754,7 @@ public class Pep10 {
             
             if (op == 0) {
                 s.setC(true);
-                s.setV(true); // ???
+                s.setV(false);
                 return;
             }
             
@@ -768,8 +768,8 @@ public class Pep10 {
             // Z: set if quotient is 0, cleared otherwise
             s.setZ(quotient == 0);
             
-            // V: overflow value needs to be cleared
-            s.setV(false);
+            // V: overflow only when -32768 / -1 (== -32768)
+            s.setV(a == Short.MIN_VALUE && op == -1);
 
             // C: Carry false unless divide by zero
             s.setC(false);
@@ -786,7 +786,7 @@ public class Pep10 {
             
             if (op == 0) {
                 s.setC(true);
-                s.setV(true); // ???
+                s.setV(false);
                 return;
             }
             

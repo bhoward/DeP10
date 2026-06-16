@@ -51,6 +51,21 @@ public class Pep10 {
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
+        // _imul does 16-bit signed integer multiplication,
+        // giving a 32-bit result.
+        // It preserves the X register.
+        // Stack before call:
+        //   SP+0: B (multiplier)
+        //   SP+2: A (multiplicand)
+        // Stack during call:
+        //   SP-4: save X (frame pointer)
+        //   SP-2: temporary
+        //   SP+0: return address
+        //   SP+2: B (modified)
+        //   SP+4: A
+        // Stack after call:
+        //   SP+0: A*B (product) high word; discard if only a 16-bit result
+        //   SP+2: A*B (product) low word
         out("_imul: STWX -4,s");
         out("       LDWX 16,i");
         out("       LDWA 0,i");
@@ -89,6 +104,29 @@ public class Pep10 {
         out("       STWA 2,s");
         out("       LDWX -4,s");
         out("       RET");
+        // _idiv does 16-bit signed integer division,
+        // giving a 16-bit quotient and remainder.
+        // The quotient is rounded toward zero (truncating division),
+        // and the remainder has the same sign as the dividend -- these
+        // are the same as the Java / and % operators.
+        // Satisfies (A/B)*B + (A%B) = A, and |A%B| < |divisor| (if non-zero).
+        // If the divisor is zero, the quotient is arbitrary and the
+        // remainder is the dividend.
+        // Special case: -32768 / -1 = -32768.
+        // It preserves the X register.
+        // Stack before call:
+        //   SP+0: B (divisor)
+        //   SP+2: A (dividend)
+        // Stack during call:
+        //   SP-6: save X (frame pointer)
+        //   SP-4: temp
+        //   SP-2: temp
+        //   SP+0: return address
+        //   SP+2: B
+        //   SP+4: A (modified)
+        // Stack after call:
+        //   SP+0: A%B (remainder)
+        //   SP+2: A/B (quotient)
         out("_idiv: STWX -6,s");
         out("       LDWX 0,i");
         out("       LDWA 4,s");

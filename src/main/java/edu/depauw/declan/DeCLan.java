@@ -106,7 +106,8 @@ public class DeCLan {
 //                System.out.println("; " + instr);
 //            }
 
-            var pep10 = new Pep10X();
+//            var pep10 = new Pep10(); // version without MULA/DIVA/MODA
+            var pep10 = new Pep10X(); // version using MULA/DIVA/MODA
             for (String s : pep10.translate(instructions)) {
                 out.append(s + "\n");
             }
