@@ -112,6 +112,6 @@ public class Word {
 	
 	@Override
 	public String toString() {
-	    return Integer.toHexString(value);
+	    return Util.HEX_FORMAT.toHexDigits((short) value);
 	}
 }

@@ -19,141 +19,181 @@ public class Pep10 {
         this.labelSeqNo = 0;
     }
 
-    public static List<String> translate(List<Instruction> instructions) {
-        Pep10 pep10 = new Pep10();
-
+    public List<String> translate(List<Instruction> instructions) {
         for (Instruction instr : instructions) {
             if (instr instanceof Label label) {
-                pep10.translate(label);
+                translate(label);
             } else if (instr instanceof Instruction.Nullary n) {
-                pep10.translate(n);
+                translate(n);
             } else if (instr instanceof Instruction.UnaryInteger ui) {
-                pep10.translate(ui);
+                translate(ui);
             } else if (instr instanceof Instruction.UnaryString us) {
-                pep10.translate(us);
+                translate(us);
             } else if (instr instanceof Instruction.BinaryString bs) {
-                pep10.translate(bs);
+                translate(bs);
             } else {
                 System.err.println("Unsupported instruction: " + instr);
             }
         }
 
-        pep10.out("ReadInt: @DECI 2,sf");
-        pep10.out("       RET");
-        pep10.out("WriteInt: LDBA ' ',i");
-        pep10.out("       STBA charOut,d");
-        pep10.out("       @DECO 2,s");
-        pep10.out("       RET");
-        pep10.out("WriteLn: LDBA '\\n',i");
-        pep10.out("       STBA charOut,d");
-        pep10.out("       RET");
-        pep10.out("_imul: STWX -4,s");
-        pep10.out("       LDWX 16,i");
-        pep10.out("       LDWA 0,i");
-        pep10.out("       STWA -2,s");
-        pep10.out("_im0:  LDWA -2,s");
-        pep10.out("       ASRA");
-        pep10.out("       STWA -2,s");
-        pep10.out("       LDWA 2,s");
-        pep10.out("       RORA");
-        pep10.out("       STWA 2,s");
-        pep10.out("       BRC _im2");
-        pep10.out("_im1:  SUBX 1,i");
-        pep10.out("       BRNE _im0");
-        pep10.out("       BR _im4");
-        pep10.out("_im2:  LDWA -2,s");
-        pep10.out("       SUBA 4,s");
-        pep10.out("       STWA -2,s");
-        pep10.out("_im3:  SUBX 1,i");
-        pep10.out("       BREQ _im4");
-        pep10.out("       LDWA -2,s");
-        pep10.out("       ASRA");
-        pep10.out("       STWA -2,s");
-        pep10.out("       LDWA 2,s");
-        pep10.out("       RORA");
-        pep10.out("       STWA 2,s");
-        pep10.out("       BRC _im3");
-        pep10.out("       LDWA -2,s");
-        pep10.out("       ADDA 4,s");
-        pep10.out("       STWA -2,s");
-        pep10.out("       BR _im1");
-        pep10.out("_im4:  LDWA -2,s");
-        pep10.out("       ASRA");
-        pep10.out("       LDWX 2,s");
-        pep10.out("       RORX");
-        pep10.out("       STWX 4,s");
-        pep10.out("       STWA 2,s");
-        pep10.out("       LDWX -4,s");
-        pep10.out("       RET");
-        pep10.out("_idiv: STWX -6,s");
-        pep10.out("       LDWX 0,i");
-        pep10.out("       LDWA 4,s");
-        pep10.out("       BRGE _id5");
-        pep10.out("       NEGA");
-        pep10.out("       STWA 4,s");
-        pep10.out("       ORX 3,i");
-        pep10.out("_id5:  LDWA 2,s");
-        pep10.out("       BRGE _id6");
-        pep10.out("       NEGA");
-        pep10.out("       STWA 2,s");
-        pep10.out("       ADDX 2,i");
-        pep10.out("_id6:  STBX -3,s");
-        pep10.out("       LDWA 0,i");
-        pep10.out("       STWA -2,s");
-        pep10.out("       LDWX 16,i");
-        pep10.out("_id7:  LDWA 4,s");
-        pep10.out("       ASLA");
-        pep10.out("       STWA 4,s");
-        pep10.out("       LDWA -2,s");
-        pep10.out("       ROLA");
-        pep10.out("       BRC _id8");
-        pep10.out("       SUBA 2,s");
-        pep10.out("       BR _id9");
-        pep10.out("_id8:  ADDA 2,s");
-        pep10.out("_id9:  STWA -2,s");
-        pep10.out("       BRLT _id10");
-        pep10.out("       LDWA 4,s");
-        pep10.out("       ORA 1,i");
-        pep10.out("       STWA 4,s");
-        pep10.out("_id10: SUBX 1,i");
-        pep10.out("       BRNE _id7");
-        pep10.out("       LDWA -2,s");
-        pep10.out("       BRGE _id11");
-        pep10.out("       ADDA 2,s");
-        pep10.out("_id11: LDBX -3,s");
-        pep10.out("       ANDX 1,i");
-        pep10.out("       BREQ _id12");
-        pep10.out("       NEGA");
-        pep10.out("_id12: STWA 2,s");
-        pep10.out("       LDBX -3,s");
-        pep10.out("       ANDX 2,i");
-        pep10.out("       BREQ _id13");
-        pep10.out("       LDWA 4,s");
-        pep10.out("       NEGA");
-        pep10.out("       STWA 4,s");
-        pep10.out("_id13: LDWX -6,s");
-        pep10.out("       RET");
+        writeRuntime();
 
-        return pep10.result;
+        return result;
     }
 
-    private String newLabel() {
+    void writeRuntime() {
+        out("ReadInt: @DECI 2,sf");
+        out("       RET");
+        out("WriteInt: LDBA ' ',i");
+        out("       STBA charOut,d");
+        out("       @DECO 2,s");
+        out("       RET");
+        out("WriteLn: LDBA '\\n',i");
+        out("       STBA charOut,d");
+        out("       RET");
+        // _imul does 16-bit signed integer multiplication,
+        // giving a 32-bit result.
+        // It preserves the X register.
+        // Stack before call:
+        //   SP+0: B (multiplier)
+        //   SP+2: A (multiplicand)
+        // Stack during call:
+        //   SP-4: save X (frame pointer)
+        //   SP-2: temporary
+        //   SP+0: return address
+        //   SP+2: B (modified)
+        //   SP+4: A
+        // Stack after call:
+        //   SP+0: A*B (product) high word; discard if only a 16-bit result
+        //   SP+2: A*B (product) low word
+        out("_imul: STWX -4,s");
+        out("       LDWX 16,i");
+        out("       LDWA 0,i");
+        out("       STWA -2,s");
+        out("_im0:  LDWA -2,s");
+        out("       ASRA");
+        out("       STWA -2,s");
+        out("       LDWA 2,s");
+        out("       RORA");
+        out("       STWA 2,s");
+        out("       BRC _im2");
+        out("_im1:  SUBX 1,i");
+        out("       BRNE _im0");
+        out("       BR _im4");
+        out("_im2:  LDWA -2,s");
+        out("       SUBA 4,s");
+        out("       STWA -2,s");
+        out("_im3:  SUBX 1,i");
+        out("       BREQ _im4");
+        out("       LDWA -2,s");
+        out("       ASRA");
+        out("       STWA -2,s");
+        out("       LDWA 2,s");
+        out("       RORA");
+        out("       STWA 2,s");
+        out("       BRC _im3");
+        out("       LDWA -2,s");
+        out("       ADDA 4,s");
+        out("       STWA -2,s");
+        out("       BR _im1");
+        out("_im4:  LDWA -2,s");
+        out("       ASRA");
+        out("       LDWX 2,s");
+        out("       RORX");
+        out("       STWX 4,s");
+        out("       STWA 2,s");
+        out("       LDWX -4,s");
+        out("       RET");
+        // _idiv does 16-bit signed integer division,
+        // giving a 16-bit quotient and remainder.
+        // The quotient is rounded toward zero (truncating division),
+        // and the remainder has the same sign as the dividend -- these
+        // are the same as the Java / and % operators.
+        // Satisfies (A/B)*B + (A%B) = A, and |A%B| < |divisor| (if non-zero).
+        // If the divisor is zero, the quotient is arbitrary and the
+        // remainder is the dividend.
+        // Special case: -32768 / -1 = -32768.
+        // It preserves the X register.
+        // Stack before call:
+        //   SP+0: B (divisor)
+        //   SP+2: A (dividend)
+        // Stack during call:
+        //   SP-6: save X (frame pointer)
+        //   SP-4: temp
+        //   SP-2: temp
+        //   SP+0: return address
+        //   SP+2: B
+        //   SP+4: A (modified)
+        // Stack after call:
+        //   SP+0: A%B (remainder)
+        //   SP+2: A/B (quotient)
+        out("_idiv: STWX -6,s");
+        out("       LDWX 0,i");
+        out("       LDWA 4,s");
+        out("       BRGE _id5");
+        out("       NEGA");
+        out("       STWA 4,s");
+        out("       ORX 3,i");
+        out("_id5:  LDWA 2,s");
+        out("       BRGE _id6");
+        out("       NEGA");
+        out("       STWA 2,s");
+        out("       ADDX 2,i");
+        out("_id6:  STBX -3,s");
+        out("       LDWA 0,i");
+        out("       STWA -2,s");
+        out("       LDWX 16,i");
+        out("_id7:  LDWA 4,s");
+        out("       ASLA");
+        out("       STWA 4,s");
+        out("       LDWA -2,s");
+        out("       ROLA");
+        out("       BRC _id8");
+        out("       SUBA 2,s");
+        out("       BR _id9");
+        out("_id8:  ADDA 2,s");
+        out("_id9:  STWA -2,s");
+        out("       BRLT _id10");
+        out("       LDWA 4,s");
+        out("       ORA 1,i");
+        out("       STWA 4,s");
+        out("_id10: SUBX 1,i");
+        out("       BRNE _id7");
+        out("       LDWA -2,s");
+        out("       BRGE _id11");
+        out("       ADDA 2,s");
+        out("_id11: LDBX -3,s");
+        out("       ANDX 1,i");
+        out("       BREQ _id12");
+        out("       NEGA");
+        out("_id12: STWA 2,s");
+        out("       LDBX -3,s");
+        out("       ANDX 2,i");
+        out("       BREQ _id13");
+        out("       LDWA 4,s");
+        out("       NEGA");
+        out("       STWA 4,s");
+        out("_id13: LDWX -6,s");
+        out("       RET");
+    }
+
+    String newLabel() {
         return "__" + labelSeqNo++;
     }
 
-    private void out(String s) {
+    void out(String s) {
         result.add(s);
     }
 
-    private void out(String fmt, Object... objects) {
+    void out(String fmt, Object... objects) {
         result.add(String.format(fmt, objects));
     }
 
-    private void translate(Label label) {
+    void translate(Label label) {
         out(label.toString());
     }
 
-    private void translate(Nullary n) {
+    void translate(Nullary n) {
         switch (n.op) {
         case DUP:
             out("LDWA 0,s");
@@ -269,7 +309,7 @@ public class Pep10 {
         }
     }
 
-    private void translate(UnaryInteger ui) {
+    void translate(UnaryInteger ui) {
         switch (ui.op) {
         case DROP:
             out("ADDSP %d,i", 2 * ui.value);
@@ -339,7 +379,7 @@ public class Pep10 {
         }
     }
 
-    private void translate(UnaryString us) {
+    void translate(UnaryString us) {
         switch (us.op) {
         case BRANCH:
             out("BR %s,i", us.value);
@@ -357,7 +397,7 @@ public class Pep10 {
         }
     }
 
-    private void translate(BinaryString bs) {
+    void translate(BinaryString bs) {
         switch (bs.op) {
         case BRIEQ:
             out("LDWA 2,s");

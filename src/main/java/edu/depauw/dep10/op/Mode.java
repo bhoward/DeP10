@@ -49,31 +49,41 @@ public abstract class Mode {
     
     public static final Mode D = new Mode(1, "d") {
         public Word getAddress(State s) {
-            return s.getOperand();
+            var address = s.getOperand();
+            s.setEA(address);
+            return address;
         } 
     };
     
     public static final Mode N = new Mode(2, "n") {
         public Word getAddress(State s) {
-            return s.mem2(s.getOperand());
+            var address = s.mem2(s.getOperand());
+            s.setEA(address);
+            return address;
         }
     };
     
     public static final Mode S = new Mode(3, "s") {
         public Word getAddress(State s) {
-            return s.getSP().plus(s.getOperand());
+            var address = s.getSP().plus(s.getOperand());
+            s.setEA(address);
+            return address;
         }
     };
     
     public static final Mode SF = new Mode(4, "sf") {
         public Word getAddress(State s) {
-            return s.mem2(s.getSP().plus(s.getOperand()));
+            var address = s.mem2(s.getSP().plus(s.getOperand()));
+            s.setEA(address);
+            return address;
         }
     };
     
     public static final Mode X = new Mode(5, "x") {
         public Word getAddress(State s) {
-            return s.getOperand().plus(s.getX());
+            var address = s.getOperand().plus(s.getX());
+            s.setEA(address);
+            return address;
         }
     };
     
@@ -86,13 +96,17 @@ public abstract class Mode {
     
     public static final Mode SX = new Mode(6, "sx") {
         public Word getAddress(State s) {
-            return s.getSP().plus(s.getOperand()).plus(s.getX());
+            var address = s.getSP().plus(s.getOperand()).plus(s.getX());
+            s.setEA(address);
+            return address;
         }
     };
     
     public static final Mode SFX = new Mode(7, "sfx") {
         public Word getAddress(State s) {
-            return s.mem2(s.getSP().plus(s.getOperand())).plus(s.getX());
+            var address = s.mem2(s.getSP().plus(s.getOperand())).plus(s.getX());
+            s.setEA(address);
+            return address;
         }
     };
 }

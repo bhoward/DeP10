@@ -2,7 +2,6 @@ package edu.depauw.dep10.preprocess;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 
 import javax.swing.text.AttributeSet;
@@ -13,6 +12,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import edu.depauw.dep10.util.UByte;
+import edu.depauw.dep10.util.Util;
 
 public class Log {
     private static final int INITIAL_BYTES = 4;
@@ -21,9 +21,8 @@ public class Log {
     private static final int ARG_START = 40;
     private static final int COMMENT_START = 52;
 
-    private static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
-    private static final MutableAttributeSet DEFAULT_ATTRS = new SimpleAttributeSet();
-    private static final MutableAttributeSet ERROR_ATTRS = new SimpleAttributeSet();
+    public static final MutableAttributeSet DEFAULT_ATTRS = new SimpleAttributeSet();
+    public static final MutableAttributeSet ERROR_ATTRS = new SimpleAttributeSet();
 
     static {
         StyleConstants.setForeground(DEFAULT_ATTRS, Color.BLACK);
@@ -117,12 +116,12 @@ public class Log {
     }
 
     public void formatFirstLine(Line line, int address, StringBuilder builder) {
-        builder.append(HEX_FORMAT.toHexDigits((short) address));
+        builder.append(Util.HEX_FORMAT.toHexDigits((short) address));
         builder.append(' ');
 
         for (int i = 0; i < INITIAL_BYTES; i++) {
             if (i < bytes.size()) {
-                HEX_FORMAT.toHexDigits(builder, (byte) bytes.get(i).value());
+                Util.HEX_FORMAT.toHexDigits(builder, (byte) bytes.get(i).value());
                 builder.append(' ');
             }
         }
@@ -153,12 +152,12 @@ public class Log {
 
     public void formatRemainingLines(int address, StringBuilder builder) {
         for (int i = INITIAL_BYTES; i < bytes.size(); i += INITIAL_BYTES) {
-            builder.append(HEX_FORMAT.toHexDigits((short) (address + i)));
+            builder.append(Util.HEX_FORMAT.toHexDigits((short) (address + i)));
             builder.append(' ');
 
             for (int j = i; j < i + INITIAL_BYTES; j++) {
                 if (j < bytes.size()) {
-                    HEX_FORMAT.toHexDigits(builder, (byte) bytes.get(j).value());
+                    Util.HEX_FORMAT.toHexDigits(builder, (byte) bytes.get(j).value());
                     builder.append(' ');
                 }
             }

@@ -1,4 +1,6 @@
-package edu.depauw.dep10.assemble;
+package edu.depauw.dep10.util;
+
+import java.util.HexFormat;
 
 public class Util {
 	public static String processEscape(String s) {
@@ -82,4 +84,6 @@ public class Util {
 			}
 		}
 	}
+
+    public static final HexFormat HEX_FORMAT = HexFormat.of().withUpperCase();
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 import edu.depauw.dep10.simulator.Controller;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.util.Pair;
+import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
 public class Table {
@@ -59,12 +60,16 @@ public class Table {
         return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), -1);
     }
 
-    public void perform(State s, Word origpc, Controller control) {
+    public void perform(State s, Word origPC, Controller control) {
         var pc = s.getPC();
         var opcode = s.mem1(pc);
         s.setOpCode(opcode);
         s.setPC(pc.plus(1));
         
-        ops[opcode.value()].perform(s, origpc, control);
+        ops[opcode.value()].perform(s, origPC, control);
+    }
+
+    public TableEntry getOp(UByte opcode) {
+        return ops[opcode.value()];
     }
 }

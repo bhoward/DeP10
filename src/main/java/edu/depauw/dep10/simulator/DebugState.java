@@ -22,8 +22,9 @@ public class DebugState extends State {
 
     @Override
     public void setMem1(Word addr, UByte n) {
+        var prev = super.mem1(addr);
         super.setMem1(addr, n);
-        accesses.add(new MemoryAccess.WB(addr, n));
+        accesses.add(new MemoryAccess.WB(addr, n, prev));
     }
 
     public Trace trace() {

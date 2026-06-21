@@ -1,0 +1,63 @@
+package edu.depauw.dep10.simulator;
+
+import edu.depauw.dep10.op.Operation;
+import edu.depauw.dep10.ui.MainFrame;
+import edu.depauw.dep10.util.Word;
+
+public class StepCountController implements Controller {
+    private Controller parent;
+    private int max;
+    private int step;
+
+    public StepCountController(Controller parent, int max) {
+        this.parent = parent;
+        this.max = max;
+        this.step = 0;
+    }
+
+    @Override
+    public boolean perform(Operation op, State s, Word origPC) {
+        var result = parent.perform(op, s, origPC);
+        
+        step++;
+        if (step >= max) {
+            pause();
+        }
+        return result;
+    }
+
+    @Override
+    public void end() {
+        parent.end();
+    }
+
+    @Override
+    public void pause() {
+        parent.pause();
+    }
+
+    @Override
+    public boolean isEnded() {
+        return parent.isEnded();
+    }
+
+    @Override
+    public boolean isPaused() {
+        return parent.isPaused();
+    }
+
+    @Override
+    public void resume(MainFrame frame) {
+        parent.resume(frame);
+    }
+
+    @Override
+    public void forward(MainFrame frame) {
+        parent.forward(frame);
+    }
+
+    @Override
+    public void backward(MainFrame frame) {
+        parent.backward(frame);
+    }
+}

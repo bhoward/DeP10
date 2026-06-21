@@ -28,8 +28,9 @@ public sealed interface Operation extends TableEntry {
             return mnemonic;
         }
         
-        public void perform(State s, Word pc, Controller control) {
-            control.perform(this, s, pc);
+        public void perform(State s, Word origPC, Controller control) {
+            s.setOp(this);
+            control.perform(this, s, origPC);
         }
         
         @Override
@@ -58,13 +59,15 @@ public sealed interface Operation extends TableEntry {
         public void exec(State s) {
             var pc = s.getPC();
             var operand = s.mem2(pc);
+            s.setEA(pc); // effective address in case of immediate mode
             s.setPC(pc.plus(2));
             s.setOperand(operand);
             op.exec(s, mode);
         }
         
-        public void perform(State s, Word pc, Controller control) {
-            control.perform(this, s, pc);
+        public void perform(State s, Word origPC, Controller control) {
+            s.setOp(this);
+            control.perform(this, s, origPC);
         }
         
        @Override
@@ -84,8 +87,9 @@ public sealed interface Operation extends TableEntry {
             this.table = table;
         }
         
-        public void perform(State s, Word origpc, Controller control) {
-            table.perform(s, origpc, control);
+        public void perform(State s, Word origPC, Controller control) {
+            s.setPrefix(s.getOpCode());
+            table.perform(s, origPC, control);
         }
         
         public Table getTable() {

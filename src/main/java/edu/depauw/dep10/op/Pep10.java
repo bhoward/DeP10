@@ -22,23 +22,13 @@ public class Pep10 {
 
     public static final Operation SRET = new Operation.Unary("SRET") {
         public void exec(State s) {
-            s.setFlags(s.mem1(s.getSP()));
-            s.setA(s.mem2(s.getSP().plus(1)));
-            s.setX(s.mem2(s.getSP().plus(3)));
-            s.setPC(s.mem2(s.getSP().plus(5)));
-            s.setSP(s.mem2(s.getSP().plus(7)));
-        }
-    };
-
-    public static final Operation MOVSPA = new Operation.Unary("MOVSPA") {
-        public void exec(State s) {
-            s.setA(s.getSP());
-        }
-    };
-
-    public static final Operation MOVASP = new Operation.Unary("MOVASP") {
-        public void exec(State s) {
-            s.setSP(s.getA());
+            var t = s.getSP();
+            s.setFlags(s.mem1(t));
+            s.setA(s.mem2(t.plus(1)));
+            s.setX(s.mem2(t.plus(3)));
+            s.setPC(s.mem2(t.plus(5)));
+            s.setSP(s.mem2(t.plus(7)));
+            s.setMem2(SYSTEM_STACK_POINTER, t.plus(12));
         }
     };
 
@@ -51,6 +41,18 @@ public class Pep10 {
     public static final Operation MOVAFLG = new Operation.Unary("MOVAFLG") {
         public void exec(State s) {
             s.setFlags(s.getA().lo());
+        }
+    };
+
+    public static final Operation MOVSPA = new Operation.Unary("MOVSPA") {
+        public void exec(State s) {
+            s.setA(s.getSP());
+        }
+    };
+
+    public static final Operation MOVASP = new Operation.Unary("MOVASP") {
+        public void exec(State s) {
+            s.setSP(s.getA());
         }
     };
 
@@ -72,7 +74,7 @@ public class Pep10 {
             s.setA(a2);
             s.setN(sign2);
             s.setZ(zero2);
-            s.setV(sign1 == sign2);
+            s.setV(sign1 && sign2);
             s.setC(zero1);
         }
     };
@@ -90,7 +92,7 @@ public class Pep10 {
             s.setX(x2);
             s.setN(sign2);
             s.setZ(zero2);
-            s.setV(sign1 == sign2);
+            s.setV(sign1 && sign2);
             s.setC(zero1);
         }
     };
@@ -335,17 +337,17 @@ public class Pep10 {
 
     public static final OpCore SCALL = new OpCore("SCALL", Modes.All) {
         public void exec(State s, Mode mode) {
-            var y = s.mem2(SYSTEM_STACK_POINTER);
+            var t = s.mem2(SYSTEM_STACK_POINTER);
 
-            s.setMem2(y.plus(-2), s.getOperand()); // don't resolve yet; the handler will do that
-            s.setMem1(y.plus(-3), s.getOpCode());
-            s.setMem2(y.plus(-5), s.getSP());
-            s.setMem2(y.plus(-7), s.getPC());
-            s.setMem2(y.plus(-9), s.getX());
-            s.setMem2(y.plus(-11), s.getA());
-            s.setMem1(y.plus(-12), s.getFlags());
+            s.setMem2(t.plus(-2), s.getOperand()); // don't resolve yet; the handler will do that
+            s.setMem1(t.plus(-3), s.getOpCode());
+            s.setMem2(t.plus(-5), s.getSP());
+            s.setMem2(t.plus(-7), s.getPC());
+            s.setMem2(t.plus(-9), s.getX());
+            s.setMem2(t.plus(-11), s.getA());
+            s.setMem1(t.plus(-12), s.getFlags());
 
-            s.setSP(y.plus(-12));
+            s.setSP(t.plus(-12));
             s.setPC(s.mem2(TRAP_HANDLER_POINTER));
         }
     };
@@ -398,7 +400,8 @@ public class Pep10 {
 
     public static final OpCore STWA = new OpCore("STWA", Modes.NotI) {
         public void exec(State s, Mode mode) {
-            s.setMem2(mode.getAddress(s), s.getA());
+            var address = mode.getAddress(s);
+            s.setMem2(address, s.getA());
         }
     };
 
@@ -734,10 +737,74 @@ public class Pep10 {
             s.setZ(product == 0);
             
             // V: overflow value needs to be cleared, so don't set at all (?)
-            s.setV(product == 0);
+            s.setV(false);
 
             // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
             s.setC(low_bits.value() != product);
+        }
+    };
+
+    public static final OpCore DIVA = new OpCore("DIVA", Modes.All) {
+        public void exec(State s, Mode mode) {
+            var operand = mode.resolveWord(s);
+            
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+            
+            if (op == 0) {
+                s.setC(true);
+                s.setV(false);
+                return;
+            }
+            
+            var quotient = a / op;
+
+            s.setA(Word.of(quotient));
+
+            // N: set if quotient is <0, cleared otherwise
+            s.setN(quotient < 0);
+
+            // Z: set if quotient is 0, cleared otherwise
+            s.setZ(quotient == 0);
+            
+            // V: overflow only when -32768 / -1 (== -32768)
+            s.setV(a == Short.MIN_VALUE && op == -1);
+
+            // C: Carry false unless divide by zero
+            s.setC(false);
+        }
+    };
+
+    public static final OpCore MODA = new OpCore("MODA", Modes.All) {
+        public void exec(State s, Mode mode) {
+            var operand = mode.resolveWord(s);
+            
+            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+            
+            if (op == 0) {
+                s.setC(true);
+                s.setV(false);
+                return;
+            }
+            
+            var remainder = a % op;
+
+            s.setA(Word.of(remainder));
+
+            // N: set if remainder is <0, cleared otherwise
+            s.setN(remainder < 0);
+
+            // Z: set if remainder is 0, cleared otherwise
+            s.setZ(remainder == 0);
+            
+            // V: overflow value needs to be cleared
+            s.setV(false);
+
+            // C: Carry false unless divide by zero
+            s.setC(false);
         }
     };
 
@@ -746,7 +813,7 @@ public class Pep10 {
             var operand = mode.resolveWord(s);
             
             // update logic for signed * signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000: s.getA().value();
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             var product = a * op;
@@ -808,7 +875,8 @@ public class Pep10 {
         var MulDiv = new Table();
         MulDiv.install(8, MULA); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
         MulDiv.install(16, MULHA);
-        //MulDiv.install(16, DIV);
+        MulDiv.install(24, DIVA);
+        MulDiv.install(32, MODA);
 
         table.install(8,  MulDiv);
         

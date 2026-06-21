@@ -6,20 +6,19 @@ public class Simulator {
 	private State s;
 	
 	public Simulator(State s) {
-	    this.s = s;
-	    
-        initialize();
+	    this(s, true);
 	}
-
-    private void initialize() {
-        s.setPC(s.mem2(Pep10.DISPATCHER_POINTER));
-        s.setSP(s.mem2(Pep10.SYSTEM_STACK_POINTER));
-    }
+	
+	public Simulator(State s, boolean init) {
+	    this.s = s;
+	    if (init) {
+	        s.initialize(Pep10.DISPATCHER_POINTER, Pep10.SYSTEM_STACK_POINTER);
+	    }
+	}
     
     public void run(Controller control) {
         while (s.isRunning()) {
-            var pc = s.getPC();
-            Pep10.table.perform(s, pc, control);
+            s.doStep(control, Pep10.table);
         }
     }
 }

@@ -28,10 +28,12 @@ import org.fife.rsta.ui.search.ReplaceDialog;
 import org.fife.rsta.ui.search.ReplaceToolBar;
 import org.fife.rsta.ui.search.SearchEvent;
 import org.fife.rsta.ui.search.SearchListener;
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.ErrorStrip;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -64,6 +66,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action buildAction;
     private Action runAction;
     private Action debugAction;
+    private Action stepAction;
+    private Action backAction;
     private Action newAction;
     private Action openDialogAction;
     private Action saveAction;
@@ -106,9 +110,14 @@ public class SourcePanel extends JPanel implements SearchListener {
         textArea.setRows(25);
         textArea.setColumns(120);
         textArea.setFont(DEFAULT_FONT);
-        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_ASSEMBLER_X86); // TODO
         textArea.setPaintTabLines(true);
         textArea.setMarkOccurrences(true);
+        
+        AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance();
+        atmf.putMapping("text/pep10", "edu.depauw.dep10.ui.Pep10TokenMaker");
+        atmf.putMapping("text/declan", "edu.depauw.dep10.ui.DeCLanTokenMaker");
+        textArea.setSyntaxEditingStyle("text/pep10");
+        
         RTextScrollPane sp = new RTextScrollPane(textArea);
         csp.add(sp);
 
@@ -359,12 +368,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (parent.getSourceType().build(textArea.getText(), listing, object)) {
-                runAction.setEnabled(true);
-                debugAction.setEnabled(true);
+                setStopped();
                 parent.selectListingTab();
             } else {
-                runAction.setEnabled(false);
-                debugAction.setEnabled(false);
+                setBuildNeeded();
             }
         }
     }
@@ -378,48 +385,115 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class RunAction extends AbstractAction {
-        private OutputPanel object;
-        private TerminalPanel terminal;
-
-        public RunAction(OutputPanel object, TerminalPanel terminal) {
+        public RunAction() {
             super("Run");
-            this.object = object;
-            this.terminal = terminal;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            parent.getSourceType().run(object, terminal);
-            parent.selectTerminalTab();
-
-            // TODO tracing; errors, ...
+            var control = parent.getController();
+            
+            if (control == null) {
+                setRunning();
+                parent.getSourceType().run(parent);
+                parent.selectTerminalTab();
+    
+                // TODO errors, ...
+            } else {
+                control.end();
+                setStopped();
+                
+                parent.setController(null);
+            }
         }
     }
 
-    public Action getRunAction(OutputPanel object, TerminalPanel terminal) {
+    public Action getRunAction() {
         if (runAction == null) {
-            runAction = new RunAction(object, terminal);
+            runAction = new RunAction();
         }
 
         return runAction;
     }
 
-    public Action getDebugAction(OutputPanel object, TerminalPanel terminal) {
-        if (debugAction == null) {
-            debugAction = new AbstractAction("Debug") {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // TODO Auto-generated method stub
+    private class DebugAction extends AbstractAction {
+        public DebugAction() {
+            super("Debug");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var control = parent.getController();
+            
+            if (control == null) {
+                setDebugging();
+                parent.getSourceType().debug(parent);
+                parent.selectStateTab();
+            } else {
+                if (control.isPaused()) {
+                    setDebugging();
+                    control.resume(parent);
+                } else {
+                    control.pause();
+                    setPaused();
                 }
-            };
+            }
+        }
+    }
+
+    public Action getDebugAction() {
+        if (debugAction == null) {
+            debugAction = new DebugAction();
         }
 
         return debugAction;
+    }
+    
+    private class StepAction extends AbstractAction {
+        public StepAction() {
+            super("Step");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var control = parent.getController();
+            control.forward(parent);
+        }
+    }
+    
+    public Action getStepAction() {
+        if (stepAction == null) {
+            stepAction = new StepAction();
+        }
+        
+        return stepAction;
+    }
+    
+    private class BackAction extends AbstractAction {
+        public BackAction() {
+            super("Back");
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var control = parent.getController();
+            control.backward(parent);
+        }
+    }
+    
+    public Action getBackAction() {
+        if (backAction == null) {
+            backAction = new BackAction();
+        }
+        
+        return backAction;
     }
 
     private class NewAction extends AbstractAction {
         public NewAction() {
             super("New");
+            var key = KeyStroke.getKeyStroke(KeyEvent.VK_N, getToolkit().getMenuShortcutKeyMaskEx());
+            this.putValue(ACCELERATOR_KEY, key);
         }
 
         @Override
@@ -441,8 +515,7 @@ public class SourcePanel extends JPanel implements SearchListener {
             try {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
                 textArea.load(FileLocation.create(newFile));
-                runAction.setEnabled(false);
-                debugAction.setEnabled(false);
+                setBuildNeeded();
             } catch (IOException e1) {
                 // TODO display error message?
             }
@@ -468,8 +541,25 @@ public class SourcePanel extends JPanel implements SearchListener {
             if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
                 try {
                     textArea.load(FileLocation.create(chooser.getSelectedFile()));
-                    runAction.setEnabled(false);
-                    debugAction.setEnabled(false);
+                    
+                    if (chooser.getSelectedFile().getName().endsWith(".dcl")) {
+                        textArea.setSyntaxEditingStyle("text/declan"); // TODO use constants
+                        parent.setSourceType(SourceType.DeCLan);
+                    } else {
+                        textArea.setSyntaxEditingStyle("text/pep10");
+                        
+                        // Attempt to guess SourceType from content
+                        String content = textArea.getText();
+                        if (content.contains(".SECTION")) {
+                            parent.setSourceType(SourceType.Pep10System);
+                        } else if (content.contains("@DECO") || content.contains("@STRO")) {
+                            parent.setSourceType(SourceType.Pep10UserFull);
+                        } else {
+                            parent.setSourceType(SourceType.Pep10UserBare);
+                        }
+                    }
+                    
+                    setBuildNeeded();
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
                     e1.printStackTrace();
@@ -489,6 +579,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     private class SaveAction extends AbstractAction {
         public SaveAction() {
             super("Save");
+            var key = KeyStroke.getKeyStroke(KeyEvent.VK_S, getToolkit().getMenuShortcutKeyMaskEx());
+            this.putValue(ACCELERATOR_KEY, key);
         }
 
         @Override
@@ -556,5 +648,64 @@ public class SourcePanel extends JPanel implements SearchListener {
 
     public Font getPanelFont() {
         return textArea.getFont();
+    }
+
+    public void setPanelFont(Font font) {
+        if (font != null) {
+            SyntaxScheme ss = textArea.getSyntaxScheme();
+            ss = (SyntaxScheme) ss.clone();
+            for (int i = 0; i < ss.getStyleCount(); i++) {
+                if (ss.getStyle(i) != null) {
+                    ss.getStyle(i).font = font;
+                }
+            }
+            textArea.setSyntaxScheme(ss);
+            textArea.setFont(font);
+        }
+    }
+    
+    public void setBuildNeeded() {
+        runAction.putValue(Action.NAME, "Run");
+        runAction.setEnabled(false);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(false);
+        stepAction.setEnabled(false);
+        backAction.setEnabled(false);
+    }
+
+    public void setRunning() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(false);
+        stepAction.setEnabled(false);
+        backAction.setEnabled(false);
+    }
+    
+    public void setDebugging() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Pause");
+        debugAction.setEnabled(true);
+        stepAction.setEnabled(false);
+        backAction.setEnabled(false);
+    }
+    
+    public void setStopped() {
+        runAction.putValue(Action.NAME, "Run");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Debug");
+        debugAction.setEnabled(true);
+        stepAction.setEnabled(false);
+        backAction.setEnabled(false);
+    }
+    
+    public void setPaused() {
+        runAction.putValue(Action.NAME, "End");
+        runAction.setEnabled(true);
+        debugAction.putValue(Action.NAME, "Resume");
+        debugAction.setEnabled(true);
+        stepAction.setEnabled(true);
+        backAction.setEnabled(true);
     }
 }

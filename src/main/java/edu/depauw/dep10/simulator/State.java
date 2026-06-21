@@ -11,7 +11,9 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Scanner;
 
+import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.op.Pep10;
+import edu.depauw.dep10.op.Table;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -20,10 +22,13 @@ public class State {
     private Word X;
     private Word PC;
     private Word SP;
+    private UByte PRE;
     private UByte IR1;
     private Word IR2;
+    private Word EA;
     private UByte Flags;
     private boolean running;
+    private Operation op;
 
     private UByte[] memory = new UByte[65536];
     
@@ -36,16 +41,25 @@ public class State {
         X = Word.of(0);
         PC = Word.of(0);
         SP = Word.of(0);
+        PRE = UByte.of(0);
         IR1 = UByte.of(0);
         IR2 = Word.of(0);
+        EA = Word.of(0);
         Flags = UByte.of(0);
-        running = true;
+        running = false;
+        op = null;
 
         for (int i = 0; i < memory.length; i++) {
             memory[i] = UByte.of(0);
         }
     }
 
+    void initialize(Word initPC, Word initSP) {
+        setPC(mem2(initPC));
+        setSP(mem2(initSP));
+        running = true;
+    }
+    
     public UByte mem1(Word addr) {
         // TODO check permissions
         if (addr.equals(Pep10.CHARIN)) {
@@ -59,9 +73,19 @@ public class State {
         return memory[addr.value()];
     }
 
+    public UByte mem1Safe(Word addr) {
+        return memory[addr.value()];
+    }
+    
     public Word mem2(Word addr) {
         var hi = mem1(addr);
         var lo = mem1(addr.plus(1));
+        return Word.of((hi.value() << 8) + lo.value());
+    }
+
+    public Word mem2Safe(Word addr) {
+        var hi = mem1Safe(addr);
+        var lo = mem1Safe(addr.plus(1));
         return Word.of((hi.value() << 8) + lo.value());
     }
 
@@ -97,6 +121,10 @@ public class State {
         return SP;
     }
 
+    public UByte getPrefix() {
+        return PRE;
+    }
+
     public UByte getOpCode() {
         return IR1;
     }
@@ -104,7 +132,11 @@ public class State {
     public Word getOperand() {
         return IR2;
     }
-    
+
+    public Word getEA() {
+        return EA;
+    }
+
     public void setA(Word n) {
         this.A = n;
     }
@@ -129,12 +161,20 @@ public class State {
         this.SP = n;
     }
 
+    public void setPrefix(UByte opCode) {
+        PRE = opCode;
+    }
+
     public void setOpCode(UByte n) {
         this.IR1 = n;
     }
 
     public void setOperand(Word n) {
         this.IR2 = n;
+    }
+
+    public void setEA(Word address) {
+        EA = address;
     }
 
     public boolean getN() {
@@ -179,6 +219,14 @@ public class State {
 
     public boolean isRunning() {
         return running;
+    }
+    
+    public Operation getOp() {
+        return op;
+    }
+    
+    public void setOp(Operation op) {
+        this.op = op;
     }
     
     public void pause() {
@@ -327,5 +375,16 @@ public class State {
     
     public void setError(OutputStream os) {
         err = new PrintStream(os);
+    }
+
+    public void doStep(Controller control, Table table) {
+        var origPC = PC;
+        
+        PRE = UByte.of(0);
+        IR1 = mem1(PC);
+        PC = PC.plus(1);
+        
+        var op = table.getOp(IR1);
+        op.perform(this, origPC, control);
     }
 }
