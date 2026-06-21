@@ -756,7 +756,6 @@ public class Pep10 {
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
             s.setV(false);
             s.setC(false);
         }
