@@ -776,6 +776,7 @@ public class Pep10 {
         }
     };
 
+
     public static final OpCore MODA = new OpCore("MODA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
@@ -823,7 +824,45 @@ public class Pep10 {
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
+            s.setV(false);
+            s.setC(false);
+        }
+    };
+
+    public static final OpCore MULHUA = new OpCore("MULHUA", Modes.All){
+        public void exec(State s, Mode mode){
+            var operand = mode.resolveWord(s);
+
+            var a = s.getA().value() & 0xFFFF;
+            var op = operand.value() & 0xFFFF;
+
+            var product = a * op;
+            var high_bits = Word.of(product >>> 16);
+
+            s.setA(high_bits);
+
+             s.setN(high_bits.isNegative());
+            s.setZ(high_bits.isZero());
+            s.setV(false);
+            s.setC(false);
+        }
+    };
+
+    public static final OpCore MULHSUA = new OpCore("MULHSUA", Modes.All){
+        public void exec(State s, Mode mode){
+            var operand = mode.resolveWord(s);
+
+            // A is signed (two's complement), operand is unsigned
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+            var op = operand.value() & 0xFFFF;
+
+            var product = a * op;
+            var high_bits = Word.of(product >>> 16);
+
+            s.setA(high_bits);
+
+            s.setN(high_bits.isNegative());
+            s.setZ(high_bits.isZero());
             s.setV(false);
             s.setC(false);
         }
