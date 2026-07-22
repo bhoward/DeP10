@@ -11,6 +11,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
        @HEXO -2,s    ; should print CA00 = -1.1 * 2^3 = -12
        @CHARO '\n',i
+       
        LDWA 0x4400,i ; 1.0 * 2^2
        STWA -2,s
        LDWA 0xC200,i ; -1.1 * 2^1
@@ -24,6 +25,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
        @HEXO -2,s    ; should print 3C00 = 1.0 * 2^0 = 1
        @CHARO '\n',i
+       
        LDWA 0x4400,i ; 1.0 * 2^2
        STWA -2,s
        LDWA 0x4200,i ; 1.1 * 2^1
@@ -37,6 +39,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
        @HEXO -2,s    ; should print 4700 = 1.11 * 2^2 = 7
        @CHARO '\n',i
+       
        LDWA 0x7C00,i ; +Infinity
        STWA -2,s
        LDWA 0x7C00,i ; +Infinity
@@ -50,6 +53,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
        @HEXO -2,s    ; should print 7C00 = +Infinity
        @CHARO '\n',i
+       
        LDWA 0x7C00,i ; +Infinity
        STWA -2,s
        LDWA 0xFC00,i ; -Infinity
@@ -63,6 +67,21 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
        @HEXO -2,s    ; should print 7FFF = NaN
        @CHARO '\n',i
+       
+       LDWA 0xBA00,i ; -1.1*2^-1 = -0.75
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x3E00,i ; 1.1*2^0 = 1.5
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
        RET
 
 ; 2-byte float (FP16)
@@ -289,6 +308,7 @@ _fm8:  STWA 4,s
 ; Before call
 ;   SP+0: N (multiplier)
 ; During call
+;   SP-15: pointer into string buffer
 ;   SP-13: string buffer (5 bytes)
 ;   SP-8: zero (1 byte)
 ;   SP-7: N integer part
@@ -334,13 +354,45 @@ _fp5:  SUBX 0x0400,i
        ROLA
        STWA -8,s
        BR   _fp5
-_fp6:  MOVSPA
+_fp6:  MOVSPA ; prepare to print the integer part
        SUBA 8,i ; NUL at end of string buffer
-       LDWX -7,s
+       STWA -15,s
+       LDWA -7,s
        BREQ _fp8
-_fp7:  ; TODO -- need UMODX
-
+_fp7:  UMODA 10,i
+       ORA  '0',i
+       LDWX -15,s
+       SUBX 1,i
+       STWX -15,s
+       STBA -15,sf
+       LDWA -7,s
+       UDIVA 10,i
+       STWA -7,s
+       BRNE _fp7
+       @STRO -15,sf
+       BR   _fp9
 _fp8:  @CHARO '0',i
-_fp9:  ; decimal part
+_fp9:  LDWA -4,s ; prepare to print the decimal part
+       ORA  -6,s
+       BREQ _fp0
+       @CHARO '.',i
+_fp10: LDWA -4,s
+       MULA 10,i
+       STWA -4,s
+       LDWX -4,s
+       UMULHX 10,i
+       LDWA -6,s
+       MULA 10,i
+       STWA -6,s
+       ADDX -6,s
+       STWX -6,s
+       LDBA -6,s
+       ORA  '0',i
+       STBA charOut,d
+       LDBA 0,i
+       STBA -6,s
+       LDWA -4,s
+       ORA -6,s
+       BRNE _fp10
 _fp0:  LDWX -2,s
        RET
