@@ -82,6 +82,48 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        ADDSP 2,i
        @CHARO '\n',i
 
+       LDWA 0x0000,i ; 0
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x0001,i ; 0.0000000001*2^-15 = smallest possible (0.00000059604644775390625)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x0002,i ; 0.000000001*2^-15 = second smallest possible (0.0000011920928955078125)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x03FF,i ; 0.1111111111*2^-15 = largest denormalized (0.00060975551605224609375)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x0400,i ; 1.0*2^-15 = smallest normal (0.0006103515625)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x7BFF,i ; 1.1111111111*2^15 = largest normal (65504)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
        RET
 
 ; 2-byte float (FP16)
