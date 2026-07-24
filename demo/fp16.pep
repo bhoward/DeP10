@@ -89,28 +89,28 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        ADDSP 2,i
        @CHARO '\n',i
 
-       LDWA 0x0001,i ; 0.0000000001*2^-15 = smallest possible (0.00000059604644775390625)
+       LDWA 0x0001,i ; 0.0000000001*2^-14 = smallest possible (0.000000059604644775390625)
        STWA -2,s
        SUBSP 2,i
        CALL _fprint
        ADDSP 2,i
        @CHARO '\n',i
 
-       LDWA 0x0002,i ; 0.000000001*2^-15 = second smallest possible (0.0000011920928955078125)
+       LDWA 0x0002,i ; 0.000000001*2^-14 = second smallest possible (0.00000011920928955078125)
        STWA -2,s
        SUBSP 2,i
        CALL _fprint
        ADDSP 2,i
        @CHARO '\n',i
 
-       LDWA 0x03FF,i ; 0.1111111111*2^-15 = largest denormalized (0.00060975551605224609375)
+       LDWA 0x03FF,i ; 0.1111111111*2^-14 = largest denormalized (0.000060975551605224609375)
        STWA -2,s
        SUBSP 2,i
        CALL _fprint
        ADDSP 2,i
        @CHARO '\n',i
 
-       LDWA 0x0400,i ; 1.0*2^-15 = smallest normal (0.0006103515625)
+       LDWA 0x0400,i ; 1.0*2^-14 = smallest normal (0.00006103515625)
        STWA -2,s
        SUBSP 2,i
        CALL _fprint
@@ -118,6 +118,27 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @CHARO '\n',i
 
        LDWA 0x7BFF,i ; 1.1111111111*2^15 = largest normal (65504)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x67FF,i ; 1.1111111111*2^10 = 2047
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x6800,i ; 1.0*2^11 = 2048
+       STWA -2,s
+       SUBSP 2,i
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+
+       LDWA 0x6801,i ; 1.0000000001*2^11 = 2050
        STWA -2,s
        SUBSP 2,i
        CALL _fprint
@@ -138,7 +159,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
 ; s 11111 0000000000 -- INFINITY
 ; s 11111 mmmmmmmmmm -- NaN (M <> 0)
 
-; need FADD, FMUL, FDIV, convert to/from int and string
+; need FADD, FMUL, FDIV, convert to/from int, and read/print
 ; (FNEG is just XOR with 0x8000; FSUB is just FNEG/FADD)
 
 ; Before call
@@ -419,9 +440,9 @@ _fp9:  LDWA -4,s ; prepare to print the decimal part
        BREQ _fp0
        @CHARO '.',i
 _fp10: LDWA -4,s
+       LDWX -4,s
        MULA 10,i
        STWA -4,s
-       LDWX -4,s
        UMULHX 10,i
        LDWA -6,s
        MULA 10,i
