@@ -145,6 +145,54 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        ADDSP 2,i
        @CHARO '\n',i
 
+       LDWA 0x7C00,i ; +Infinity
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
+       LDWA 0x7C01,i ; +NaN
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
+       LDWA 0x0400,i ; 1.0*2^-14 = smallest normal (0.00006103515625)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
+       LDWA 0x7BFF,i ; 1.1111111111*2^15 = largest normal (65504)
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
+       LDWA 0xE800,i ; -1.0*2^11 = -2048
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
+       LDWA 0x6801,i ; 1.0000000001*2^11 = 2050
+       STWA -2,s
+       SUBSP 2,i
+       CALL _ftoi
+       ADDSP 2,i
+       @DECO -2,s
+       @CHARO '\n',i
+
        RET
 
 ; 2-byte float (FP16)
@@ -458,4 +506,60 @@ _fp10: LDWA -4,s
        ORA -6,s
        BRNE _fp10
 _fp0:  LDWX -2,s
+       RET
+
+; Before call
+;   SP+0: N (input float)
+; During call
+;   SP-8: zero (1 byte)
+;   SP-7: N integer part
+;   SP-5: N fractional part (3 bytes)
+;   SP-2: save X
+;   SP+0: return address
+;   SP+2: N
+; After call
+;   SP+0: N (output int)
+; Arbitrary decisions:
+; * NaN converts to 0
+; * Infinity and -Infinity convert to MININT = -2^15
+; * Finite values outside of the signed range wrap around
+_ftoi: STWX -2,s
+       LDWA 2,s
+       ANDA 0x7FFF,i
+       CPWA 0x7C00,i
+       BRLT _ft3
+       BREQ _ft2
+       ; NaN -> 0
+       LDWA 0,i
+       BR   _ft7
+       ; Infinity -> 2^15 (= -2^15 as signed int)
+_ft2:  LDWA 0x8000,i
+       BR   _ft7
+_ft3:  ANDA 0x3FF,i
+       LDWX 2,s
+       ANDX 0x7C00,i
+       BREQ _ft4
+       ORA  0x0400,i ; restore hidden bit
+_ft4:  STWA -4,s
+       LDWA 0,i
+       STWA -6,s
+       STWA -8,s
+_ft5:  SUBX 0x0400,i
+       BRLE _ft6
+       LDWA -4,s
+       ASLA
+       STWA -4,s
+       LDWA -6,s
+       ROLA
+       STWA -6,s
+       LDWA -8,s
+       ROLA
+       STWA -8,s
+       BR   _ft5
+_ft6:  LDWA -7,s
+_ft7:  LDWX 2,s
+       BRGE _ft1
+       NEGA
+_ft1:  STWA 2,s
+       LDWX -2,s
        RET
