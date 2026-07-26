@@ -193,6 +193,86 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
        @DECO -2,s
        @CHARO '\n',i
 
+       LDWA 0,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA 1,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA -1,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA 1023,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA -1023,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA 1024,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA -1024,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA 32767,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA -32767,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
+       LDWA -32768,i
+       STWA -2,s
+       SUBSP 2,i
+       CALL _itof
+       CALL _fprint
+       ADDSP 2,i
+       @CHARO '\n',i
+       
        RET
 
 ; 2-byte float (FP16)
@@ -210,6 +290,7 @@ main:  LDWA 0x4400,i ; 1.0 * 2^2 = 4
 ; need FADD, FMUL, FDIV, convert to/from int, and read/print
 ; (FNEG is just XOR with 0x8000; FSUB is just FNEG/FADD)
 
+; _fadd: Floating-point add
 ; Before call
 ;   SP+0: N (addend)
 ;   SP+2: M (augend)
@@ -314,6 +395,7 @@ _fa6:  ; M finite and N infinite or NaN
        LDWA 2,s
        BR   _fa11
 
+; _fmul: Floating-point multiply
 ; Before call
 ;   SP+0: N (multiplier)
 ;   SP+2: M (multiplicand)
@@ -416,6 +498,7 @@ _fm8:  STWA 4,s
        LDWX -2,s
        RET
 
+; _fprint: Print float to console
 ; Before call
 ;   SP+0: N (multiplier)
 ; During call
@@ -508,6 +591,7 @@ _fp10: LDWA -4,s
 _fp0:  LDWX -2,s
        RET
 
+; _ftoi: Convert float to int
 ; Before call
 ;   SP+0: N (input float)
 ; During call
@@ -523,6 +607,7 @@ _fp0:  LDWX -2,s
 ; * NaN converts to 0
 ; * Infinity and -Infinity convert to MININT = -2^15
 ; * Finite values outside of the signed range wrap around
+; * Truncates toward 0 (no attempt at rounding)
 _ftoi: STWX -2,s
        LDWA 2,s
        ANDA 0x7FFF,i
@@ -563,3 +648,47 @@ _ft7:  LDWX 2,s
 _ft1:  STWA 2,s
        LDWX -2,s
        RET
+   
+; _itof: Convert int to float
+; Before call
+;   SP+0: N (input int)
+; During call
+;   SP-4: temp
+;   SP-2: save X
+;   SP+0: return address
+;   SP+2: N
+; After call
+;   SP+0: N (output float)
+; Arbitrary decisions:
+; * If N > 2048, returns closest float <= N
+_itof: STWX -2,s
+       LDWA 2,s
+       BREQ _it1 ; zero
+       BRGT _it5
+       NEGA
+       BRGT _it5
+       ; handle -2^15 here as a special case
+       LDWA 0xF800,i
+       BR   _it1
+_it5:  LDWX 0x6400,i ; exponent for 1024
+_it2:  CPWA 0x0400,i
+       BRGE _it3
+       ASLA
+       SUBX 0x0400,i
+       BR   _it2
+_it3:  CPWA 0x0800,i
+       BRLT _it4
+       ASRA
+       ADDX 0x0400,i
+       BR   _it3
+_it4:  STWX -4,s
+       ANDA 0x03FF,i ; clear hidden bit
+       ORA -4,s
+       LDWX 2,s
+       BRGE _it1
+       ORA  0x8000,i
+_it1:  STWA 2,s
+       LDWX -2,s
+       RET
+       
+; TODO: Read float from console, Floating-point division
