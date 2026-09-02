@@ -722,20 +722,21 @@ public class Pep10 {
     public static final OpCore MULA = new OpCore("MULA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
-            var a = s.getA().value();
-            var op = operand.value();
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+
             var product = a * op;
             var low_bits = Word.of(product);
 
             s.setA(low_bits);
 
             // N: set if product is <0, cleared otherwise
-            s.setN(product < 0);
+            s.setN(low_bits.isNegative());
 
             // Z: set if product is 0, cleared otherwise
-            s.setZ(product == 0);
-            
+           s.setZ(low_bits.isZero());
+           
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
 
@@ -748,19 +749,18 @@ public class Pep10 {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
             
-            var x = s.getX().value();
-            var op = operand.value();
+var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
+
+var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
             var product = x * op;
             var low_bits = Word.of(product);
 
             s.setX(low_bits);
 
             // N: set if product is <0, cleared otherwise
-            s.setN(product < 0);
-
+s.setN(low_bits.isNegative());
             // Z: set if product is 0, cleared otherwise
-            s.setZ(product == 0);
-            
+s.setZ(low_bits.isZero());            
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
 
