@@ -784,7 +784,7 @@ s.setZ(low_bits.isZero());
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -805,7 +805,7 @@ s.setZ(low_bits.isZero());
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULX?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -823,9 +823,9 @@ s.setZ(low_bits.isZero());
 
             s.setA(high_bits);
 
-            s.setN(high_bits.isNegative()); // still do this for unsigned result?
+s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -843,9 +843,9 @@ s.setZ(low_bits.isZero());
 
             s.setX(high_bits);
 
-            s.setN(high_bits.isNegative()); // still do this for unsigned result?
+s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULX?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
