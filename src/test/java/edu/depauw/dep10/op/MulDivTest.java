@@ -206,6 +206,61 @@ public class MulDivTest {
             Pep10.DIVA.exec(s, Mode.I);
             assertTrue(s.getV(), "the classic MIN_INT / -1 overflow case should set V");
         }
+
+        @Test
+        @DisplayName("DIVX: 100 / 5 = 20, no flags")
+        void testDivx_evenDivision_correctQuotient() {
+            State s = freshState(100, 5);
+            Pep10.DIVX.exec(s, Mode.I);
+            assertEquals(20, s.getX().value());
+            assertFalse(s.getN());
+            assertFalse(s.getZ());
+            assertFalse(s.getV());
+            assertFalse(s.getC());
+        }
+
+        @Test
+        @DisplayName("DIVX: 5 / 100 = 0 (integer division), Z flag set")
+        void testDivx_resultTruncatesToZero_zFlagSet() {
+            State s = freshState(5, 100);
+            Pep10.DIVX.exec(s, Mode.I);
+            assertEquals(0, s.getX().value());
+            assertTrue(s.getZ());
+        }
+
+        @Test
+        @DisplayName("DIVX: negative dividend gives negative quotient, N flag set")
+        void testDivx_negativeDividend_nFlagSet() {
+            State s = freshState(-100, 5);
+            Pep10.DIVX.exec(s, Mode.I);
+            assertEquals(u16(-20), s.getX().value());
+            assertTrue(s.getN());
+        }
+
+        @Test
+        @DisplayName("DIVX: divide by zero sets C, does not crash")
+        void testDivx_divideByZero_cFlagSetNoException() {
+            State s = freshState(100, 0);
+            assertDoesNotThrow(() -> Pep10.DIVX.exec(s, Mode.I));
+            assertTrue(s.getC());
+            assertFalse(s.getV());
+        }
+
+        @Test
+        @DisplayName("CHECK: DIVX divide by zero leaves X register unchanged -- confirm this is intended")
+        void testDivx_divideByZero_registerUnchanged() {
+            State s = freshState(12345, 0);
+            Pep10.DIVX.exec(s, Mode.I);
+            assertEquals(12345, s.getX().value(), "X is left at its pre-divide value on div-by-zero");
+        }
+
+        @Test
+        @DisplayName("DIVX: MIN_VALUE / -1 overflow sets V flag")
+        void testDivx_minValueDividedByNegativeOne_vFlagSet() {
+            State s = freshState(Short.MIN_VALUE, -1);
+            Pep10.DIVX.exec(s, Mode.I);
+            assertTrue(s.getV(), "the classic MIN_INT / -1 overflow case should set V");
+        }
     }
 
     @Nested
@@ -234,6 +289,38 @@ public class MulDivTest {
             State s = freshState(60000, 1);
             Pep10.UDIVA.exec(s, Mode.I);
             assertFalse(s.getN(), "current implementation hardcodes N to false for UDIVA");
+        }
+
+        @Test
+        @DisplayName("UDIVX: 100 / 5 = 20")
+        void testUdivx_evenDivision_correctQuotient() {
+            State s = freshState(100, 5);
+            Pep10.UDIVX.exec(s, Mode.I);
+            assertEquals(20, s.getX().value());
+        }
+
+        @Test
+        @DisplayName("UDIVX: divide by zero sets C, does not crash")
+        void testUdivx_divideByZero_cFlagSetNoException() {
+            State s = freshState(100, 0);
+            assertDoesNotThrow(() -> Pep10.UDIVX.exec(s, Mode.I));
+            assertTrue(s.getC());
+        }
+
+        @Test
+        @DisplayName("OPEN QUESTION: UDIVX forces N false regardless of bit 15 -- confirm intended")
+        void testUdivx_nFlag_currentlyAlwaysFalse() {
+            State s = freshState(60000, 1);
+            Pep10.UDIVX.exec(s, Mode.I);
+            assertFalse(s.getN(), "current implementation hardcodes N to false for UDIVX");
+        }
+
+        @Test
+        @DisplayName("CHECK: UDIVX divide by zero leaves X register unchanged -- confirm this is intended")
+        void testUdivx_divideByZero_registerUnchanged() {
+            State s = freshState(12345, 0);
+            Pep10.UDIVX.exec(s, Mode.I);
+            assertEquals(12345, s.getX().value(), "X is left at its pre-divide value on div-by-zero");
         }
     }
 
@@ -274,6 +361,40 @@ public class MulDivTest {
             assertEquals(0, s.getA().value());
             assertTrue(s.getZ());
         }
+
+        @Test
+        @DisplayName("MODX: 17 % 5 = 2")
+        void testModx_positiveOperands_correctRemainder() {
+            State s = freshState(17, 5);
+            Pep10.MODX.exec(s, Mode.I);
+            assertEquals(2, s.getX().value());
+        }
+
+        @Test
+        @DisplayName("MODX: negative dividend gives negative remainder (Java semantics)")
+        void testModx_negativeDividend_negativeRemainder() {
+            State s = freshState(-17, 5);
+            Pep10.MODX.exec(s, Mode.I);
+            assertEquals(u16(-2), s.getX().value());
+            assertTrue(s.getN());
+        }
+
+        @Test
+        @DisplayName("MODX: mod by zero sets C, does not crash")
+        void testModx_byZero_cFlagSetNoException() {
+            State s = freshState(17, 0);
+            assertDoesNotThrow(() -> Pep10.MODX.exec(s, Mode.I));
+            assertTrue(s.getC());
+        }
+
+        @Test
+        @DisplayName("MODX: exact division gives remainder 0, Z flag set")
+        void testModx_exactDivision_zFlagSet() {
+            State s = freshState(20, 5);
+            Pep10.MODX.exec(s, Mode.I);
+            assertEquals(0, s.getX().value());
+            assertTrue(s.getZ());
+        }
     }
 
     @Nested
@@ -293,6 +414,22 @@ public class MulDivTest {
         void testUmoda_byZero_cFlagSetNoException() {
             State s = freshState(17, 0);
             assertDoesNotThrow(() -> Pep10.UMODA.exec(s, Mode.I));
+            assertTrue(s.getC());
+        }
+
+        @Test
+        @DisplayName("UMODX: 17 % 5 = 2")
+        void testUmodx_positiveOperands_correctRemainder() {
+            State s = freshState(17, 5);
+            Pep10.UMODX.exec(s, Mode.I);
+            assertEquals(2, s.getX().value());
+        }
+
+        @Test
+        @DisplayName("UMODX: mod by zero sets C, does not crash")
+        void testUmodx_byZero_cFlagSetNoException() {
+            State s = freshState(17, 0);
+            assertDoesNotThrow(() -> Pep10.UMODX.exec(s, Mode.I));
             assertTrue(s.getC());
         }
     }
