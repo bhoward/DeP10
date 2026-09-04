@@ -731,10 +731,10 @@ public class Pep10 {
             s.setA(low_bits);
 
             // N: set if product is <0, cleared otherwise
-            s.setN(product < 0);
+            s.setN(low_bits.isNegative());
 
             // Z: set if product is 0, cleared otherwise
-            s.setZ(product == 0);
+            s.setZ(low_bits.isZero());
             
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
@@ -756,10 +756,10 @@ public class Pep10 {
             s.setX(low_bits);
 
             // N: set if product is <0, cleared otherwise
-            s.setN(product < 0);
+            s.setN(low_bits.isNegative());
 
             // Z: set if product is 0, cleared otherwise
-            s.setZ(product == 0);
+            s.setZ(low_bits.isZero());
             
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
