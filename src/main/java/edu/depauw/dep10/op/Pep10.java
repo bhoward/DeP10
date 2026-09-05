@@ -722,9 +722,10 @@ public class Pep10 {
     public static final OpCore MULA = new OpCore("MULA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
-            var a = s.getA().value();
-            var op = operand.value();
+            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
+
+            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
+
             var product = a * op;
             var low_bits = Word.of(product);
 
@@ -748,8 +749,9 @@ public class Pep10 {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
             
-            var x = s.getX().value();
-            var op = operand.value();
+var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
+
+var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
             var product = x * op;
             var low_bits = Word.of(product);
 
@@ -784,7 +786,7 @@ public class Pep10 {
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -805,7 +807,7 @@ public class Pep10 {
 
             s.setN(high_bits.isNegative());
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULX?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -823,9 +825,9 @@ public class Pep10 {
 
             s.setA(high_bits);
 
-            s.setN(high_bits.isNegative()); // still do this for unsigned result?
+s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULA?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
@@ -843,9 +845,9 @@ public class Pep10 {
 
             s.setX(high_bits);
 
-            s.setN(high_bits.isNegative()); // still do this for unsigned result?
+s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
             s.setZ(high_bits.isZero());
-            // check these two: do we need them set like MULX?
+// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
             s.setV(false);
             s.setC(false);
         }
