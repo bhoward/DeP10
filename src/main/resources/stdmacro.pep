@@ -365,3 +365,11 @@ NOTA
 XORX $1, $2
 NOTX
 .ENDMACRO
+
+.DEFMACRO PUSH, 2
+; $1: Operand specifier
+; $2: Addressing mode
+    LDWA $1,$2
+    STWA -2,s; 
+    SUBSP 2,i 
+.ENDMACRO

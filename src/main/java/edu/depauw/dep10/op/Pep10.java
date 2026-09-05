@@ -735,8 +735,8 @@ public class Pep10 {
             s.setN(low_bits.isNegative());
 
             // Z: set if product is 0, cleared otherwise
-           s.setZ(low_bits.isZero());
-           
+            s.setZ(low_bits.isZero());
+            
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
 
@@ -758,9 +758,11 @@ var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
             s.setX(low_bits);
 
             // N: set if product is <0, cleared otherwise
-s.setN(low_bits.isNegative());
+            s.setN(low_bits.isNegative());
+
             // Z: set if product is 0, cleared otherwise
-s.setZ(low_bits.isZero());            
+            s.setZ(low_bits.isZero());
+            
             // V: overflow value needs to be cleared, so don't set at all (?)
             s.setV(false);
 
