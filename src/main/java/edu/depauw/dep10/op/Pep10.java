@@ -258,25 +258,33 @@ public class Pep10 {
     };
     public static final Operation PUSHX = new Operation.Unary("PUSHX") {
         public void exec(State s) {
-            // to do
+            var x = s.getX();
+            s.setSP(x);
+            s.setSP(s.getSP().plus(2));
         }
     };
 
     public static final Operation PUSHA = new Operation.Unary("PUSHA") {
         public void exec(State s) {
-            // to do
+            var a = s.getA();
+            s.setSP(a);
+            s.setSP(s.getSP().plus(2));
         }
     };
 
     public static final Operation POPX = new Operation.Unary("POPX") {
         public void exec(State s) {
-            // to do
+            var x = s.getSP();
+            s.setX(x);
+            s.setSP(s.getSP().plus(-2));
         }
     };
 
     public static final Operation POPA = new Operation.Unary("POPA") {
         public void exec(State s) {
-            // to do
+            var a = s.getSP();
+            s.setA(a);
+            s.setSP(s.getSP().plus(-2));
         }
     };
 
