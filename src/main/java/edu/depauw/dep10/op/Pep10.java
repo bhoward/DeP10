@@ -10,9 +10,9 @@ public class Pep10 {
     public static final Word CHARIN = Word.of(0xFFFD);
     public static final Word CHAROUT = Word.of(0xFFFE);
     public static final Word SHUTDOWN = Word.of(0xFFFF);
-    
+
     public static final Table table = new Table();
-    
+
     public static final Operation RET = new Operation.Unary("RET") {
         public void exec(State s) {
             s.setPC(s.mem2(s.getSP()));
@@ -426,7 +426,7 @@ public class Pep10 {
     public static final OpCore CPWA = new OpCore("CPWA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
             var sign1 = a1.isNegative();
 
@@ -449,7 +449,7 @@ public class Pep10 {
     public static final OpCore CPWX = new OpCore("CPWX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
             var sign1 = x1.isNegative();
 
@@ -472,7 +472,7 @@ public class Pep10 {
     public static final OpCore CPBA = new OpCore("CPBA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveByte(s);
-            
+
             var a1 = s.getA();
 
             var a2 = a1.minus(operand);
@@ -489,7 +489,7 @@ public class Pep10 {
     public static final OpCore CPBX = new OpCore("CPBX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveByte(s);
-            
+
             var x1 = s.getX();
 
             var x2 = x1.minus(operand);
@@ -506,7 +506,7 @@ public class Pep10 {
     public static final OpCore ADDA = new OpCore("ADDA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
             var sign1 = a1.isNegative();
 
@@ -529,7 +529,7 @@ public class Pep10 {
     public static final OpCore ADDX = new OpCore("ADDX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
             var sign1 = x1.isNegative();
 
@@ -552,7 +552,7 @@ public class Pep10 {
     public static final OpCore SUBA = new OpCore("SUBA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
             var sign1 = a1.isNegative();
 
@@ -576,7 +576,7 @@ public class Pep10 {
     public static final OpCore SUBX = new OpCore("SUBX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
             var sign1 = x1.isNegative();
 
@@ -600,7 +600,7 @@ public class Pep10 {
     public static final OpCore ANDA = new OpCore("ANDA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
 
             var a2 = a1.and(operand);
@@ -616,7 +616,7 @@ public class Pep10 {
     public static final OpCore ANDX = new OpCore("ANDX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
 
             var x2 = x1.and(operand);
@@ -632,7 +632,7 @@ public class Pep10 {
     public static final OpCore ORA = new OpCore("ORA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
 
             var a2 = a1.or(operand);
@@ -648,7 +648,7 @@ public class Pep10 {
     public static final OpCore ORX = new OpCore("ORX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
 
             var x2 = x1.or(operand);
@@ -664,7 +664,7 @@ public class Pep10 {
     public static final OpCore XORA = new OpCore("XORA", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var a1 = s.getA();
 
             var a2 = a1.xor(operand);
@@ -680,7 +680,7 @@ public class Pep10 {
     public static final OpCore XORX = new OpCore("XORX", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var x1 = s.getX();
 
             var x2 = x1.xor(operand);
@@ -696,7 +696,7 @@ public class Pep10 {
     public static final OpCore ADDSP = new OpCore("ADDSP", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var sp1 = s.getSP();
 
             var sp2 = sp1.plus(operand);
@@ -708,7 +708,7 @@ public class Pep10 {
     public static final OpCore SUBSP = new OpCore("SUBSP", Modes.All) {
         public void exec(State s, Mode mode) {
             var operand = mode.resolveWord(s);
-            
+
             var sp1 = s.getSP();
 
             var op = operand.negate();
@@ -718,393 +718,7 @@ public class Pep10 {
             s.setSP(sp2);
         }
     };
-    
-    public static final OpCore MULA = new OpCore("MULA", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
 
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-
-            var product = a * op;
-            var low_bits = Word.of(product);
-
-            s.setA(low_bits);
-
-            // N: set if product is <0, cleared otherwise
-            s.setN(low_bits.isNegative());
-
-            // Z: set if product is 0, cleared otherwise
-            s.setZ(low_bits.isZero());
-            
-            // V: overflow value needs to be cleared, so don't set at all (?)
-            s.setV(false);
-
-            // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
-            s.setC(low_bits.value() != product);
-        }
-    };
-
-    public static final OpCore MULX = new OpCore("MULX", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
-
-var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-            var product = x * op;
-            var low_bits = Word.of(product);
-
-            s.setX(low_bits);
-
-            // N: set if product is <0, cleared otherwise
-            s.setN(low_bits.isNegative());
-
-            // Z: set if product is 0, cleared otherwise
-            s.setZ(low_bits.isZero());
-            
-            // V: overflow value needs to be cleared, so don't set at all (?)
-            s.setV(false);
-
-            // C: Carry will only be set if result is less than -2^15 or greater than 2^15 - 1
-            s.setC(low_bits.value() != product);
-        }
-    };
-
-    public static final OpCore MULHA = new OpCore("MULHA", Modes.All) {
-        public void exec(State s, Mode mode){
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-
-            var product = a * op;
-            var high_bits = Word.of(product >>> 16); 
-
-            s.setA(high_bits);
-
-            s.setN(high_bits.isNegative());
-            s.setZ(high_bits.isZero());
-// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
-            s.setV(false);
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore MULHX = new OpCore("MULHX", Modes.All) {
-        public void exec(State s, Mode mode){
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed * signed (0x10000 - 65536 states for two's complement)
-            var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-
-            var product = x * op;
-            var high_bits = Word.of(product >>> 16); 
-
-            s.setX(high_bits);
-
-            s.setN(high_bits.isNegative());
-            s.setZ(high_bits.isZero());
-// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
-            s.setV(false);
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore UMULHA = new OpCore("UMULHA", Modes.All) {
-        public void exec(State s, Mode mode){
-            var operand = mode.resolveWord(s);
-            
-            var a = s.getA().value();
-            var op = operand.value();
-
-            var product = a * op;
-            var high_bits = Word.of(product >> 16); 
-
-            s.setA(high_bits);
-
-s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
-            s.setZ(high_bits.isZero());
-// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
-            s.setV(false);
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore UMULHX = new OpCore("UMULHX", Modes.All) {
-        public void exec(State s, Mode mode){
-            var operand = mode.resolveWord(s);
-            
-            var x = s.getX().value();
-            var op = operand.value();
-
-            var product = x * op;
-            var high_bits = Word.of(product >> 16); 
-
-            s.setX(high_bits);
-
-s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits sign regardless of signed/unsigned
-            s.setZ(high_bits.isZero());
-// Confirmed with Brian [9/4/2026]: V/C always false for MULH*, no meaningful signal (matches ARM long-multiply convention)
-            s.setV(false);
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore DIVA = new OpCore("DIVA", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed / signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var quotient = a / op;
-
-            s.setA(Word.of(quotient));
-
-            // N: set if quotient is <0, cleared otherwise
-            s.setN(quotient < 0);
-
-            // Z: set if quotient is 0, cleared otherwise
-            s.setZ(quotient == 0);
-            
-            // V: overflow only when -32768 / -1 (== -32768)
-            s.setV(a == Short.MIN_VALUE && op == -1);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore DIVX = new OpCore("DIVX", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed / signed (0x10000 - 65536 states for two's complement)
-            var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var quotient = x / op;
-
-            s.setX(Word.of(quotient));
-
-            // N: set if quotient is <0, cleared otherwise
-            s.setN(quotient < 0);
-
-            // Z: set if quotient is 0, cleared otherwise
-            s.setZ(quotient == 0);
-            
-            // V: overflow only when -32768 / -1 (== -32768)
-            s.setV(x == Short.MIN_VALUE && op == -1);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore MODA = new OpCore("MODA", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed % signed (0x10000 - 65536 states for two's complement)
-            var a = s.getA().isNegative() ? s.getA().value() - 0x10000 : s.getA().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var remainder = a % op;
-
-            s.setA(Word.of(remainder));
-
-            // N: set if remainder is <0, cleared otherwise
-            s.setN(remainder < 0);
-
-            // Z: set if remainder is 0, cleared otherwise
-            s.setZ(remainder == 0);
-            
-            // V: overflow value needs to be cleared
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore MODX = new OpCore("MODX", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            // update logic for signed % signed (0x10000 - 65536 states for two's complement)
-            var x = s.getX().isNegative() ? s.getX().value() - 0x10000 : s.getX().value();
-            var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var remainder = x % op;
-
-            s.setX(Word.of(remainder));
-
-            // N: set if remainder is <0, cleared otherwise
-            s.setN(remainder < 0);
-
-            // Z: set if remainder is 0, cleared otherwise
-            s.setZ(remainder == 0);
-            
-            // V: overflow value needs to be cleared
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-    
-    public static final OpCore UDIVA = new OpCore("UDIVA", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            var a = s.getA().value();
-            var op = operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var quotient = a / op;
-
-            s.setA(Word.of(quotient));
-
-            // N: set if quotient is <0, cleared otherwise (???)
-            s.setN(false);
-
-            // Z: set if quotient is 0, cleared otherwise
-            s.setZ(quotient == 0);
-            
-            // V: no overflow
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore UDIVX = new OpCore("UDIVX", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            var x = s.getX().value();
-            var op = operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var quotient = x / op;
-
-            s.setX(Word.of(quotient));
-
-            // N: set if quotient is <0, cleared otherwise (???)
-            s.setN(false);
-
-            // Z: set if quotient is 0, cleared otherwise
-            s.setZ(quotient == 0);
-            
-            // V: no overflow
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore UMODA = new OpCore("UMODA", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            var a = s.getA().value();
-            var op = operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var remainder = a % op;
-
-            s.setA(Word.of(remainder));
-
-            // N: set if remainder is <0, cleared otherwise (???)
-            s.setN(false);
-
-            // Z: set if remainder is 0, cleared otherwise
-            s.setZ(remainder == 0);
-            
-            // V: overflow value needs to be cleared
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-
-    public static final OpCore UMODX = new OpCore("UMODX", Modes.All) {
-        public void exec(State s, Mode mode) {
-            var operand = mode.resolveWord(s);
-            
-            var x = s.getX().value();
-            var op = operand.value();
-            
-            if (op == 0) {
-                s.setC(true);
-                s.setV(false);
-                return;
-            }
-            
-            var remainder = x % op;
-
-            s.setX(Word.of(remainder));
-
-            // N: set if remainder is <0, cleared otherwise (???)
-            s.setN(false);
-
-            // Z: set if remainder is 0, cleared otherwise
-            s.setZ(remainder == 0);
-            
-            // V: overflow value needs to be cleared
-            s.setV(false);
-
-            // C: Carry false unless divide by zero
-            s.setC(false);
-        }
-    };
-    
     static {
         table.install(1, RET);
         table.install(2, SRET);
@@ -1113,25 +727,9 @@ s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits si
         table.install(5, MOVSPA);
         table.install(6, MOVASP);
         table.install(7, NOP);
-        
-        var MulDiv = new Table();
-        MulDiv.install(8, MULA); // NOTE opcode 0 should be unimplemented in any table, except perhaps as a prefix
-        MulDiv.install(16, MULX);
-        MulDiv.install(24, MULHA);
-        MulDiv.install(32, MULHX);
-        MulDiv.install(40, UMULHA);
-        MulDiv.install(48, UMULHX);
-        MulDiv.install(56, DIVA);
-        MulDiv.install(64, DIVX);
-        MulDiv.install(72, MODA);
-        MulDiv.install(80, MODX);
-        MulDiv.install(88, UDIVA);
-        MulDiv.install(96, UDIVX);
-        MulDiv.install(104, UMODA);
-        MulDiv.install(112, UMODX);
 
-        table.install(8,  MulDiv);
-        
+        table.install(8, Dep10MulDiv.table);
+
         table.install(24, NEGA);
         table.install(25, NEGX);
         table.install(26, ASLA);
@@ -1144,7 +742,7 @@ s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits si
         table.install(33, ROLX);
         table.install(34, RORA);
         table.install(35, RORX);
-        
+
         table.install(36, BR);
         table.install(38, BRLE);
         table.install(40, BRLT);
@@ -1159,7 +757,7 @@ s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits si
         table.install(56, SCALL);
         table.install(64, ADDSP);
         table.install(72, SUBSP);
-        
+
         table.install(80, ADDA);
         table.install(88, ADDX);
         table.install(96, SUBA);
@@ -1182,5 +780,5 @@ s.setN(high_bits.isNegative()); // Confirmed with Brian: N reflects high-bits si
         table.install(232, STWX);
         table.install(240, STBA);
         table.install(248, STBX);
-    } 
+    }
 }
