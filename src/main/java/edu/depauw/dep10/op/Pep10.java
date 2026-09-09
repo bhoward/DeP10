@@ -256,6 +256,29 @@ public class Pep10 {
             s.setZ(zero2);
         }
     };
+    public static final Operation PUSHX = new Operation.Unary("PUSHX") {
+        public void exec(State s) {
+            // to do
+        }
+    };
+
+    public static final Operation PUSHA = new Operation.Unary("PUSHA") {
+        public void exec(State s) {
+            // to do
+        }
+    };
+
+    public static final Operation POPX = new Operation.Unary("POPX") {
+        public void exec(State s) {
+            // to do
+        }
+    };
+
+    public static final Operation POPA = new Operation.Unary("POPA") {
+        public void exec(State s) {
+            // to do
+        }
+    };
 
     public static final OpCore BR = new OpCore("BR", Modes.IX) {
         public void exec(State s, Mode mode) {
