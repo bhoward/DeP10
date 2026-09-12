@@ -162,8 +162,11 @@ public class Dep10MulDiv {
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             if (op == 0) {
+                s.setA(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -195,8 +198,11 @@ public class Dep10MulDiv {
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             if (op == 0) {
+                s.setX(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -228,8 +234,11 @@ public class Dep10MulDiv {
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             if (op == 0) {
+                s.setA(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -261,8 +270,11 @@ public class Dep10MulDiv {
             var op = operand.isNegative() ? operand.value() - 0x10000 : operand.value();
 
             if (op == 0) {
+                s.setX(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -292,8 +304,11 @@ public class Dep10MulDiv {
             var op = operand.value();
 
             if (op == 0) {
+                s.setA(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -323,8 +338,11 @@ public class Dep10MulDiv {
             var op = operand.value();
 
             if (op == 0) {
+                s.setX(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -354,8 +372,11 @@ public class Dep10MulDiv {
             var op = operand.value();
 
             if (op == 0) {
+                s.setA(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
@@ -385,8 +406,11 @@ public class Dep10MulDiv {
             var op = operand.value();
 
             if (op == 0) {
+                s.setX(Word.of(0));
+                s.setN(false);
+                s.setZ(true);
                 s.setC(true);
-                s.setV(false);
+                s.setV(true);
                 return;
             }
 
