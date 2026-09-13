@@ -284,11 +284,19 @@ public class MulDivTest {
         }
 
         @Test
-        @DisplayName("OPEN QUESTION: UDIVA forces N false regardless of bit 15 -- confirm intended")
-        void testUdiva_nFlag_currentlyAlwaysFalse() {
+        @DisplayName("UDIVA: N reflects bit 15 of quotient (decided 9/12/2026)")
+        void testUdiva_nFlag_reflectsHighBitOfResult() {
             State s = freshState(60000, 1);
             Dep10MulDiv.UDIVA.exec(s, Mode.I);
-            assertFalse(s.getN(), "current implementation hardcodes N to false for UDIVA");
+            assertTrue(s.getN(), "N should be set because quotient 60000 has bit 15 set");
+        }
+
+        @Test
+        @DisplayName("UDIVA: N is clear when bit 15 of quotient is 0")
+        void testUdiva_nFlag_clearWhenHighBitClear() {
+            State s = freshState(100, 5);
+            Dep10MulDiv.UDIVA.exec(s, Mode.I);
+            assertFalse(s.getN(), "N should be clear because quotient 20 has bit 15 clear");
         }
 
         @Test
@@ -308,11 +316,19 @@ public class MulDivTest {
         }
 
         @Test
-        @DisplayName("OPEN QUESTION: UDIVX forces N false regardless of bit 15 -- confirm intended")
-        void testUdivx_nFlag_currentlyAlwaysFalse() {
+        @DisplayName("UDIVX: N reflects bit 15 of quotient (decided 9/12/2026)")
+        void testUdivx_nFlag_reflectsHighBitOfResult() {
             State s = freshState(60000, 1);
             Dep10MulDiv.UDIVX.exec(s, Mode.I);
-            assertFalse(s.getN(), "current implementation hardcodes N to false for UDIVX");
+            assertTrue(s.getN(), "N should be set because quotient 60000 has bit 15 set");
+        }
+
+        @Test
+        @DisplayName("UDIVX: N is clear when bit 15 of quotient is 0")
+        void testUdivx_nFlag_clearWhenHighBitClear() {
+            State s = freshState(100, 5);
+            Dep10MulDiv.UDIVX.exec(s, Mode.I);
+            assertFalse(s.getN(), "N should be clear because quotient 20 has bit 15 clear");
         }
 
         @Test
@@ -410,6 +426,19 @@ public class MulDivTest {
         }
 
         @Test
+        @DisplayName("UMODA: N is never set, even at the max possible remainder (bit 15 unreachable)")
+        void testUmoda_nFlag_alwaysFalseGivenWordWidth() {
+            // With both operands limited to 16-bit unsigned words, the largest
+            // possible remainder is 32767 (a=65535, op=32768): bit 15 can never
+            // be reached. Included so N's uniform rule (set from the stored
+            // result) is documented even though it never fires here.
+            State s = freshState(65535, 32768);
+            Dep10MulDiv.UMODA.exec(s, Mode.I);
+            assertEquals(32767, s.getA().value());
+            assertFalse(s.getN());
+        }
+
+        @Test
         @DisplayName("UMODA: mod by zero sets C, does not crash")
         void testUmoda_byZero_cFlagSetNoException() {
             State s = freshState(17, 0);
@@ -423,6 +452,17 @@ public class MulDivTest {
             State s = freshState(17, 5);
             Dep10MulDiv.UMODX.exec(s, Mode.I);
             assertEquals(2, s.getX().value());
+        }
+
+        @Test
+        @DisplayName("UMODX: N is never set, even at the max possible remainder (bit 15 unreachable)")
+        void testUmodx_nFlag_alwaysFalseGivenWordWidth() {
+            // See UMODA equivalent test: 32767 is the largest remainder possible
+            // with 16-bit unsigned operands, so bit 15 can never be set.
+            State s = freshState(65535, 32768);
+            Dep10MulDiv.UMODX.exec(s, Mode.I);
+            assertEquals(32767, s.getX().value());
+            assertFalse(s.getN());
         }
 
         @Test

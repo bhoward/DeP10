@@ -313,11 +313,13 @@ public class Dep10MulDiv {
             }
 
             var quotient = a / op;
+            var result = Word.of(quotient);
 
-            s.setA(Word.of(quotient));
+            s.setA(result);
 
-            // N: set if quotient is <0, cleared otherwise (???)
-            s.setN(false);
+            // N: reflects the sign (high) bit of the value actually stored in A,
+            // independent of signed/unsigned (confirmed with Brian [9/12/2026])
+            s.setN(result.isNegative());
 
             // Z: set if quotient is 0, cleared otherwise
             s.setZ(quotient == 0);
@@ -347,11 +349,13 @@ public class Dep10MulDiv {
             }
 
             var quotient = x / op;
+            var result = Word.of(quotient);
 
-            s.setX(Word.of(quotient));
+            s.setX(result);
 
-            // N: set if quotient is <0, cleared otherwise (???)
-            s.setN(false);
+            // N: reflects the sign (high) bit of the value actually stored in X,
+            // independent of signed/unsigned (confirmed with Brian [9/12/2026])
+            s.setN(result.isNegative());
 
             // Z: set if quotient is 0, cleared otherwise
             s.setZ(quotient == 0);
@@ -381,11 +385,13 @@ public class Dep10MulDiv {
             }
 
             var remainder = a % op;
+            var result = Word.of(remainder);
 
-            s.setA(Word.of(remainder));
+            s.setA(result);
 
-            // N: set if remainder is <0, cleared otherwise (???)
-            s.setN(false);
+            // N: reflects the sign (high) bit of the value actually stored in A,
+            // independent of signed/unsigned (confirmed with Brian [9/12/2026])
+            s.setN(result.isNegative());
 
             // Z: set if remainder is 0, cleared otherwise
             s.setZ(remainder == 0);
@@ -415,11 +421,13 @@ public class Dep10MulDiv {
             }
 
             var remainder = x % op;
+            var result = Word.of(remainder);
 
-            s.setX(Word.of(remainder));
+            s.setX(result);
 
-            // N: set if remainder is <0, cleared otherwise (???)
-            s.setN(false);
+            // N: reflects the sign (high) bit of the value actually stored in X,
+            // independent of signed/unsigned (confirmed with Brian [9/12/2026])
+            s.setN(result.isNegative());
 
             // Z: set if remainder is 0, cleared otherwise
             s.setZ(remainder == 0);
