@@ -426,12 +426,21 @@ public class MulDivTest {
         }
 
         @Test
-        @DisplayName("UMODA: N is never set, even at the max possible remainder (bit 15 unreachable)")
-        void testUmoda_nFlag_alwaysFalseGivenWordWidth() {
-            // With both operands limited to 16-bit unsigned words, the largest
-            // possible remainder is 32767 (a=65535, op=32768): bit 15 can never
-            // be reached. Included so N's uniform rule (set from the stored
-            // result) is documented even though it never fires here.
+        @DisplayName("UMODA: N can be set -- e.g. 65534 % 65535 = 65534, bit 15 set (correction per Brian, 9/15/2026)")
+        void testUmoda_nFlag_canBeSetWhenDivisorExceedsDividend() {
+            // Earlier reasoning wrongly assumed the divisor is always <= the
+            // dividend. When the divisor is larger, a % op == a unchanged
+            // (untouched by the divide at all), which can be as large as
+            // 65534 -- well past the 32767 boundary, with bit 15 set.
+            State s = freshState(65534, 65535);
+            Dep10MulDiv.UMODA.exec(s, Mode.I);
+            assertEquals(65534, s.getA().value());
+            assertTrue(s.getN(), "N should be set: 65534 has bit 15 set");
+        }
+
+        @Test
+        @DisplayName("UMODA: N is clear for a small remainder (sanity check, unrelated to the bit-15 boundary)")
+        void testUmoda_nFlag_clearForSmallRemainder() {
             State s = freshState(65535, 32768);
             Dep10MulDiv.UMODA.exec(s, Mode.I);
             assertEquals(32767, s.getA().value());
@@ -455,10 +464,17 @@ public class MulDivTest {
         }
 
         @Test
-        @DisplayName("UMODX: N is never set, even at the max possible remainder (bit 15 unreachable)")
-        void testUmodx_nFlag_alwaysFalseGivenWordWidth() {
-            // See UMODA equivalent test: 32767 is the largest remainder possible
-            // with 16-bit unsigned operands, so bit 15 can never be set.
+        @DisplayName("UMODX: N can be set -- e.g. 65534 % 65535 = 65534, bit 15 set (correction per Brian, 9/15/2026)")
+        void testUmodx_nFlag_canBeSetWhenDivisorExceedsDividend() {
+            State s = freshState(65534, 65535);
+            Dep10MulDiv.UMODX.exec(s, Mode.I);
+            assertEquals(65534, s.getX().value());
+            assertTrue(s.getN(), "N should be set: 65534 has bit 15 set");
+        }
+
+        @Test
+        @DisplayName("UMODX: N is clear for a small remainder (sanity check, unrelated to the bit-15 boundary)")
+        void testUmodx_nFlag_clearForSmallRemainder() {
             State s = freshState(65535, 32768);
             Dep10MulDiv.UMODX.exec(s, Mode.I);
             assertEquals(32767, s.getX().value());
