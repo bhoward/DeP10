@@ -437,7 +437,7 @@ public class Pep10 {
             var sign2 = a2.isNegative();
             var zero2 = a2.isZero();
             var overflow = (sign1 == signo) && (sign1 != sign2);
-            var carry = a2.lessThan(a1) || a2.lessThan(op);
+            var carry = !a1.lessThan(operand); // true if a1 >= operand, so no borrow
 
             s.setN(sign2 ^ overflow);
             s.setZ(zero2);
@@ -460,7 +460,7 @@ public class Pep10 {
             var sign2 = x2.isNegative();
             var zero2 = x2.isZero();
             var overflow = (sign1 == signo) && (sign1 != sign2);
-            var carry = x2.lessThan(x1) || x2.lessThan(op);
+            var carry = !x1.lessThan(operand); // true if x1 >= operand, so no borrow
 
             s.setN(sign2 ^ overflow);
             s.setZ(zero2);
@@ -563,7 +563,7 @@ public class Pep10 {
             var sign2 = a2.isNegative();
             var zero2 = a2.isZero();
             var overflow = (sign1 == signo) && (sign1 != sign2);
-            var carry = a2.lessThan(a1) || a2.lessThan(op);
+            var carry = !a1.lessThan(operand); // true if a1 >= operand, so no borrow
 
             s.setA(a2);
             s.setN(sign2);
@@ -587,7 +587,7 @@ public class Pep10 {
             var sign2 = x2.isNegative();
             var zero2 = x2.isZero();
             var overflow = (sign1 == signo) && (sign1 != sign2);
-            var carry = x2.lessThan(x1) || x2.lessThan(op);
+            var carry = !x1.lessThan(operand); // true if x1 >= operand, so no borrow
 
             s.setX(x2);
             s.setN(sign2);
