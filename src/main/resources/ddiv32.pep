@@ -1,88 +1,9 @@
 ;=======================================================================
-; DDIV32 -- 32-bit / 32-bit division for DeP10.
-; See "Design Proposal: 32-Bit Division (DDIV)", section 5.
-;
-; Provides:
-;   .DEFMACRO UDIV32, 16   unsigned 32/32 divide
-;   .DEFMACRO SDIV32, 16   signed 32/32 divide
-;
-; Both take the same parameter shape -- 8 input operand/mode pairs
-; followed by 8 output operand/mode pairs:
-;   $1,$2    dividend high word    (input)
-;   $3,$4    dividend low word     (input)
-;   $5,$6    divisor high word     (input)
-;   $7,$8    divisor low word      (input)
-;   $9,$10   quotient high word    (output)
-;   $11,$12  quotient low word     (output)
-;   $13,$14  remainder high word   (output)
-;   $15,$16  remainder low word    (output)
-;
-; Precondition: divisor is nonzero (not checked here -- matching the
-; design proposal's separation of the 32/32 macro from divide-by-zero
-; handling, which belongs to whatever wraps this for a given opcode).
-;
-; The macros are thin wrappers (no internal labels), so they can be
-; invoked any number of times in one program without label collisions.
-; The actual algorithm lives once, in the _UDiv32/_SDiv32/_UCmp16
-; subroutines below, which should be assembled into the program exactly
-; once (e.g. via an .INCLUDE, once stdmacro.pep or an equivalent has
-; one, or simply pasted once at the end of a program for now).
+; DDiv / UDDiv -- 32-bit / 32-bit division, matching the stack calling
+; convention Prof. Howard gave Jess for DMul (see "DMUL - checking if
+; on the right track" thread, 9/14/2026).
 ;=======================================================================
 
-.DEFMACRO UDIV32, 16
-        LDWA    $1,$2
-        STWA    udivDvdHi,d
-        LDWA    $3,$4
-        STWA    udivDvdLo,d
-        LDWA    $5,$6
-        STWA    udivDvrHi,d
-        LDWA    $7,$8
-        STWA    udivDvrLo,d
-        CALL    _UDiv32
-        LDWA    udivQuoHi,d
-        STWA    $9,$10
-        LDWA    udivQuoLo,d
-        STWA    $11,$12
-        LDWA    udivRemHi,d
-        STWA    $13,$14
-        LDWA    udivRemLo,d
-        STWA    $15,$16
-.ENDMACRO
-
-.DEFMACRO SDIV32, 16
-        LDWA    $1,$2
-        STWA    udivDvdHi,d
-        LDWA    $3,$4
-        STWA    udivDvdLo,d
-        LDWA    $5,$6
-        STWA    udivDvrHi,d
-        LDWA    $7,$8
-        STWA    udivDvrLo,d
-        CALL    _SDiv32
-        LDWA    udivQuoHi,d
-        STWA    $9,$10
-        LDWA    udivQuoLo,d
-        STWA    $11,$12
-        LDWA    udivRemHi,d
-        STWA    $13,$14
-        LDWA    udivRemLo,d
-        STWA    $15,$16
-.ENDMACRO
-
-;=======================================================================
-; _UCmp16: compare two unsigned 16-bit values.
-; Precondition: udivCmpX, udivCmpY hold the two values.
-; Postcondition: A = 1 if X>Y, 0 if X==Y, 0xFFFF (-1) if X<Y.
-;
-; Does not use CPWA's Carry flag: testing found it is wrong whenever the
-; value compared against is exactly 0 (github.com/bhoward/DeP10/issues/11),
-; which is common here since a divisor's high word is very often 0. Y==0
-; is special-cased directly instead. The general case uses the XOR-0x8000
-; unsigned-via-signed trick on N (via CPWA's overflow-corrected N, not C),
-; which testing did not find any zero-operand problem with -- as long as
-; Y (the value XOR'd and then negated internally by CPWA) is never
-; exactly 0, which the Y==0 special case guarantees.
-;=======================================================================
 _UCmp16:
         LDWA    udivCmpY,d
         BREQ    _UCmp16YZero
@@ -339,3 +260,135 @@ sdivSignDvd: .BLOCK 2
 sdivSignDvr: .BLOCK 2
 sdivNegQ:    .BLOCK 2
 sdivNegR:    .BLOCK 2
+
+;=======================================================================
+; DDiv / UDDiv -- 32-bit / 32-bit division, matching the stack template
+; Prof. Howard gave Jess for DMul.
+;
+; Take two 32-bit integers on the stack, divide them, leave a 32-bit
+; quotient and a 32-bit remainder in their place. On return, the Carry
+; bit is set if the divisor was 0 (quotient and remainder are left as
+; 0 in that case, matching the existing 16-bit divide-by-zero contract
+; from PR #8: N=0, Z=1, V=1, C=1).
+;
+; DDiv:  signed.   UDDiv: unsigned.
+;
+; Stack layout at entry (SP,0 is the return address, since the caller
+; just did CALL DDiv,i / CALL UDDiv,i):
+;   SP,2  dividend high word      SP,6  divisor high word
+;   SP,4  dividend low word       SP,8  divisor low word
+;
+; On return, in place:
+;   SP,2  quotient high word      SP,6  remainder high word
+;   SP,4  quotient low word       SP,8  remainder low word
+;
+; Caller looks like:
+;   LDWA  divisorLow,i / PUSHA
+;   LDWA  divisorHigh,i / PUSHA
+;   LDWA  dividendLow,i / PUSHA
+;   LDWA  dividendHigh,i / PUSHA
+;   CALL  DDiv,i          ; or UDDiv,i
+;   POPA
+;   STWA  quotientHigh,i
+;   POPA
+;   STWA  quotientLow,i
+;   POPA
+;   STWA  remainderHigh,i
+;   POPA
+;   STWA  remainderLow,i
+;   BRC   ... handle divide-by-zero, if needed ...
+;=======================================================================
+
+UDDiv:
+        LDWA    2,s
+        STWA    udivDvdHi,d
+        LDWA    4,s
+        STWA    udivDvdLo,d
+        LDWA    6,s
+        STWA    udivDvrHi,d
+        LDWA    8,s
+        STWA    udivDvrLo,d
+
+        LDWA    udivDvrHi,d
+        ORA     udivDvrLo,d
+        BREQ    _DDivByZero
+
+        CALL    _UDiv32
+        BR      _DDivWriteBack
+
+_DDivSigned:
+        LDWA    2,s
+        STWA    udivDvdHi,d
+        LDWA    4,s
+        STWA    udivDvdLo,d
+        LDWA    6,s
+        STWA    udivDvrHi,d
+        LDWA    8,s
+        STWA    udivDvrLo,d
+
+        LDWA    udivDvrHi,d
+        ORA     udivDvrLo,d
+        BREQ    _DDivByZero
+
+        CALL    _SDiv32
+
+_DDivWriteBack:
+        LDWA    udivQuoHi,d
+        STWA    2,s
+        LDWA    udivQuoLo,d
+        STWA    4,s
+        LDWA    udivRemHi,d
+        STWA    6,s
+        LDWA    udivRemLo,d
+        STWA    8,s
+
+        ; N = sign of quotient, Z = quotient is 0, V = 0, C = 0 (success)
+        LDWA    0,i
+        STWA    dflagsN,d
+        STWA    dflagsZ,d
+        LDWA    udivQuoHi,d
+        ANDA    0x8000,i
+        BREQ    _DDivNDone
+        LDWA    1,i
+        STWA    dflagsN,d
+_DDivNDone:
+        LDWA    udivQuoHi,d
+        ORA     udivQuoLo,d
+        BRNE    _DDivZDone
+        LDWA    1,i
+        STWA    dflagsZ,d
+_DDivZDone:
+        LDWA    0,i
+        STWA    dflagsNibble,d
+        LDWA    dflagsN,d
+        BREQ    _DDivBuildZ
+        LDWA    dflagsNibble,d
+        ORA     8,i
+        STWA    dflagsNibble,d
+_DDivBuildZ:
+        LDWA    dflagsZ,d
+        BREQ    _DDivBuildDone
+        LDWA    dflagsNibble,d
+        ORA     4,i
+        STWA    dflagsNibble,d
+_DDivBuildDone:
+        LDWA    dflagsNibble,d
+        MOVAFLG
+        RET
+
+_DDivByZero:
+        LDWA    0,i
+        STWA    2,s
+        STWA    4,s
+        STWA    6,s
+        STWA    8,s
+        LDWA    7,i             ; N=0,Z=1,V=1,C=1 -> 0111
+        MOVAFLG
+        RET
+
+DDiv:
+        BR      _DDivSigned
+
+dflagsN:      .BLOCK 2
+dflagsZ:      .BLOCK 2
+dflagsNibble: .BLOCK 2
