@@ -160,8 +160,23 @@ public class Dep10MulDiv {
             Word bHigh = s.mem2(sp.plus(4));
             Word bLow  = s.mem2(sp.plus(6));
 
+            // reassemble 32-bit signed operand
+            var aVal = (aHigh.value() << 16) | (aLow.value() & 0xFFFF);
+            var bVal = (bHigh.value() << 16) | (bLow.value() & 0xFFFF);
+
+            var low_bits = aVal * bVal;
+
+            Word resultHigh = Word.of(low_bits >>> 16);
+            Word resultLow  = Word.of(low_bits & 0xFFFF);
+
+            s.setMem2(sp, resultHigh);
+            s.setMem2(sp.plus(2), resultLow);
+            s.setSP(sp.plus(4));
+
+            s.setN(resultHigh.isNegative());
+            s.setZ(resultHigh.isZero() && resultLow.isZero());
             s.setV(false);
-            s.setC(false);
+            s.setC(low_bits >= Integer.MIN_VALUE && low_bits <= Integer.MAX_VALUE);
         }
     };
 
