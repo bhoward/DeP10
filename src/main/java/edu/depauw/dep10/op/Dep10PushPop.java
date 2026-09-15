@@ -32,4 +32,11 @@ public class Dep10PushPop {
             s.setSP(s.getSP().plus(2));
         }
     };
+    
+    static {
+        table.install(4, PUSHA);
+        table.install(5, PUSHX);
+        table.install(6, POPA);
+        table.install(7, POPX);
+    }
 }
