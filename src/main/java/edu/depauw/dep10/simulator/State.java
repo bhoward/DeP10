@@ -20,6 +20,7 @@ import edu.depauw.dep10.util.Word;
 public class State {
     private Word A;
     private Word X;
+    private Word H;
     private Word PC;
     private Word SP;
     private UByte PRE;
@@ -39,6 +40,7 @@ public class State {
     public State() {
         A = Word.of(0);
         X = Word.of(0);
+        H = Word.of(0);
         PC = Word.of(0);
         SP = Word.of(0);
         PRE = UByte.of(0);
@@ -112,6 +114,10 @@ public class State {
     public Word getX() {
         return X;
     }
+    
+    public Word getH() {
+        return H;
+    }
 
     public Word getPC() {
         return PC;
@@ -151,6 +157,10 @@ public class State {
 
     public void setX(UByte n) {
         this.X = Word.of(n.value());
+    }
+    
+    public void setH(Word n) {
+        this.H = n;
     }
 
     public void setPC(Word n) {

@@ -31,6 +31,7 @@ public class StatePanel extends JPanel implements TabPanel {
 
     private JTextField txtA;
     private JTextField txtX;
+    private JTextField txtH;
     private JTextField txtPC;
     private JTextField txtSP;
     private JTextField txtNZVC;
@@ -72,7 +73,7 @@ public class StatePanel extends JPanel implements TabPanel {
 
         JLabel lblX = new JLabel("X");
         springLayout.putConstraint(SpringLayout.NORTH, lblX, 0, SpringLayout.NORTH, lblA);
-        springLayout.putConstraint(SpringLayout.WEST, lblX, 10, SpringLayout.EAST, txtA);
+        springLayout.putConstraint(SpringLayout.WEST, lblX, 15, SpringLayout.EAST, txtA);
         add(lblX);
 
         txtX = new JTextField();
@@ -96,18 +97,18 @@ public class StatePanel extends JPanel implements TabPanel {
         txtNZVC.setColumns(WORD_COLUMNS);
         txtNZVC.setFont(font);
 
-        JLabel lblPC = new JLabel("PC");
-        springLayout.putConstraint(SpringLayout.NORTH, lblPC, 0, SpringLayout.NORTH, lblA);
-        springLayout.putConstraint(SpringLayout.WEST, lblPC, 10, SpringLayout.EAST, txtNZVC);
-        add(lblPC);
+        JLabel lblH = new JLabel("H");
+        springLayout.putConstraint(SpringLayout.NORTH, lblH, 0, SpringLayout.NORTH, lblA);
+        springLayout.putConstraint(SpringLayout.WEST, lblH, 10, SpringLayout.EAST, txtNZVC);
+        add(lblH);
 
-        txtPC = new JTextField();
-        springLayout.putConstraint(SpringLayout.NORTH, txtPC, 0, SpringLayout.NORTH, lblA);
-        springLayout.putConstraint(SpringLayout.WEST, txtPC, 10, SpringLayout.EAST, lblPC);
-        add(txtPC);
-        txtPC.setEditable(false);
-        txtPC.setColumns(WORD_COLUMNS);
-        txtPC.setFont(font);
+        txtH = new JTextField();
+        springLayout.putConstraint(SpringLayout.NORTH, txtH, 0, SpringLayout.NORTH, lblA);
+        springLayout.putConstraint(SpringLayout.WEST, txtH, 10, SpringLayout.EAST, lblH);
+        add(txtH);
+        txtH.setEditable(false);
+        txtH.setColumns(WORD_COLUMNS);
+        txtH.setFont(font);
 
         JLabel lblPX = new JLabel("PX");
         springLayout.putConstraint(SpringLayout.EAST, lblPX, 0, SpringLayout.EAST, lblA);
@@ -150,7 +151,7 @@ public class StatePanel extends JPanel implements TabPanel {
 
         JLabel lblEA = new JLabel("EA");
         springLayout.putConstraint(SpringLayout.NORTH, lblEA, 0, SpringLayout.NORTH, txtPX);
-        springLayout.putConstraint(SpringLayout.EAST, lblEA, 0, SpringLayout.EAST, lblPC);
+        springLayout.putConstraint(SpringLayout.EAST, lblEA, 0, SpringLayout.EAST, lblH);
         add(lblEA);
 
         txtEA = new JTextField();
@@ -173,6 +174,19 @@ public class StatePanel extends JPanel implements TabPanel {
         txtSP.setEditable(false);
         txtSP.setColumns(WORD_COLUMNS);
         txtSP.setFont(font);
+
+        JLabel lblPC = new JLabel("PC");
+        springLayout.putConstraint(SpringLayout.NORTH, lblPC, 0, SpringLayout.NORTH, txtSP);
+        springLayout.putConstraint(SpringLayout.EAST, lblPC, 0, SpringLayout.EAST, lblX);
+        add(lblPC);
+
+        txtPC = new JTextField();
+        springLayout.putConstraint(SpringLayout.NORTH, txtPC, 0, SpringLayout.NORTH, txtSP);
+        springLayout.putConstraint(SpringLayout.WEST, txtPC, 10, SpringLayout.EAST, lblPC);
+        add(txtPC);
+        txtPC.setEditable(false);
+        txtPC.setColumns(WORD_COLUMNS);
+        txtPC.setFont(font);
 
         JLabel lblStack = new JLabel("S");
         springLayout.putConstraint(SpringLayout.EAST, lblStack, 0, SpringLayout.EAST, lblA);
@@ -232,7 +246,7 @@ public class StatePanel extends JPanel implements TabPanel {
 
         txtOperation = new JTextField();
         springLayout.putConstraint(SpringLayout.NORTH, txtOperation, 0, SpringLayout.NORTH, txtSP);
-        springLayout.putConstraint(SpringLayout.WEST, txtOperation, 0, SpringLayout.WEST, txtX);
+        springLayout.putConstraint(SpringLayout.WEST, txtOperation, 0, SpringLayout.WEST, txtNZVC);
         add(txtOperation);
         txtOperation.setColumns(10);
         txtOperation.setEditable(false);
@@ -248,6 +262,7 @@ public class StatePanel extends JPanel implements TabPanel {
         if (state != null) {
             txtA.setText(state.getA().toString());
             txtX.setText(state.getX().toString());
+            txtH.setText(state.getH().toString());
             txtPC.setText(state.getPC().toString());
             txtSP.setText(state.getSP().toString());
             txtPX.setText(state.getPrefix().toString());
@@ -322,6 +337,7 @@ public class StatePanel extends JPanel implements TabPanel {
     public void setPanelFont(Font font) {
         txtA.setFont(font);
         txtX.setFont(font);
+        txtH.setFont(font);
         txtNZVC.setFont(font);
         txtPC.setFont(font);
         txtSP.setFont(font);

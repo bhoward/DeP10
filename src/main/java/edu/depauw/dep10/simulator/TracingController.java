@@ -65,6 +65,7 @@ public class TracingController implements Controller {
             var prev = steps.getLast();
             state.setA(prev.trace().a());
             state.setX(prev.trace().x());
+            state.setH(prev.trace().h());
             state.setFlags(prev.trace().flags());
             state.setSP(prev.trace().sp());
             state.setPC(last.pc());
