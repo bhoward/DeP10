@@ -87,66 +87,67 @@ public class MulDivTest {
         }
     }
 
-    @Nested
-    @DisplayName("MULHA / MULHX (signed high-word multiply)")
-    class MulHighSigned {
-
-        @Test
-        @DisplayName("MULHA: small operands, high word is 0")
-        void testMulha_smallOperands_highWordZero() {
-            State s = freshState(5, 3);
-            Dep10MulDiv.MULHA.exec(s, Mode.I);
-            assertEquals(0, s.getA().value());
-            assertTrue(s.getZ());
-        }
-
-        @Test
-        @DisplayName("MULHA: large operands produce nonzero high word")
-        void testMulha_largeOperands_nonzeroHighWord() {
-            State s = freshState(30000, 3);
-            Dep10MulDiv.MULHA.exec(s, Mode.I);
-            assertEquals(1, s.getA().value());
-            assertFalse(s.getZ());
-        }
-
-        @Test
-        @DisplayName("MULHA: negative * positive gives negative high word")
-        void testMulha_negativeTimesPositive_negativeHighWord() {
-            State s = freshState(-30000, 3);
-            Dep10MulDiv.MULHA.exec(s, Mode.I);
-            assertTrue(s.getN(), "high word of a negative product should be negative");
-        }
-
-        @Test
-        @DisplayName("OPEN QUESTION: MULHA leaves V and C hardcoded false -- confirm intended")
-        void testMulha_vAndCFlags_currentlyAlwaysFalse() {
-            State s = freshState(30000, 30000);
-            Dep10MulDiv.MULHA.exec(s, Mode.I);
-            assertFalse(s.getV(), "current implementation always clears V for MULHA");
-            assertFalse(s.getC(), "current implementation always clears C for MULHA");
-        }
-    }
-
-    @Nested
-    @DisplayName("UMULHA / UMULHX (unsigned high-word multiply)")
-    class MulHighUnsigned {
-
-        @Test
-        @DisplayName("UMULHA: large unsigned operands produce nonzero high word")
-        void testUmulha_largeOperands_nonzeroHighWord() {
-            State s = freshState(60000, 60000);
-            Dep10MulDiv.UMULHA.exec(s, Mode.I);
-            assertEquals(0xD693, s.getA().value());
-        }
-
-        @Test
-        @DisplayName("OPEN QUESTION: UMULHA sets N based on bit 15 of an unsigned result -- confirm intended")
-        void testUmulha_nFlag_currentlySetFromBit15EvenThoughUnsigned() {
-            State s = freshState(60000, 60000);
-            Dep10MulDiv.UMULHA.exec(s, Mode.I);
-            assertTrue(s.getN(), "current implementation sets N from bit 15 even for unsigned result");
-        }
-    }
+// TODO revise these to use SMULr and UMULr with the H register?
+//    @Nested
+//    @DisplayName("MULHA / MULHX (signed high-word multiply)")
+//    class MulHighSigned {
+//
+//        @Test
+//        @DisplayName("MULHA: small operands, high word is 0")
+//        void testMulha_smallOperands_highWordZero() {
+//            State s = freshState(5, 3);
+//            Dep10MulDiv.MULHA.exec(s, Mode.I);
+//            assertEquals(0, s.getA().value());
+//            assertTrue(s.getZ());
+//        }
+//
+//        @Test
+//        @DisplayName("MULHA: large operands produce nonzero high word")
+//        void testMulha_largeOperands_nonzeroHighWord() {
+//            State s = freshState(30000, 3);
+//            Dep10MulDiv.MULHA.exec(s, Mode.I);
+//            assertEquals(1, s.getA().value());
+//            assertFalse(s.getZ());
+//        }
+//
+//        @Test
+//        @DisplayName("MULHA: negative * positive gives negative high word")
+//        void testMulha_negativeTimesPositive_negativeHighWord() {
+//            State s = freshState(-30000, 3);
+//            Dep10MulDiv.MULHA.exec(s, Mode.I);
+//            assertTrue(s.getN(), "high word of a negative product should be negative");
+//        }
+//
+//        @Test
+//        @DisplayName("OPEN QUESTION: MULHA leaves V and C hardcoded false -- confirm intended")
+//        void testMulha_vAndCFlags_currentlyAlwaysFalse() {
+//            State s = freshState(30000, 30000);
+//            Dep10MulDiv.MULHA.exec(s, Mode.I);
+//            assertFalse(s.getV(), "current implementation always clears V for MULHA");
+//            assertFalse(s.getC(), "current implementation always clears C for MULHA");
+//        }
+//    }
+//
+//    @Nested
+//    @DisplayName("UMULHA / UMULHX (unsigned high-word multiply)")
+//    class MulHighUnsigned {
+//
+//        @Test
+//        @DisplayName("UMULHA: large unsigned operands produce nonzero high word")
+//        void testUmulha_largeOperands_nonzeroHighWord() {
+//            State s = freshState(60000, 60000);
+//            Dep10MulDiv.UMULHA.exec(s, Mode.I);
+//            assertEquals(0xD693, s.getA().value());
+//        }
+//
+//        @Test
+//        @DisplayName("OPEN QUESTION: UMULHA sets N based on bit 15 of an unsigned result -- confirm intended")
+//        void testUmulha_nFlag_currentlySetFromBit15EvenThoughUnsigned() {
+//            State s = freshState(60000, 60000);
+//            Dep10MulDiv.UMULHA.exec(s, Mode.I);
+//            assertTrue(s.getN(), "current implementation sets N from bit 15 even for unsigned result");
+//        }
+//    }
 
     @Nested
     @DisplayName("DIVA / DIVX (signed divide)")

@@ -52,13 +52,10 @@ inloop:  LDWA col,d
 	 STWA rowVal,d
 	 LDWX col,d
 	 ASLX
-	 MULA values,x
+	 SMULA values,x
 	 STWA resultA,d
-	 ; now do high bits
-	 LDWA rowVal,d
-	 LDWX col,d
-	 ASLX
-	 MULHA values,x
+	 ; now get high bits
+	 SWAPHA
 	 STWA resultHi,d
 	 @HEXO resultHi,d
 	 @STRO space,d
