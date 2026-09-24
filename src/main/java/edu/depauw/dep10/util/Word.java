@@ -41,6 +41,14 @@ public class Word {
 	public int value() {
 		return value;
 	}
+	
+	public int signedValue() {
+	    if (isNegative()) {
+	        return value - (MAX_UNSIGNED + 1);
+	    } else {
+	        return value;
+	    }
+	}
 
 	public Word plus(int i) {
 		return new Word(value + i);

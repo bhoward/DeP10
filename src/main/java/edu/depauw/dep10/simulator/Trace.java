@@ -6,7 +6,7 @@ import java.util.List;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
-public record Trace(Word a, Word x, Word sp, UByte flags, List<MemoryAccess> accesses) {
+public record Trace(Word a, Word x, Word h, Word sp, UByte flags, List<MemoryAccess> accesses) {
     @Override
     public String toString() {
         var result = new StringBuilder();
@@ -16,6 +16,8 @@ public record Trace(Word a, Word x, Word sp, UByte flags, List<MemoryAccess> acc
         result.append(format.toHexDigits(a.value(), 4));
         result.append(" X=");
         result.append(format.toHexDigits(x.value(), 4));
+        result.append(" H=");
+        result.append(format.toHexDigits(h.value(), 4));
         result.append(" SP=");
         result.append(format.toHexDigits(sp.value(), 4));
         result.append(" F=");

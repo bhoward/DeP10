@@ -28,7 +28,7 @@ public class DebugState extends State {
     }
 
     public Trace trace() {
-        var t = new Trace(getA(), getX(), getSP(), getFlags(), List.copyOf(accesses));
+        var t = new Trace(getA(), getX(), getH(), getSP(), getFlags(), List.copyOf(accesses));
         clearAccesses();
         return t;
     }
