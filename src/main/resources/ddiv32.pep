@@ -209,7 +209,31 @@ _SDiv32DvdAbsDone:
         STWA    udivDvrLo,d
 _SDiv32DvrAbsDone:
 
+        ; Same fast-path-with-fallback as UDDiv, now operating on the
+        ; magnitudes (sign already handled above).
+        LDWA    udivDvrHi,d
+        BRNE    _SDiv32General
+        LDWA    udivDvdHi,d
+        STWA    f16DvdHi,d
+        LDWA    udivDvdLo,d
+        STWA    f16DvdLo,d
+        LDWA    udivDvrLo,d
+        STWA    f16Dvr,d
+        CALL    _UDiv32By16
+        LDWA    f16Overflow,d
+        BRNE    _SDiv32General
+        LDWA    0,i
+        STWA    udivQuoHi,d
+        LDWA    f16Quo,d
+        STWA    udivQuoLo,d
+        LDWA    0,i
+        STWA    udivRemHi,d
+        LDWA    f16Rem,d
+        STWA    udivRemLo,d
+        BR      _SDiv32AfterDivide
+_SDiv32General:
         CALL    _UDiv32
+_SDiv32AfterDivide:
 
         ; fix up quotient sign
         LDWA    sdivNegQ,d
@@ -313,6 +337,33 @@ UDDiv:
         ORA     udivDvrLo,d
         BREQ    _DDivByZero
 
+        ; Divisor fits in one word? Try the fast path (16 iterations)
+        ; first -- but its quotient is only one word wide, so if this
+        ; particular dividend would overflow that (a real possibility
+        ; here, since UDDiv accepts a full 32-bit dividend), fall back
+        ; to the general routine instead of losing precision.
+        LDWA    udivDvrHi,d
+        BRNE    _UDDivGeneral
+        LDWA    udivDvdHi,d
+        STWA    f16DvdHi,d
+        LDWA    udivDvdLo,d
+        STWA    f16DvdLo,d
+        LDWA    udivDvrLo,d
+        STWA    f16Dvr,d
+        CALL    _UDiv32By16
+        LDWA    f16Overflow,d
+        BRNE    _UDDivGeneral
+        LDWA    0,i
+        STWA    udivQuoHi,d
+        LDWA    f16Quo,d
+        STWA    udivQuoLo,d
+        LDWA    0,i
+        STWA    udivRemHi,d
+        LDWA    f16Rem,d
+        STWA    udivRemLo,d
+        BR      _DDivWriteBack
+
+_UDDivGeneral:
         CALL    _UDiv32
         BR      _DDivWriteBack
 
@@ -392,3 +443,101 @@ DDiv:
 dflagsN:      .BLOCK 2
 dflagsZ:      .BLOCK 2
 dflagsNibble: .BLOCK 2
+;=======================================================================
+; _UDiv32By16: unsigned 32-bit dividend / 16-bit divisor, the genuine
+; fast path (16 iterations, not 32), with an early-exit overflow check
+; that skips the loop entirely when the quotient wouldn't fit anyway.
+;
+; This is the piece that was discussed but never actually implemented:
+; UDDiv/DDiv currently always run the general 32-iteration _UDiv32
+; even when the divisor fits in one word.
+;
+; Precondition: f16DvdHi:f16DvdLo = dividend (32-bit).
+;               f16Dvr = divisor (16-bit, nonzero).
+; Postcondition: f16Overflow = 1 if the quotient doesn't fit in 16 bits
+;                (f16Quo/f16Rem are NOT meaningful in that case), else 0.
+;                f16Quo = quotient, f16Rem = remainder (both 16-bit).
+;                f16DvdLo is destroyed (used as scratch).
+;=======================================================================
+_UDiv32By16:
+        ; Early-exit overflow check: quotient fits in 16 bits iff
+        ; dividendHi < divisor (unsigned). No iterations needed either way
+        ; to know this.
+        LDWA    f16DvdHi,d
+        STWA    udivCmpX,d
+        LDWA    f16Dvr,d
+        STWA    udivCmpY,d
+        CALL    _UCmp16
+        BRLT    _UDiv32By16NoOverflow
+        LDWA    1,i
+        STWA    f16Overflow,d
+        RET
+_UDiv32By16NoOverflow:
+        LDWA    0,i
+        STWA    f16Overflow,d
+        STWA    f16Quo,d
+        LDWA    f16DvdHi,d
+        STWA    f16Rem,d        ; remainder starts as dividendHi, already < divisor
+        LDWA    16,i
+        STWA    f16Cnt,d
+
+_UDiv32By16Loop:
+        LDWA    f16Cnt,d
+        BREQ    _UDiv32By16Done
+
+        ; shift dividendLo left 1; the bit shifted out (next bit of the
+        ; original dividend) lands in Carry.
+        LDWA    f16DvdLo,d
+        ASLA
+        STWA    f16DvdLo,d
+
+        ; shift that dividend bit into the remainder. The bit shifted
+        ; OUT of the remainder (its own old top bit) means the true
+        ; (unmasked) remainder is 65536 higher than the stored value,
+        ; which is unconditionally >= any 16-bit divisor -- so a carry
+        ; here means "definitely subtract," skipping the compare.
+        LDWA    f16Rem,d
+        ROLA
+        STWA    f16Rem,d
+        BRC     _UDiv32By16DoSub
+
+        LDWA    f16Rem,d
+        STWA    udivCmpX,d
+        LDWA    f16Dvr,d
+        STWA    udivCmpY,d
+        CALL    _UCmp16
+        BRLT    _UDiv32By16NoSub
+
+_UDiv32By16DoSub:
+        LDWA    f16Rem,d
+        SUBA    f16Dvr,d
+        STWA    f16Rem,d
+        ; shift the quotient left 1, with a fresh 0 (independent of the
+        ; dividend/remainder carry chain above), then upgrade to 1.
+        LDWA    f16Quo,d
+        ASLA
+        ORA     1,i
+        STWA    f16Quo,d
+        BR      _UDiv32By16NextIter
+
+_UDiv32By16NoSub:
+        LDWA    f16Quo,d
+        ASLA
+        STWA    f16Quo,d
+
+_UDiv32By16NextIter:
+        LDWA    f16Cnt,d
+        SUBA    1,i
+        STWA    f16Cnt,d
+        BR      _UDiv32By16Loop
+
+_UDiv32By16Done:
+        RET
+
+f16DvdHi:   .BLOCK 2
+f16DvdLo:   .BLOCK 2
+f16Dvr:     .BLOCK 2
+f16Quo:     .BLOCK 2
+f16Rem:     .BLOCK 2
+f16Cnt:     .BLOCK 2
+f16Overflow: .BLOCK 2
