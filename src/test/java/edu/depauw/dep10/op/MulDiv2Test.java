@@ -10,18 +10,22 @@ import org.junit.jupiter.api.Nested;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for Dep10MulDiv2 (SMULA/SMULX/UMULA/UMULX/SDIVA/SDIVX/UDIVA/UDIVX), the
- * H-register-based instruction set that opcode 8 has routed to since the h_register
- * merge (0.9.0). Dep10MulDiv (the old MULA/DIVA/MODA/... set tested in MulDivTest)
- * is no longer reachable from any opcode.
+ * Tests for the H-register-based half of Dep10MulDiv: SMULA/SMULX, UMULA/UMULX,
+ * SDMA/SDMX, and UDMA/UDMX. As of 0.9.1, Dep10MulDiv and the former Dep10MulDiv2
+ * are a single merged table at opcode 8 (see MulDivTest for the plain 16-bit
+ * half: MULr/DIVr/UDIVr/MODr/UMODr). SDMA/SDMX/UDMA/UDMX were renamed from
+ * SDIVA/SDIVX/UDIVA/UDIVX (9/24/2026 meeting) to reflect that they compute a
+ * quotient AND a remainder together (via H), unlike the plain 16-bit DIV/MOD,
+ * which are single-result.
  *
  * Several tests below are regressions for Issue #10: three register mix-ups found
- * by code review before this table was merged (UMULX writing into A instead of X;
- * SDIVX's divide-by-zero branch zeroing A instead of X; UDIVX being a full copy of
- * UDIVA that never touched X). Brian's fix (commit ff593c1) addressed all three; these
- * tests pin that behavior down so it can't silently regress. Every A/X pair below is
- * exercised with A and X holding different sentinel values from the start, per the
- * testing lesson noted in the DDIV design proposal after Issue #10.
+ * by code review before this table was merged into main (UMULX writing into A
+ * instead of X; SDMX's divide-by-zero branch zeroing A instead of X; UDMX being a
+ * full copy of UDMA that never touched X). Brian's fix (commit ff593c1) addressed
+ * all three; these tests pin that behavior down so it can't silently regress.
+ * Every A/X pair below is exercised with A and X holding different sentinel
+ * values from the start, per the testing lesson noted in the DDIV design
+ * proposal after Issue #10.
  */
 public class MulDiv2Test {
 
@@ -54,7 +58,7 @@ public class MulDiv2Test {
         @DisplayName("SMULA: 3 * 4 = 12, fits in low word, H=0, no flags")
         void smula_positive() {
             State s = freshA(3, 0, 4);
-            Dep10MulDiv2.SMULA.exec(s, Mode.I);
+            Dep10MulDiv.SMULA.exec(s, Mode.I);
 
             assertEquals(12, s.getA().value());
             assertEquals(0, s.getH().value());
@@ -68,7 +72,7 @@ public class MulDiv2Test {
         @DisplayName("SMULA: -3 * 4 = -12, H is sign-extension of A, N set, C clear")
         void smula_negative() {
             State s = freshA(Word.of(-3).value(), 0, 4);
-            Dep10MulDiv2.SMULA.exec(s, Mode.I);
+            Dep10MulDiv.SMULA.exec(s, Mode.I);
 
             assertEquals(-12, s.getA().signedValue());
             assertEquals(0xFFFF, s.getH().value(), "H should be all-ones sign-extension");
@@ -80,7 +84,7 @@ public class MulDiv2Test {
         @DisplayName("SMULA: 20000 * 20000 overflows 16 bits, C set, H holds real high word")
         void smula_overflowsSetsCarry() {
             State s = freshA(20000, 0, 20000);
-            Dep10MulDiv2.SMULA.exec(s, Mode.I);
+            Dep10MulDiv.SMULA.exec(s, Mode.I);
 
             long product = 400_000_000L;
             assertEquals((int) (product & 0xFFFF), s.getA().value());
@@ -92,7 +96,7 @@ public class MulDiv2Test {
         @DisplayName("SMULX: -3 * 4 = -12 written to X and H, A untouched")
         void smulx_writesToX() {
             State s = freshX(Word.of(-3).value(), 0, 4);
-            Dep10MulDiv2.SMULX.exec(s, Mode.I);
+            Dep10MulDiv.SMULX.exec(s, Mode.I);
 
             assertEquals(-12, s.getX().signedValue());
             assertEquals(0xFFFF, s.getH().value());
@@ -103,7 +107,7 @@ public class MulDiv2Test {
         @DisplayName("SMULA: 0 * anything = 0, Z set")
         void smula_zero() {
             State s = freshA(0, 0, 12345);
-            Dep10MulDiv2.SMULA.exec(s, Mode.I);
+            Dep10MulDiv.SMULA.exec(s, Mode.I);
             assertEquals(0, s.getA().value());
             assertEquals(0, s.getH().value());
             assertTrue(s.getZ());
@@ -118,7 +122,7 @@ public class MulDiv2Test {
         @DisplayName("UMULA: 3 * 4 = 12, H=0, C clear")
         void umula_positive() {
             State s = freshA(3, 0, 4);
-            Dep10MulDiv2.UMULA.exec(s, Mode.I);
+            Dep10MulDiv.UMULA.exec(s, Mode.I);
             assertEquals(12, s.getA().value());
             assertEquals(0, s.getH().value());
             assertFalse(s.getC());
@@ -128,7 +132,7 @@ public class MulDiv2Test {
         @DisplayName("UMULA: 60000 * 60000 exceeds 16 bits, C set, H nonzero")
         void umula_overflow() {
             State s = freshA(60000, 0, 60000);
-            Dep10MulDiv2.UMULA.exec(s, Mode.I);
+            Dep10MulDiv.UMULA.exec(s, Mode.I);
             long product = 60000L * 60000L;
             assertEquals((int) (product & 0xFFFF), s.getA().value());
             assertEquals((int) ((product >>> 16) & 0xFFFF), s.getH().value());
@@ -139,7 +143,7 @@ public class MulDiv2Test {
         @DisplayName("REGRESSION (Issue #10): UMULX writes its product into X, not A")
         void umulx_regressionWritesToX() {
             State s = freshX(3, 0, 4);
-            Dep10MulDiv2.UMULX.exec(s, Mode.I);
+            Dep10MulDiv.UMULX.exec(s, Mode.I);
 
             assertEquals(12, s.getX().value(), "UMULX must write the low word into X");
             assertEquals(A_SENTINEL, s.getA().value(), "UMULX must leave A untouched");
@@ -147,14 +151,14 @@ public class MulDiv2Test {
     }
 
     @Nested
-    @DisplayName("SDIVA / SDIVX (signed 32-by-16 divide, H:A or H:X)")
-    class SignedDivide {
+    @DisplayName("SDMA / SDMX (signed 32-by-16 divide+mod, H:A or H:X)")
+    class SignedDivideMod {
 
         @Test
-        @DisplayName("SDIVA: 100 / 7 = 14 r 2, no flags")
-        void sdiva_normal() {
+        @DisplayName("SDMA: 100 / 7 = 14 r 2, no flags")
+        void sdma_normal() {
             State s = freshA(100, 0, 7);
-            Dep10MulDiv2.SDIVA.exec(s, Mode.I);
+            Dep10MulDiv.SDMA.exec(s, Mode.I);
             assertEquals(14, s.getA().value());
             assertEquals(2, s.getH().value());
             assertFalse(s.getC());
@@ -162,13 +166,13 @@ public class MulDiv2Test {
         }
 
         @Test
-        @DisplayName("SDIVA: -100 / 7 = -14 r -2 (truncating division), N set")
-        void sdiva_negativeDividend() {
+        @DisplayName("SDMA: -100 / 7 = -14 r -2 (truncating division), N set")
+        void sdma_negativeDividend() {
             long dividend = -100L;
             int h = (int) ((dividend >> 16) & 0xFFFF);
             int a = (int) (dividend & 0xFFFF);
             State s = freshA(a, h, 7);
-            Dep10MulDiv2.SDIVA.exec(s, Mode.I);
+            Dep10MulDiv.SDMA.exec(s, Mode.I);
 
             assertEquals(-14, s.getA().signedValue());
             assertEquals(-2, s.getH().signedValue());
@@ -176,10 +180,10 @@ public class MulDiv2Test {
         }
 
         @Test
-        @DisplayName("SDIVA: divide by zero zeroes A and H, N=0 Z=1 V=1 C=1")
-        void sdiva_divideByZero() {
+        @DisplayName("SDMA: divide by zero zeroes A and H, N=0 Z=1 V=1 C=1")
+        void sdma_divideByZero() {
             State s = freshA(100, 0, 0);
-            Dep10MulDiv2.SDIVA.exec(s, Mode.I);
+            Dep10MulDiv.SDMA.exec(s, Mode.I);
 
             assertEquals(0, s.getA().value());
             assertEquals(0, s.getH().value());
@@ -190,23 +194,23 @@ public class MulDiv2Test {
         }
 
         @Test
-        @DisplayName("REGRESSION (Issue #10): SDIVX divide-by-zero zeroes X, not A")
-        void sdivx_regressionDivideByZeroZeroesX() {
+        @DisplayName("REGRESSION (Issue #10): SDMX divide-by-zero zeroes X, not A")
+        void sdmx_regressionDivideByZeroZeroesX() {
             State s = freshX(100, 0, 0);
-            Dep10MulDiv2.SDIVX.exec(s, Mode.I);
+            Dep10MulDiv.SDMX.exec(s, Mode.I);
 
-            assertEquals(0, s.getX().value(), "SDIVX divide-by-zero must zero X");
-            assertEquals(A_SENTINEL, s.getA().value(), "SDIVX divide-by-zero must not touch A");
+            assertEquals(0, s.getX().value(), "SDMX divide-by-zero must zero X");
+            assertEquals(A_SENTINEL, s.getA().value(), "SDMX divide-by-zero must not touch A");
             assertEquals(0, s.getH().value());
             assertTrue(s.getC());
             assertTrue(s.getV());
         }
 
         @Test
-        @DisplayName("SDIVX: 100 / 7 = 14 r 2 in X, A untouched")
-        void sdivx_normal() {
+        @DisplayName("SDMX: 100 / 7 = 14 r 2 in X, A untouched")
+        void sdmx_normal() {
             State s = freshX(100, 0, 7);
-            Dep10MulDiv2.SDIVX.exec(s, Mode.I);
+            Dep10MulDiv.SDMX.exec(s, Mode.I);
             assertEquals(14, s.getX().value());
             assertEquals(2, s.getH().value());
             assertEquals(A_SENTINEL, s.getA().value());
@@ -214,43 +218,43 @@ public class MulDiv2Test {
     }
 
     @Nested
-    @DisplayName("UDIVA / UDIVX (unsigned 32-by-16 divide, H:A or H:X)")
-    class UnsignedDivide {
+    @DisplayName("UDMA / UDMX (unsigned 32-by-16 divide+mod, H:A or H:X)")
+    class UnsignedDivideMod {
 
         @Test
-        @DisplayName("UDIVA: 100 / 7 = 14 r 2")
-        void udiva_normal() {
+        @DisplayName("UDMA: 100 / 7 = 14 r 2")
+        void udma_normal() {
             State s = freshA(100, 0, 7);
-            Dep10MulDiv2.UDIVA.exec(s, Mode.I);
+            Dep10MulDiv.UDMA.exec(s, Mode.I);
             assertEquals(14, s.getA().value());
             assertEquals(2, s.getH().value());
         }
 
         @Test
-        @DisplayName("UDIVA: dividend spans H:A (65536 / 100 = 655 r 36)")
-        void udiva_spansHighWord() {
+        @DisplayName("UDMA: dividend spans H:A (65536 / 100 = 655 r 36)")
+        void udma_spansHighWord() {
             State s = freshA(0, 1, 100);
-            Dep10MulDiv2.UDIVA.exec(s, Mode.I);
+            Dep10MulDiv.UDMA.exec(s, Mode.I);
             assertEquals(655, s.getA().value());
             assertEquals(36, s.getH().value());
         }
 
         @Test
-        @DisplayName("REGRESSION (Issue #10): UDIVX actually divides using X, not a copy of UDIVA")
-        void udivx_regressionUsesX() {
+        @DisplayName("REGRESSION (Issue #10): UDMX actually divides using X, not a copy of UDMA")
+        void udmx_regressionUsesX() {
             State s = freshX(100, 0, 7);
-            Dep10MulDiv2.UDIVX.exec(s, Mode.I);
+            Dep10MulDiv.UDMX.exec(s, Mode.I);
 
-            assertEquals(14, s.getX().value(), "UDIVX must write the quotient into X");
+            assertEquals(14, s.getX().value(), "UDMX must write the quotient into X");
             assertEquals(2, s.getH().value());
-            assertEquals(A_SENTINEL, s.getA().value(), "UDIVX must not touch A");
+            assertEquals(A_SENTINEL, s.getA().value(), "UDMX must not touch A");
         }
 
         @Test
-        @DisplayName("REGRESSION (Issue #10): UDIVX divide-by-zero zeroes X, not A")
-        void udivx_regressionDivideByZero() {
+        @DisplayName("REGRESSION (Issue #10): UDMX divide-by-zero zeroes X, not A")
+        void udmx_regressionDivideByZero() {
             State s = freshX(100, 0, 0);
-            Dep10MulDiv2.UDIVX.exec(s, Mode.I);
+            Dep10MulDiv.UDMX.exec(s, Mode.I);
 
             assertEquals(0, s.getX().value());
             assertEquals(A_SENTINEL, s.getA().value());
@@ -264,12 +268,12 @@ public class MulDiv2Test {
     class TableWiring {
 
         @Test
-        @DisplayName("Top-level opcode 8 routes to Dep10MulDiv2, not the retired Dep10MulDiv")
-        void opcode8RoutesToMulDiv2() {
+        @DisplayName("Top-level opcode 8 routes to the merged Dep10MulDiv table")
+        void opcode8RoutesToMulDiv() {
             var entry = Pep10.table.getOp(edu.depauw.dep10.util.UByte.of(8));
             assertTrue(entry instanceof Operation.Prefix, "opcode 8 should be a prefix into an extension table");
             var prefix = (Operation.Prefix) entry;
-            assertSame(Dep10MulDiv2.table, prefix.getTable());
+            assertSame(Dep10MulDiv.table, prefix.getTable());
         }
     }
 }

@@ -64,6 +64,10 @@ public class Sources implements Iterator<Line> {
         deque.push(new FileSource(filename, log));
     }
 
+    public void pushResource(String resource, ErrorLog log) {
+        deque.push(new ResourceSource(resource, log, visibleResources));
+    }
+
     public void pushLines(String macroName, List<Line> lines) {
         var it = lines.iterator();
         var source = new Source(macroName, it, deque.peek().isVisible());
