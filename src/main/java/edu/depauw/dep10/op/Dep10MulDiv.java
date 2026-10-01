@@ -458,6 +458,12 @@ public class Dep10MulDiv {
     
     // TODO UMULSA (unsigned operand, signed A)? SMULUA (signed operand, unsigned A)?
 
+    public static final OpCore DMUL = new OpCore("UMULSA", Modes.All){
+        public void exec(State s, Mode Mode){
+
+        }
+    };
+
     /**
      * 32-bit (H:A) by 16-bit (operand) signed integer division, 16-bit result
      * quotient will be in A register, remainder in H
