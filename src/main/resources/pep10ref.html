@@ -88,13 +88,13 @@
 				<td valign="top">MulDiv Table</td>
 				<td valign="top">0000 1000</td>
 				<td valign="top">Extended Table</td>
-				<td valign="top">MUL, DIV, MOD, SWAP</td>
+				<td valign="top">Prefix for extended table</td>
 			</tr>
 			<tr>
 				<td valign="top">PushPop Table</td>
 				<td valign="top">0000 1001</td>
 				<td valign="top">Extended Table</td>
-				<td valign="top">SWAP, PUSH, POP</td>
+				<td valign="top">Prefix for extended table</td>
 			</tr>
 			<tr>
 				<td valign="top">NEGr</td>
@@ -301,6 +301,103 @@
 				<td valign="top">1111 raaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">byte Operand ← r[8 : 15]</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h2>Extended Table Operations</h2>
+	<table>
+		<tbody>
+			<tr>
+				<th>Table</th>
+				<th>Mnemonic</th>
+				<th>Opcode</th>
+				<th>Modes</th>
+				<th>Effect</th>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>MULr a</td>
+				<td>0000 1000</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>DIVr a</td>
+				<td>0001 1000</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>MODr a</td>
+				<td>0010 0000</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>UDIVr a</td>
+				<td>0010 1000</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>UMODr a</td>
+				<td>0100 1000</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>SMULr</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>UMULr</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>SDMr</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>MulDiv</td>
+				<td>UDMr</td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>PushPop</td>
+				<td>SWAPrr</td>
+				<td>0000 0001</td>
+				<td>Monadic</td>
+				<td>r2 ← r1, AXH</td>
+			</tr>
+			<tr>
+				<td>PushPop</td>
+				<td>PUSHr</td>
+				<td>0000 0010</td>
+				<td>Monadic</td>
+				<td>s ← Operand</td>
+			</tr>
+			<tr>
+				<td>PushPop</td>
+				<td>POPr</td>
+				<td>0000 0011</td>
+				<td>Monadic</td>
+				<td>Operand ← s</td>
 			</tr>
 		</tbody>
 	</table>
