@@ -88,13 +88,13 @@
 				<td valign="top">MulDiv Table</td>
 				<td valign="top">0000 1000</td>
 				<td valign="top">Extended Table</td>
-				<td valign="top">Prefix for extended table</td>
+				<td valign="top">Prefix for extended table (see below)</td>
 			</tr>
 			<tr>
 				<td valign="top">PushPop Table</td>
 				<td valign="top">0000 1001</td>
 				<td valign="top">Extended Table</td>
-				<td valign="top">Prefix for extended table</td>
+				<td valign="top">Prefix for extended table (see below)</td>
 			</tr>
 			<tr>
 				<td valign="top">NEGr</td>
@@ -306,98 +306,198 @@
 	</table>
 
 	<h2>Extended Table Operations</h2>
+	<h3>MulDiv Table (prefix 0000 1000)</h3>
 	<table>
 		<tbody>
 			<tr>
-				<th>Table</th>
 				<th>Mnemonic</th>
 				<th>Opcode</th>
 				<th>Modes</th>
 				<th>Effect</th>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>MULr a</td>
-				<td>0000 1000</td>
-				<td></td>
-				<td></td>
+				<td valign="top">MULA</td>
+				<td valign="top">0000 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A × Operand (low 16 bits of signed product)<br>
+					N ← A &lt; 0 , Z ← A = 0 , V ← 0 , C ← {full product does not fit in 16 bits}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>DIVr a</td>
-				<td>0001 1000</td>
-				<td></td>
-				<td></td>
+				<td valign="top">MULX</td>
+				<td valign="top">0001 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X × Operand (low 16 bits of signed product)<br>
+					N ← X &lt; 0 , Z ← X = 0 , V ← 0 , C ← {full product does not fit in 16 bits}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>MODr a</td>
-				<td>0010 0000</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DIVA</td>
+				<td valign="top">0001 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A ÷ Operand (signed); on divide-by-zero, A ← 0<br>
+					N ← A &lt; 0 , Z ← A = 0 , V ← {divide-by-zero or overflow (only for −32768 ÷ −1)} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>UDIVr a</td>
-				<td>0010 1000</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DIVX</td>
+				<td valign="top">0010 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X ÷ Operand (signed); on divide-by-zero, X ← 0<br>
+					N ← X &lt; 0 , Z ← X = 0 , V ← {divide-by-zero or overflow (only for −32768 ÷ −1)} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>UMODr a</td>
-				<td>0100 1000</td>
-				<td></td>
-				<td></td>
+				<td valign="top">MODA</td>
+				<td valign="top">0010 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A mod Operand (signed); on divide-by-zero, A ← 0<br>
+					N ← A &lt; 0 , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>SMULr</td>
-				<td></td>
-				<td></td>
-				<td></td>
+				<td valign="top">MODX</td>
+				<td valign="top">0011 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X mod Operand (signed); on divide-by-zero, X ← 0<br>
+					N ← X &lt; 0 , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>UMULr</td>
-				<td></td>
-				<td></td>
-				<td></td>
+				<td valign="top">UDIVA</td>
+				<td valign="top">0011 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A ÷ Operand (unsigned); on divide-by-zero, A ← 0<br>
+					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>SDMr</td>
-				<td></td>
-				<td></td>
-				<td></td>
+				<td valign="top">UDIVX</td>
+				<td valign="top">0100 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X ÷ Operand (unsigned); on divide-by-zero, X ← 0<br>
+					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>MulDiv</td>
-				<td>UDMr</td>
-				<td></td>
-				<td></td>
-				<td></td>
+				<td valign="top">UMODA</td>
+				<td valign="top">0100 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A mod Operand (unsigned); on divide-by-zero, A ← 0<br>
+					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>PushPop</td>
-				<td>SWAPrr</td>
-				<td>0000 0001</td>
-				<td>Monadic</td>
-				<td>r2 ← r1, AXH</td>
+				<td valign="top">UMODX</td>
+				<td valign="top">0101 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X mod Operand (unsigned); on divide-by-zero, X ← 0<br>
+					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
-				<td>PushPop</td>
-				<td>PUSHr</td>
-				<td>0000 0010</td>
-				<td>Monadic</td>
-				<td>s ← Operand</td>
+				<td valign="top">SMULA</td>
+				<td valign="top">0101 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">H:A ← A × Operand (signed, full 32-bit product)<br>
+					N ← H &lt; 0 , Z ← H:A = 0 , V unaffected , C ← {H is not just the sign-extension of A}</td>
 			</tr>
 			<tr>
-				<td>PushPop</td>
-				<td>POPr</td>
-				<td>0000 0011</td>
-				<td>Monadic</td>
-				<td>Operand ← s</td>
+				<td valign="top">SMULX</td>
+				<td valign="top">0110 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">H:X ← X × Operand (signed, full 32-bit product)<br>
+					N ← H &lt; 0 , Z ← H:X = 0 , V unaffected , C ← {H is not just the sign-extension of X}</td>
+			</tr>
+			<tr>
+				<td valign="top">UMULA</td>
+				<td valign="top">0110 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">H:A ← A × Operand (unsigned, full 32-bit product)<br>
+					N ← H &lt; 0 (as signed 32-bit) , Z ← H:A = 0 , V unaffected , C ← {H ≠ 0}</td>
+			</tr>
+			<tr>
+				<td valign="top">UMULX</td>
+				<td valign="top">0111 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">H:X ← X × Operand (unsigned, full 32-bit product)<br>
+					N ← H &lt; 0 (as signed 32-bit) , Z ← H:X = 0 , V unaffected , C ← {H ≠ 0}</td>
+			</tr>
+			<tr>
+				<td valign="top">SDMA</td>
+				<td valign="top">0111 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← (H:A) ÷ Operand , H ← (H:A) mod Operand (signed); on divide-by-zero, A ← 0, H ← 0<br>
+					N ← A &lt; 0 , Z ← A = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
+			</tr>
+			<tr>
+				<td valign="top">SDMX</td>
+				<td valign="top">1000 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← (H:X) ÷ Operand , H ← (H:X) mod Operand (signed); on divide-by-zero, X ← 0, H ← 0<br>
+					N ← X &lt; 0 , Z ← X = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
+			</tr>
+			<tr>
+				<td valign="top">UDMA</td>
+				<td valign="top">1000 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← (H:A) ÷ Operand , H ← (H:A) mod Operand (unsigned); on divide-by-zero, A ← 0, H ← 0<br>
+					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
+			</tr>
+			<tr>
+				<td valign="top">UDMX</td>
+				<td valign="top">1001 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← (H:X) ÷ Operand , H ← (H:X) mod Operand (unsigned); on divide-by-zero, X ← 0, H ← 0<br>
+					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<h3>PushPop Table (prefix 0000 1001)</h3>
+	<table>
+		<tbody>
+			<tr>
+				<th>Mnemonic</th>
+				<th>Opcode</th>
+				<th>Modes</th>
+				<th>Effect</th>
+			</tr>
+			<tr>
+				<td valign="top">SWAPAX</td>
+				<td valign="top">0000 0001</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A ↔ X</td>
+			</tr>
+			<tr>
+				<td valign="top">SWAPHA</td>
+				<td valign="top">0000 0010</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">H ↔ A</td>
+			</tr>
+			<tr>
+				<td valign="top">SWAPHX</td>
+				<td valign="top">0000 0011</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">H ↔ X</td>
+			</tr>
+			<tr>
+				<td valign="top">PUSHA</td>
+				<td valign="top">0000 0100</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">SP ← SP − 2<br>
+					Mem[SP] ← A</td>
+			</tr>
+			<tr>
+				<td valign="top">PUSHX</td>
+				<td valign="top">0000 0101</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">SP ← SP − 2<br>
+					Mem[SP] ← X</td>
+			</tr>
+			<tr>
+				<td valign="top">POPA</td>
+				<td valign="top">0000 0110</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A ← Mem[SP]<br>
+					SP ← SP + 2</td>
+			</tr>
+			<tr>
+				<td valign="top">POPX</td>
+				<td valign="top">0000 0111</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">X ← Mem[SP]<br>
+					SP ← SP + 2</td>
 			</tr>
 		</tbody>
 	</table>
@@ -411,59 +511,59 @@
 				<th>Effect</th>
 			</tr>
 			<tr>
-				<td>DECI</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DECI</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Reads a decimal integer from input and stores it at Operand</td>
 			</tr>
 			<tr>
-				<td>DECO</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DECO</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Writes Operand to output as a decimal integer</td>
 			</tr>
 			<tr>
-				<td>HEXI</td>
-				<td></td>
-				<td></td>
+				<td valign="top">HEXI</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Reads 4 hexadecimal digits from input and stores the word at Operand</td>
 			</tr>
 			<tr>
-				<td>HEXO</td>
-				<td></td>
-				<td></td>
+				<td valign="top">HEXO</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Writes Operand to output as 4 hexadecimal digits</td>
 			</tr>
 			<tr>
-				<td>STRO</td>
-				<td></td>
-				<td></td>
+				<td valign="top">STRO</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Writes the null-terminated ASCII string starting at Operand to output</td>
 			</tr>
 			<tr>
-				<td>DUP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DUP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 			<tr>
-				<td>DDUP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DDUP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 			<tr>
-				<td>DROP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DROP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 			<tr>
-				<td>DDROP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DDROP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 			<tr>
-				<td>SWAP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">SWAP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 			<tr>
-				<td>DSWAP</td>
-				<td></td>
-				<td></td>
+				<td valign="top">DSWAP</td>
+				<td valign="top"></td>
+				<td valign="top"></td>
 			</tr>
 		</tbody>
 	</table>
