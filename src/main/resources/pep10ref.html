@@ -503,12 +503,18 @@
 	</table>
 
 	<h2>Macros</h2>
+	<p>Each macro expands to an SCALL trap.</p>
 	<table>
 		<tbody>
 			<tr>
 				<th>Name</th>
 				<th>Modes</th>
 				<th>Effect</th>
+			</tr>
+			<tr>
+				<td valign="top">SNOP</td>
+				<td valign="top">i</td>
+				<td valign="top">No operation</td>
 			</tr>
 			<tr>
 				<td valign="top">DECI</td>
@@ -521,19 +527,14 @@
 				<td valign="top">Writes Operand to output as a decimal integer</td>
 			</tr>
 			<tr>
-				<td valign="top">HEXI</td>
-				<td valign="top">d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">Reads 4 hexadecimal digits from input and stores the word at Operand</td>
-			</tr>
-			<tr>
 				<td valign="top">HEXO</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">Writes Operand to output as 4 hexadecimal digits</td>
+				<td valign="top">Writes Operand to output as 4 hexadecimal digits. Flags unaffected.</td>
 			</tr>
 			<tr>
 				<td valign="top">STRO</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">Writes the null-terminated ASCII string starting at Operand to output</td>
+				<td valign="top">Writes the null-terminated ASCII string starting at Operand to output. Flags unaffected.</td>
 			</tr>
 			<tr>
 				<td valign="top">DUP</td>
