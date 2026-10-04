@@ -656,7 +656,7 @@
 			<td>2 bytes</td>
 		</tr>
 		<tr>
-			<td>Hidden</td>
+			<td>Hidden/High Word</td>
 			<td>H</td>
 			<td></td>
 			<td>2 bytes</td>
@@ -738,6 +738,8 @@ while not power off && instruction was legal
 		<dd>add the symbol to the export list</dd>
 		<dt><samp>.INCLUDE "file"</samp></dt>
 		<dd>assemble the contents of the given file at the current location</dd>
+		<dt><samp>.INCLUDELIB "resource"</samp></dt>
+		<dd>assemble the contents of the given resource library at the current location</dd>
 		<dt><samp>.INPUT sym</samp></dt>
 		<dd>mark the symbol as memory-mapped input</dd>
 		<dt><samp>.ORG addr</samp></dt>
