@@ -537,33 +537,33 @@
 			</tr>
 			<tr>
 				<td valign="top">DUP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Duplicates the top word on the stack: SUBSP 2, then copies the old top word into the new top. Clobbers A. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DDUP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Duplicates the top 32-bit value (two words, high word at the lower address) on the stack. Clobbers A.</td>
 			</tr>
 			<tr>
 				<td valign="top">DROP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Discards the top word on the stack (ADDSP 2).</td>
 			</tr>
 			<tr>
 				<td valign="top">DDROP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Discards the top 32-bit value on the stack (ADDSP 4).</td>
 			</tr>
 			<tr>
 				<td valign="top">SWAP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Swaps the top two words on the stack. Clobbers A and X.</td>
 			</tr>
 			<tr>
 				<td valign="top">DSWAP</td>
-				<td valign="top"></td>
-				<td valign="top"></td>
+				<td valign="top">none</td>
+				<td valign="top">Swaps the top two 32-bit values on the stack. Clobbers A and X.</td>
 			</tr>
 		</tbody>
 	</table>
