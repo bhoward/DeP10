@@ -18,7 +18,7 @@ public abstract class RExpr {
 
     public static class Binary extends RExpr {
         public static enum OpCode {
-            IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT
+            IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, LADD, LSUB
         }
 
         public final OpCode op;
@@ -45,7 +45,7 @@ public abstract class RExpr {
 
     public static class Unary extends RExpr {
         public static enum OpCode {
-            INEG, FNEG, LNOT, FLOAT, REF
+            INEG, FNEG, LNOT, FLOAT, LONG, REF
         }
 
         public final OpCode op;
@@ -133,7 +133,9 @@ public abstract class RExpr {
         case LESS_EQUAL:
             return makeUnary(type, TokenType.NOT, makeBinary(type, TokenType.LESS, right, left));
         case MINUS:
-            if (left.type == Type.INTEGER) {
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LSUB, left, right);
+            } else if (left.type == Type.INTEGER) {
                 return new Binary(type, Binary.OpCode.ISUB, left, right);
             } else {
                 return new Binary(type, Binary.OpCode.FSUB, left, right);
@@ -145,7 +147,9 @@ public abstract class RExpr {
         case OR:
             return new Binary(type, Binary.OpCode.LOR, left, right);
         case PLUS:
-            if (left.type == Type.INTEGER) {
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LADD, left, right);
+            } else if (left.type == Type.INTEGER) {
                 return new Binary(type, Binary.OpCode.IADD, left, right);
             } else {
                 return new Binary(type, Binary.OpCode.FADD, left, right);
@@ -183,6 +187,9 @@ public abstract class RExpr {
     }
 
     public static RExpr makeCast(Type type, RExpr expr) {
+        if (type == Type.LONGINT) {
+            return new Unary(type, Unary.OpCode.LONG, expr);
+        }
         return new Unary(type, Unary.OpCode.FLOAT, expr);
     }
 

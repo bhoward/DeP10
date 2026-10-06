@@ -25,6 +25,7 @@ public class Scanner {
         keywords.put("FOR", FOR);
         keywords.put("IF", IF);
         keywords.put("INTEGER", INTEGER);
+        keywords.put("LONGINT", LONGINT);
         keywords.put("MOD", MOD);
         keywords.put("OR", OR);
         keywords.put("PROCEDURE", PROCEDURE);

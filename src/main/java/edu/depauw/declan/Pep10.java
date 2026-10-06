@@ -13,6 +13,7 @@ import edu.depauw.declan.ir.Instruction.UnaryString;
 public class Pep10 {
     private List<String> result;
     private int labelSeqNo;
+    private boolean usesDoubleword;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -37,6 +38,11 @@ public class Pep10 {
         }
 
         writeRuntime();
+
+        if (usesDoubleword) {
+            // DADD and DSUB are callable routines, so they go after the code that ends in RET
+            out(".INCLUDELIB \"daddsub\"");
+        }
 
         return result;
     }
@@ -260,6 +266,34 @@ public class Pep10 {
             out("ADDSP 2,i");
             out("STWA 0,s");
             break;
+        case LADD:
+            // Two 32-bit values, each high word at the lower address. DADD replaces
+            // the first operand with the sum; discard the second.
+            usesDoubleword = true;
+            out("CALL DADD,i");
+            out("ADDSP 4,i");
+            break;
+        case LSUB:
+            usesDoubleword = true;
+            out("CALL DSUB,i");
+            out("ADDSP 4,i");
+            break;
+        case LONG: {
+            // Widen the INTEGER on top of the stack to a 32-bit value: the old word
+            // becomes the low word, and the new high word is its sign extension.
+            String neg = newLabel();
+            out("LDWA 0,s");
+            out("SUBSP 2,i");
+            out("STWA 2,s");
+            out("LDWA 0,i");
+            out("STWA 0,s");
+            out("LDWA 2,s");
+            out("BRGE %s,i", neg);
+            out("LDWA -1,i");
+            out("STWA 0,s");
+            out("%s: NOP", neg);
+            break;
+        }
         case LAND:
             out("LDWA 2,s");
             out("ANDA 0,s");
@@ -367,6 +401,69 @@ public class Pep10 {
             out("LDWA 0,s");
             out("STWA -2,sf");
             out("ADDSP 2,i");
+            break;
+        case LLD_CONST:
+            out("LDWA %d,i", (short) (ui.value >>> 16));
+            out("SUBSP 4,i");
+            out("STWA 0,s");
+            out("LDWA %d,i", (short) ui.value);
+            out("STWA 2,s");
+            break;
+        case LLD_GLOBAL:
+            out("SUBSP 4,i");
+            out("LDWA _g%d,d", ui.value);
+            out("STWA 0,s");
+            out("LDWA _g%d,d", ui.value + 1);
+            out("STWA 2,s");
+            break;
+        case LLD_LOCAL:
+            // low word is slot n, high word is slot n+1 (the lower address)
+            out("SUBSP 4,i");
+            out("LDWA %d,x", -2 * (ui.value + 1));
+            out("STWA 0,s");
+            out("LDWA %d,x", -2 * ui.value);
+            out("STWA 2,s");
+            break;
+        case LLD_VARP:
+            // slot n holds the address of the high word
+            out("LDWA %d,x", -2 * ui.value);
+            out("SUBSP 4,i");
+            out("STWA 0,s");
+            out("LDWA 0,sf");
+            out("STWA -2,s");
+            out("LDWA 0,s");
+            out("ADDA 2,i");
+            out("STWA 0,s");
+            out("LDWA 0,sf");
+            out("STWA 2,s");
+            out("LDWA -2,s");
+            out("STWA 0,s");
+            break;
+        case LST_GLOBAL:
+            out("LDWA 0,s");
+            out("STWA _g%d,d", ui.value);
+            out("LDWA 2,s");
+            out("STWA _g%d,d", ui.value + 1);
+            out("ADDSP 4,i");
+            break;
+        case LST_LOCAL:
+            out("LDWA 0,s");
+            out("STWA %d,x", -2 * (ui.value + 1));
+            out("LDWA 2,s");
+            out("STWA %d,x", -2 * ui.value);
+            out("ADDSP 4,i");
+            break;
+        case LST_VARP:
+            out("LDWA %d,x", -2 * ui.value);
+            out("STWA -2,s");
+            out("LDWA 0,s");
+            out("STWA -2,sf");
+            out("LDWA -2,s");
+            out("ADDA 2,i");
+            out("STWA -2,s");
+            out("LDWA 2,s");
+            out("STWA -2,sf");
+            out("ADDSP 4,i");
             break;
         case SETFP:
             out("MOVSPA");

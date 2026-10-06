@@ -60,6 +60,10 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
         RExpr left = expr.left.accept(this);
         RExpr right = expr.right.accept(this);
 
+        if (isLong(left) || isLong(right)) {
+            return longBinary(expr, left, right);
+        }
+
         switch (expr.operator.type) {
         case PLUS:
         case MINUS:
@@ -129,6 +133,44 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
         }
     }
 
+    /**
+     * Typing for a binary expression with a LONGINT operand. Only + and - are
+     * implemented so far, with an INTEGER operand widened automatically.
+     */
+    private RExpr longBinary(Binary expr, RExpr left, RExpr right) {
+        int line = expr.operator.line;
+        switch (expr.operator.type) {
+        case PLUS:
+        case MINUS:
+            if (left == null || right == null) {
+                return null;
+            } else if (isIntOrLong(left) && isIntOrLong(right)) {
+                return RExpr.makeBinary(Type.LONGINT, expr.operator.type, ensureLong(left), ensureLong(right));
+            }
+            reporter.error(line, "LONGINT cannot be combined with " + (left.type == Type.REAL || right.type == Type.REAL ? "REAL" : "BOOLEAN") + " yet.");
+            return null;
+        default:
+            reporter.error(line, "Operator is not supported for LONGINT yet.");
+            return null;
+        }
+    }
+
+    private RExpr ensureLong(RExpr expr) {
+        if (expr.type == Type.LONGINT) {
+            return expr;
+        } else {
+            return RExpr.makeCast(Type.LONGINT, expr);
+        }
+    }
+
+    private boolean isLong(RExpr expr) {
+        return expr != null && expr.type == Type.LONGINT;
+    }
+
+    private boolean isIntOrLong(RExpr expr) {
+        return expr != null && (expr.type == Type.INTEGER || expr.type == Type.LONGINT);
+    }
+
     private RExpr ensureReal(RExpr expr) {
         if (expr.type == Type.REAL) {
             return expr;
@@ -138,15 +180,15 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
     }
 
     private boolean isNumeric(RExpr expr) {
-        return expr.type == Type.INTEGER || expr.type == Type.REAL;
+        return expr != null && (expr.type == Type.INTEGER || expr.type == Type.REAL);
     }
 
     private boolean isInteger(RExpr expr) {
-        return expr.type == Type.INTEGER;
+        return expr != null && expr.type == Type.INTEGER;
     }
 
     private boolean isBoolean(RExpr expr) {
-        return expr.type == Type.BOOLEAN;
+        return expr != null && expr.type == Type.BOOLEAN;
     }
 
     public static Type typeOf(Object value) {
@@ -156,6 +198,8 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             return Type.REAL;
         } else if (value instanceof Boolean) {
             return Type.BOOLEAN;
+        } else if (value instanceof Long) {
+            return Type.LONGINT;
         }
         return null;
     }
@@ -168,6 +212,11 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
     @Override
     public RExpr visitUnaryExpr(Unary expr) {
         RExpr right = expr.right.accept(this);
+
+        if (isLong(right)) {
+            reporter.error(expr.operator.line, "Unary operators are not supported for LONGINT yet.");
+            return null;
+        }
 
         switch (expr.operator.type) {
         case PLUS:
@@ -226,10 +275,15 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             RExpr right = stmt.expr.accept(this);
             Location loc = new Location(info.slot, isLocal, info.isVarParam);
 
-            if (left == right.type) {
+            if (right == null) {
+                // The error in the expression has already been reported
+                return null;
+            } else if (left == right.type) {
                 return RStmt.makeAssignment(line, left, loc, right);
             } else if (left == Type.REAL && isInteger(right)) {
                 return RStmt.makeAssignment(line, left, loc, ensureReal(right));
+            } else if (left == Type.LONGINT && isInteger(right)) {
+                return RStmt.makeAssignment(line, left, loc, ensureLong(right));
             } else {
                 reporter.error(line, "Incompatible types in assignment.");
             }
@@ -273,6 +327,8 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
                     rargs.add(rarg);
                 } else if (param.type == Type.REAL && isInteger(rarg)) {
                     rargs.add(ensureReal(rarg));
+                } else if (param.type == Type.LONGINT && isInteger(rarg)) {
+                    rargs.add(ensureLong(rarg));
                 } else {
                     reporter.error(line, "Incompatible type in argument.");
                 }
@@ -416,6 +472,8 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             return 0;
         case REAL:
             return 0.0;
+        case LONGINT:
+            return 0L;
         default:
             // Should not happen.
             return null;
