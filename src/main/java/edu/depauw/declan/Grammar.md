@@ -28,7 +28,7 @@ contain further nested comments).
 ### Reserved Words
 
 ```
-BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, INTEGER, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
+BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, INTEGER, LONGINT, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
 ```
 
 ## Syntax Rules
@@ -61,7 +61,7 @@ IdentList -> ident IdentListRest
 IdentListRest -> , ident IdentListRest
 IdentListRest ->
 
-Type -> BOOLEAN | INTEGER | REAL
+Type -> BOOLEAN | INTEGER | LONGINT | REAL
 
 ProcedureDeclSequence -> ProcedureDecl ; ProcedureDeclSequence
 ProcedureDeclSequence ->

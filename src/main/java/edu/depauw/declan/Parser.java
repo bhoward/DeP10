@@ -113,6 +113,8 @@ public class Parser {
             return Type.BOOLEAN;
         } else if (match(INTEGER)) {
             return Type.INTEGER;
+        } else if (match(LONGINT)) {
+            return Type.LONGINT;
         } else if (match(REAL)) {
             return Type.REAL;
         } else {

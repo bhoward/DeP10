@@ -60,6 +60,16 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
                 expr.right.accept(Generator.this);
                 generateBranchILess(ifTrue, ifFalse);
                 break;
+            case LEQL:
+                expr.left.accept(Generator.this);
+                expr.right.accept(Generator.this);
+                instructions.add(Instruction.makeBranchEqual(Type.LONGINT, ifTrue, ifFalse));
+                break;
+            case LLT:
+                expr.left.accept(Generator.this);
+                expr.right.accept(Generator.this);
+                instructions.add(Instruction.makeBranchLess(Type.LONGINT, ifTrue, ifFalse));
+                break;
             case LAND: {
                 Label skip = newLabel();
                 expr.left.accept(new BoolGen(skip, ifFalse));
@@ -139,8 +149,18 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
 
         int i = 0;
         for (Object x : program.inits) {
-            generateLabel(new Label("_g" + i++));
-            generateConstant(TypeChecker.typeOf(x), x);
+            Type type = TypeChecker.typeOf(x);
+            if (type == Type.LONGINT) {
+                // Two words, high word first (at the lower address)
+                int value = (int) (long) x;
+                generateLabel(new Label("_g" + i++));
+                generateConstant(Type.INTEGER, (int) (short) (value >>> 16));
+                generateLabel(new Label("_g" + i++));
+                generateConstant(Type.INTEGER, (int) (short) value);
+            } else {
+                generateLabel(new Label("_g" + i++));
+                generateConstant(type, x);
+            }
         }
 
         for (RProc proc : program.procs) {
@@ -163,10 +183,12 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
     public Void visitProc(RProc proc) {
         generateLabel(new Label(proc.name));
 
-        int numLocals = proc.inits.size();
+        int numLocals = 0;
 
         for (Object x : proc.inits) {
-            generateLoadConstant(TypeChecker.typeOf(x), x);
+            Type type = TypeChecker.typeOf(x);
+            numLocals += type.width();
+            generateLoadConstant(type, x);
         }
 
         generateSetFP(proc.numSlots);
@@ -199,7 +221,11 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         }
 
         generateCall(stmt.name);
-        generateDrop(stmt.args.size());
+        int numWords = 0;
+        for (RExpr expr : stmt.args) {
+            numWords += wordsOf(expr);
+        }
+        generateDrop(numWords);
 
         generateRestoreFP();
 
@@ -344,9 +370,19 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         generateBranch(ifTrue);
     }
 
+    // Number of words an argument occupies on the stack: a reference is always
+    // one word, otherwise the width of the value's type.
+    private int wordsOf(RExpr expr) {
+        if (expr instanceof Unary u && u.op == Unary.OpCode.REF) {
+            return 1;
+        }
+        return expr.type.width();
+    }
+
     private void generateRef(Type type, Location loc) {
         if (loc.isVarParam) {
-            generateLoadLocal(type, loc.slot);
+            // The slot holds a pointer, one word whatever the type of the variable
+            generateLoadLocal(Type.INTEGER, loc.slot);
         } else if (loc.isLocal) {
             generateRefLocal(type, loc.slot);
         } else {

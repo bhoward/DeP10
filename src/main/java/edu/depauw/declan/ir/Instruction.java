@@ -11,7 +11,9 @@ public interface Instruction {
 
         public enum Op {
             IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, INEG, FNEG, LNOT,
-            FLOAT, DUP, END, RETURN, SWAP, SAVEFP, RESTOREFP
+            FLOAT, DUP, END, RETURN, SWAP, SAVEFP, RESTOREFP,
+            // 32-bit LONGINT values: widen INTEGER, add, subtract
+            LONG, LADD, LSUB, LMUL, LDIV, LMOD, LNEG, LEQL, LLT
         }
 
         public Nullary(Op op) {
@@ -52,7 +54,9 @@ public interface Instruction {
         public enum Op {
             FLD_GLOBAL, FLD_LOCAL, FLD_VARP, ILD_GLOBAL, ILD_LOCAL, ILD_VARP, FST_GLOBAL, FST_LOCAL, FST_VARP,
             IST_GLOBAL, IST_LOCAL, IST_VARP, FRF_GLOBAL, FRF_LOCAL, IRF_GLOBAL, IRF_LOCAL, ICONST, ILD_CONST, DROP,
-            SETFP
+            SETFP,
+            // 32-bit LONGINT values occupy two words, high word at the lower address
+            LLD_GLOBAL, LLD_LOCAL, LLD_VARP, LST_GLOBAL, LST_LOCAL, LST_VARP, LLD_CONST
         }
 
         public UnaryInteger(Op op, int value) {
@@ -93,7 +97,7 @@ public interface Instruction {
         public final String right;
 
         public enum Op {
-            BRFEQ, BRFLT, BRIEQ, BRILT
+            BRFEQ, BRFLT, BRIEQ, BRILT, BRLEQL, BRLLT
         }
 
         public BinaryString(Op op, String left, String right) {
@@ -142,6 +146,20 @@ public interface Instruction {
             return new Nullary(Nullary.Op.LEQ);
         case LOR:
             return new Nullary(Nullary.Op.LOR);
+        case LADD:
+            return new Nullary(Nullary.Op.LADD);
+        case LSUB:
+            return new Nullary(Nullary.Op.LSUB);
+        case LMUL:
+            return new Nullary(Nullary.Op.LMUL);
+        case LDIV:
+            return new Nullary(Nullary.Op.LDIV);
+        case LMOD:
+            return new Nullary(Nullary.Op.LMOD);
+        case LEQL:
+            return new Nullary(Nullary.Op.LEQL);
+        case LLT:
+            return new Nullary(Nullary.Op.LLT);
         default:
             return null;
         }
@@ -199,6 +217,18 @@ public interface Instruction {
                 return null;
             }
 
+        case LONGINT:
+            switch (mode) {
+            case GLOBAL:
+                return new UnaryInteger(UnaryInteger.Op.LLD_GLOBAL, slot);
+            case LOCAL:
+                return new UnaryInteger(UnaryInteger.Op.LLD_LOCAL, slot);
+            case LOCAL_VAR_PARAM:
+                return new UnaryInteger(UnaryInteger.Op.LLD_VARP, slot);
+            default:
+                return null;
+            }
+
         case REAL:
             switch (mode) {
             case GLOBAL:
@@ -224,6 +254,8 @@ public interface Instruction {
             return new UnaryInteger(UnaryInteger.Op.ILD_CONST, (int) value);
         case REAL:
             return new UnaryFloat(UnaryFloat.Op.FLD_CONST, (double) value);
+        case LONGINT:
+            return new UnaryInteger(UnaryInteger.Op.LLD_CONST, (int) (long) value);
         default:
             return null;
         }
@@ -238,6 +270,19 @@ public interface Instruction {
                 return new UnaryInteger(UnaryInteger.Op.IRF_GLOBAL, slot);
             case LOCAL:
                 return new UnaryInteger(UnaryInteger.Op.IRF_LOCAL, slot);
+            default:
+                return null;
+            }
+
+        case LONGINT:
+            // A reference to a LONGINT is the address of its high word, which is the
+            // lower address: the global label of its first slot, or the second (lower
+            // addressed) local slot.
+            switch (mode) {
+            case GLOBAL:
+                return new UnaryInteger(UnaryInteger.Op.IRF_GLOBAL, slot);
+            case LOCAL:
+                return new UnaryInteger(UnaryInteger.Op.IRF_LOCAL, slot + 1);
             default:
                 return null;
             }
@@ -276,6 +321,18 @@ public interface Instruction {
                 return null;
             }
 
+        case LONGINT:
+            switch (mode) {
+            case GLOBAL:
+                return new UnaryInteger(UnaryInteger.Op.LST_GLOBAL, slot);
+            case LOCAL:
+                return new UnaryInteger(UnaryInteger.Op.LST_LOCAL, slot);
+            case LOCAL_VAR_PARAM:
+                return new UnaryInteger(UnaryInteger.Op.LST_VARP, slot);
+            default:
+                return null;
+            }
+
         case REAL:
             switch (mode) {
             case GLOBAL:
@@ -307,6 +364,10 @@ public interface Instruction {
             return new Nullary(Nullary.Op.INEG);
         case LNOT:
             return new Nullary(Nullary.Op.LNOT);
+        case LONG:
+            return new Nullary(Nullary.Op.LONG);
+        case LNEG:
+            return new Nullary(Nullary.Op.LNEG);
         default:
             return null;
         }
@@ -318,6 +379,8 @@ public interface Instruction {
             return new BinaryString(BinaryString.Op.BRFEQ, ifTrue.name, ifFalse.name);
         case INTEGER:
             return new BinaryString(BinaryString.Op.BRIEQ, ifTrue.name, ifFalse.name);
+        case LONGINT:
+            return new BinaryString(BinaryString.Op.BRLEQL, ifTrue.name, ifFalse.name);
         default:
             return null;
         }
@@ -329,6 +392,8 @@ public interface Instruction {
             return new BinaryString(BinaryString.Op.BRFLT, ifTrue.name, ifFalse.name);
         case INTEGER:
             return new BinaryString(BinaryString.Op.BRILT, ifTrue.name, ifFalse.name);
+        case LONGINT:
+            return new BinaryString(BinaryString.Op.BRLLT, ifTrue.name, ifFalse.name);
         default:
             return null;
         }
