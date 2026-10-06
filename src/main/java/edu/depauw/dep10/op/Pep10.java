@@ -728,9 +728,8 @@ public class Pep10 {
         table.install(6, MOVASP);
         table.install(7, NOP);
 
-        table.install(8, Dep10MulDiv.table);
-        table.install(9, Dep10PushPop.table);
-        table.install(10, Dep10Ext.table);
+        table.install(8, Dep10Arith.table);
+        table.install(9, Dep10Util.table);
 
         table.install(24, NEGA);
         table.install(25, NEGX);
