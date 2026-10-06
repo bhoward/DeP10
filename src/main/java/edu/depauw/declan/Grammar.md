@@ -18,6 +18,10 @@ real -> digit digit* . digit* scaleFactor?
 scaleFactor -> E (+ | -)? digit digit*
 
 number -> integer | real
+
+// The type of an integer literal is the minimal type to which the number belongs:
+// INTEGER if it is at most 32767, otherwise LONGINT (at most 2147483647). There is no
+// separate LONGINT literal syntax.
 ```
 
 Whitespace between tokens may be zero or more spaces, tabs, newlines, carriage returns, or comments.

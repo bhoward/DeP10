@@ -4,12 +4,9 @@
 VAR f, a, b, t : LONGINT; i : INTEGER;
 
 PROCEDURE writeLong(v : LONGINT);
-  VAR p, ten : LONGINT; d, k, started : INTEGER;
+  VAR p : LONGINT; d, k, started : INTEGER;
   BEGIN
-    ten := 10;
-    p := 10000;
-    p := p * p;
-    p := p * ten;
+    p := 1000000000;
     started := 0;
     FOR k := 1 TO 10 DO
       d := 0;
@@ -21,7 +18,7 @@ PROCEDURE writeLong(v : LONGINT);
         WriteInt(d);
         started := 1
       END;
-      p := p DIV ten
+      p := p DIV 10
     END
   END writeLong;
 

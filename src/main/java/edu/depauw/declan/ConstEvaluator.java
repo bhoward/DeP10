@@ -31,7 +31,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
         switch (expr.operator.type) {
         case PLUS:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) + intValue(right);
+                return norm(longValue(left) + longValue(right), expr.operator.line);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) + doubleValue(right);
             } else {
@@ -41,7 +41,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case MINUS:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) - intValue(right);
+                return norm(longValue(left) - longValue(right), expr.operator.line);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) - doubleValue(right);
             } else {
@@ -51,7 +51,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case STAR:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) * intValue(right);
+                return norm(longValue(left) * longValue(right), expr.operator.line);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) * doubleValue(right);
             } else {
@@ -69,7 +69,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case DIV:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) / intValue(right);
+                return norm(longValue(left) / longValue(right), expr.operator.line);
             } else {
                 reporter.error(expr.operator.line, "Operands must be integral.");
                 return null;
@@ -77,7 +77,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case MOD:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) % intValue(right);
+                return norm(longValue(left) % longValue(right), expr.operator.line);
             } else {
                 reporter.error(expr.operator.line, "Operands must be integral.");
                 return null;
@@ -101,7 +101,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case EQUAL:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) == intValue(right);
+                return longValue(left) == longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) == doubleValue(right);
             } else if (isBoolean(left) && isBoolean(right)) {
@@ -113,7 +113,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case NOT_EQUAL:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) != intValue(right);
+                return longValue(left) != longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) != doubleValue(right);
             } else if (isBoolean(left) && isBoolean(right)) {
@@ -125,7 +125,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case LESS:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) < intValue(right);
+                return longValue(left) < longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) < doubleValue(right);
             } else {
@@ -135,7 +135,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case GREATER:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) > intValue(right);
+                return longValue(left) > longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) > doubleValue(right);
             } else {
@@ -145,7 +145,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case LESS_EQUAL:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) <= intValue(right);
+                return longValue(left) <= longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) <= doubleValue(right);
             } else {
@@ -155,7 +155,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case GREATER_EQUAL:
             if (isInteger(left) && isInteger(right)) {
-                return intValue(left) >= intValue(right);
+                return longValue(left) >= longValue(right);
             } else if (isNumeric(left) && isNumeric(right)) {
                 return doubleValue(left) >= doubleValue(right);
             } else {
@@ -171,14 +171,28 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
     private double doubleValue(Object x) {
         if (isInteger(x)) {
-            return (int) x;
+            return longValue(x);
         } else {
             return (double) x;
         }
     }
 
-    private int intValue(Object x) {
-        return (int) x;
+    private long longValue(Object x) {
+        return ((Number) x).longValue();
+    }
+
+    /**
+     * The type of an integer constant is the minimal type to which the value
+     * belongs: Integer if it fits in 16 bits, otherwise Long (32 bits).
+     */
+    private Object norm(long v, int line) {
+        if (v >= Short.MIN_VALUE && v <= Short.MAX_VALUE) {
+            return (int) v;
+        } else if (v >= Integer.MIN_VALUE && v <= Integer.MAX_VALUE) {
+            return v;
+        }
+        reporter.error(line, "Integer constant is out of range for LONGINT.");
+        return 0;
     }
 
     private boolean booleanValue(Object x) {
@@ -186,7 +200,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
     }
 
     private boolean isInteger(Object x) {
-        return x instanceof Integer;
+        return x instanceof Integer || x instanceof Long;
     }
 
     private boolean isNumeric(Object x) {
@@ -216,7 +230,7 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
 
         case MINUS:
             if (isInteger(right)) {
-                return -intValue(right);
+                return norm(-longValue(right), expr.operator.line);
             } else if (isNumeric(right)) {
                 return -doubleValue(right);
             } else {
