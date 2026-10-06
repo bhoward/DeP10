@@ -272,10 +272,10 @@ public class Dep10ExtTest {
     @Test
     @DisplayName("Opcodes are reachable through Pep10.table: arithmetic table is prefix 0x08, utility table prefix 0x09")
     void tableWiring() {
-        assertEquals((1 << 8) | 8, Pep10.table.lookup("TSTA", ""));
+        assertEquals((2 << 8) | 8, Pep10.table.lookup("TSTA", ""));
         assertEquals((160 << 8) | 8, Pep10.table.lookup("ADCA", "i"));
         assertEquals(((40 + 3) << 8) | 9, Pep10.table.lookup("SWAPX", "s"));
-        assertSame(Dep10Arith.SXWX, Pep10.table.get((6 << 8) | 8));
+        assertSame(Dep10Arith.SXWX, Pep10.table.get((7 << 8) | 8));
     }
 
     @Test

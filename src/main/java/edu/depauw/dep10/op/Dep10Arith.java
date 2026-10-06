@@ -742,15 +742,15 @@ public class Dep10Arith {
     };
 
     static {
-        // unary
-        table.install(1, TSTA);
-        table.install(2, TSTX);
-        table.install(3, SXBA);
-        table.install(4, SXBX);
-        table.install(5, SXWA);
-        table.install(6, SXWX);
+        // unary: A form at 2k, X form at 2k + 1
+        table.install(2, TSTA);
+        table.install(3, TSTX);
+        table.install(4, SXBA);
+        table.install(5, SXBX);
+        table.install(6, SXWA);
+        table.install(7, SXWX);
         // A form at 16k, X form at 16k + 8
-        table.install(16, MULA); // NOTE opcode 0 should be unimplemented in any table, except as a prefix
+        table.install(16, MULA);
         table.install(24, MULX);
         table.install(32, DIVA);
         table.install(40, DIVX);
