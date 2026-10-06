@@ -212,13 +212,20 @@ public class Pep10 {
         out("CPWA 0,s");
         out("BRLT %s,i", yes);
         out("BRGT %s,i", no);
+        String y2 = newLabel();
+        String n2 = newLabel();
         out("LDWA 2,s");
         out("XORA 0x8000,i");
-        out("STWA -2,s");
-        out("LDWA 6,s");
+        out("SUBSP 2,i");
+        out("STWA 0,s");
+        out("LDWA 8,s");
         out("XORA 0x8000,i");
-        out("CPWA -2,s");
-        out("BRLT %s,i", yes);
+        out("CPWA 0,s");
+        out("BRLT %s,i", y2);
+        out("BR %s,i", n2);
+        out("%s: ADDSP 2,i", y2);
+        out("BR %s,i", yes);
+        out("%s: ADDSP 2,i", n2);
         out("BR %s,i", no);
     }
 

@@ -258,7 +258,7 @@ class LongintTest {
                   a := i;
                   b := a * a;
                   c := b * j;
-                  d := a * j * j + i * 2
+                  d := a * j * j + i + i
                 END.
                 """);
         // slots: i=0 j=1 a=2 b=4 c=6 d=8
