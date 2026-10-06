@@ -26,10 +26,14 @@
 ;=======================================================================
 
 
-sAHigh: .EQUATE 2
-sALow:  .EQUATE 4
-sBHigh: .EQUATE 6
-sBLow:  .EQUATE 8
+; Operands are pushed A low, A high, B low, B high, so after CALL the
+; return address is at 0, B high at 2, B low at 4, A high at 6, A low at 8.
+; The product overwrites A's slot (the first-pushed operand), matching
+; DADD/DSUB/DDiv/UDDiv, so ADDSP 4,i after the call discards B.
+sBHigh: .EQUATE 2
+sBLow:  .EQUATE 4
+sAHigh: .EQUATE 6
+sALow:  .EQUATE 8
 
 DMul:   LDWA  sAHigh, s
         MULA  sBLow, s
