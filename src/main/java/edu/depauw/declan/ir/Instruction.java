@@ -13,7 +13,7 @@ public interface Instruction {
             IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, INEG, FNEG, LNOT,
             FLOAT, DUP, END, RETURN, SWAP, SAVEFP, RESTOREFP,
             // 32-bit LONGINT values: widen INTEGER, add, subtract
-            LONG, LADD, LSUB
+            LONG, LADD, LSUB, LMUL, LDIV, LMOD, LNEG, LEQL, LLT
         }
 
         public Nullary(Op op) {
@@ -97,7 +97,7 @@ public interface Instruction {
         public final String right;
 
         public enum Op {
-            BRFEQ, BRFLT, BRIEQ, BRILT
+            BRFEQ, BRFLT, BRIEQ, BRILT, BRLEQL, BRLLT
         }
 
         public BinaryString(Op op, String left, String right) {
@@ -150,6 +150,16 @@ public interface Instruction {
             return new Nullary(Nullary.Op.LADD);
         case LSUB:
             return new Nullary(Nullary.Op.LSUB);
+        case LMUL:
+            return new Nullary(Nullary.Op.LMUL);
+        case LDIV:
+            return new Nullary(Nullary.Op.LDIV);
+        case LMOD:
+            return new Nullary(Nullary.Op.LMOD);
+        case LEQL:
+            return new Nullary(Nullary.Op.LEQL);
+        case LLT:
+            return new Nullary(Nullary.Op.LLT);
         default:
             return null;
         }
@@ -356,6 +366,8 @@ public interface Instruction {
             return new Nullary(Nullary.Op.LNOT);
         case LONG:
             return new Nullary(Nullary.Op.LONG);
+        case LNEG:
+            return new Nullary(Nullary.Op.LNEG);
         default:
             return null;
         }
@@ -367,6 +379,8 @@ public interface Instruction {
             return new BinaryString(BinaryString.Op.BRFEQ, ifTrue.name, ifFalse.name);
         case INTEGER:
             return new BinaryString(BinaryString.Op.BRIEQ, ifTrue.name, ifFalse.name);
+        case LONGINT:
+            return new BinaryString(BinaryString.Op.BRLEQL, ifTrue.name, ifFalse.name);
         default:
             return null;
         }
@@ -378,6 +392,8 @@ public interface Instruction {
             return new BinaryString(BinaryString.Op.BRFLT, ifTrue.name, ifFalse.name);
         case INTEGER:
             return new BinaryString(BinaryString.Op.BRILT, ifTrue.name, ifFalse.name);
+        case LONGINT:
+            return new BinaryString(BinaryString.Op.BRLLT, ifTrue.name, ifFalse.name);
         default:
             return null;
         }

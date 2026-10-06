@@ -239,12 +239,136 @@ class LongintTest {
     }
 
     @Test
-    @DisplayName("Narrowing, mixing with REAL, and unsupported operators are compile errors")
+    @DisplayName("Narrowing, mixing with REAL, and operators LONGINT does not have are compile errors")
     void rejectsUnsupported() {
         assertTrue(rejects("VAR i : INTEGER; a : LONGINT; BEGIN i := a END."));
         assertTrue(rejects("VAR r : REAL; a : LONGINT; BEGIN a := a + r END."));
-        assertTrue(rejects("VAR a, b : LONGINT; BEGIN a := a * b END."));
-        assertTrue(rejects("VAR a, b : LONGINT; BEGIN a := -b END."));
-        assertTrue(rejects("VAR a, b : LONGINT; BEGIN IF a < b THEN a := b END END."));
+        assertTrue(rejects("VAR r : REAL; a : LONGINT; BEGIN IF a < r THEN a := 0 END END."));
+        assertTrue(rejects("VAR a, b : LONGINT; BEGIN a := a / b END."));
+        assertTrue(rejects("VAR a : LONGINT; BEGIN a := NOT a END."));
+    }
+
+    @Test
+    @DisplayName("Multiplication: past 16 bits, negative, chained, mixed with INTEGER")
+    void multiply() {
+        State s = run("""
+                VAR i, j : INTEGER; a, b, c, d : LONGINT;
+                BEGIN
+                  i := 30000; j := -3;
+                  a := i;
+                  b := a * a;
+                  c := b * j;
+                  d := a * j * j + i * 2
+                END.
+                """);
+        // slots: i=0 j=1 a=2 b=4 c=6 d=8
+        assertEquals(900000000, lng(s, 4));
+        assertEquals(900000000 * -3, lng(s, 6));
+        assertEquals(30000 * 9 + 60000, lng(s, 8));
+    }
+
+    @Test
+    @DisplayName("DIV and MOD truncate toward zero, like INTEGER")
+    void divMod() {
+        int[][] cases = { { 120000, 7 }, { -120000, 7 }, { 120000, -7 }, { -120000, -7 }, { 5, 100000 }, { 100000, 100000 } };
+        for (int[] c : cases) {
+            // build values in LONGINT with INTEGER pieces: v = hi * 1000 + lo
+            State s = run(String.format("""
+                    VAR m, p1, q1, p2, q2 : INTEGER; a, b, qd, rm : LONGINT;
+                    BEGIN
+                      m := 1000;
+                      p1 := %d; q1 := %d; p2 := %d; q2 := %d;
+                      a := p1; a := a * m + q1;
+                      b := p2; b := b * m + q2;
+                      qd := a DIV b;
+                      rm := a MOD b
+                    END.
+                    """, c[0] / 1000, c[0] % 1000, c[1] / 1000, c[1] % 1000));
+            // slots: m=0 p1=1 q1=2 p2=3 q2=4 a=5 b=7 qd=9 rm=11
+            assertEquals(c[0], lng(s, 5), "a for " + c[0] + "," + c[1]);
+            assertEquals(c[1], lng(s, 7), "b for " + c[0] + "," + c[1]);
+            assertEquals(c[0] / c[1], lng(s, 9), c[0] + " DIV " + c[1]);
+            assertEquals(c[0] % c[1], lng(s, 11), c[0] + " MOD " + c[1]);
+        }
+    }
+
+    @Test
+    @DisplayName("Unary minus on LONGINT, including 0 and values with a zero low word")
+    void negate() {
+        int[] vals = { 0, 1, -1, 65536, -65536, 70000, 32767000, -32767000, 123 };
+        for (int v : vals) {
+            State s = run(String.format("""
+                    VAR m, p, q : INTEGER; a, b, c : LONGINT;
+                    BEGIN
+                      m := 1000; p := %d; q := %d;
+                      a := p; a := a * m + q;
+                      b := -a;
+                      c := -b + b + b
+                    END.
+                    """, v / 1000, v % 1000));
+            // slots: m=0 p=1 q=2 a=3 b=5 c=7
+            assertEquals(v, lng(s, 3));
+            assertEquals(-v, lng(s, 5), "-" + v);
+            assertEquals(-v, lng(s, 7), "c " + v);
+        }
+    }
+
+    @Test
+    @DisplayName("Comparisons agree with Java for many pairs, in IF conditions and as BOOLEAN values")
+    void comparisons() {
+        int[] vals = { 0, 1, -1, 7, 32767, 32768, 65535, 65536, 70000, -70000, -32768, -32769, 32767000, -32767000,
+                1000, 999, 40000, 30000, 100000, -100000 };
+        for (int x : vals) {
+            for (int y : new int[] { 0, 1, -1, 32768, 65536, 70000, -70000, 40000, 30000, x, x + 1, x - 1 }) {
+                State s = run(String.format("""
+                        VAR m, p1, q1, p2, q2 : INTEGER; a, b : LONGINT; t : BOOLEAN;
+                            r1, r2, r3, r4, r5, r6, r7 : INTEGER;
+                        BEGIN
+                          m := 1000;
+                          p1 := %d; q1 := %d; p2 := %d; q2 := %d;
+                          a := p1; a := a * m + q1;
+                          b := p2; b := b * m + q2;
+                          IF a = b THEN r1 := 1 ELSE r1 := 0 END;
+                          IF a # b THEN r2 := 1 ELSE r2 := 0 END;
+                          IF a < b THEN r3 := 1 ELSE r3 := 0 END;
+                          IF a <= b THEN r4 := 1 ELSE r4 := 0 END;
+                          IF a > b THEN r5 := 1 ELSE r5 := 0 END;
+                          IF a >= b THEN r6 := 1 ELSE r6 := 0 END;
+                          t := a < b;
+                          IF t THEN r7 := 1 ELSE r7 := 0 END
+                        END.
+                        """, x / 1000, x % 1000, y / 1000, y % 1000));
+                // slots: m=0 p1=1 q1=2 p2=3 q2=4 a=5 b=7 t=9 r1=10 .. r7=16
+                String what = x + " vs " + y;
+                assertEquals(x == y ? 1 : 0, word(s, 10), what + " =");
+                assertEquals(x != y ? 1 : 0, word(s, 11), what + " #");
+                assertEquals(x < y ? 1 : 0, word(s, 12), what + " <");
+                assertEquals(x <= y ? 1 : 0, word(s, 13), what + " <=");
+                assertEquals(x > y ? 1 : 0, word(s, 14), what + " >");
+                assertEquals(x >= y ? 1 : 0, word(s, 15), what + " >=");
+                assertEquals(x < y ? 1 : 0, word(s, 16), what + " as value");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("LONGINT in a WHILE loop: count up past 16 bits")
+    void loop() {
+        State s = run("""
+                VAR i : INTEGER; n, limit, step : LONGINT;
+                BEGIN
+                  i := 20000; step := i;
+                  limit := step * 5;
+                  n := 0 + i - i;
+                  i := 0;
+                  WHILE n < limit DO
+                    n := n + step;
+                    i := i + 1
+                  END
+                END.
+                """);
+        // slots: i=0 n=1 limit=3 step=5
+        assertEquals(5, word(s, 0));
+        assertEquals(100000, lng(s, 1));
     }
 }

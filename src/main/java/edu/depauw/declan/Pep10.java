@@ -14,6 +14,8 @@ public class Pep10 {
     private List<String> result;
     private int labelSeqNo;
     private boolean usesDoubleword;
+    private boolean usesMultiply;
+    private boolean usesDivide;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -42,6 +44,12 @@ public class Pep10 {
         if (usesDoubleword) {
             // DADD and DSUB are callable routines, so they go after the code that ends in RET
             out(".INCLUDELIB \"daddsub\"");
+        }
+        if (usesMultiply) {
+            out(".INCLUDELIB \"dmul\"");
+        }
+        if (usesDivide) {
+            out(".INCLUDELIB \"ddiv32\"");
         }
 
         return result;
@@ -183,6 +191,37 @@ public class Pep10 {
         out("       RET");
     }
 
+    // Compare the two 32-bit values on top of the stack (A below B, each with
+    // its high word at the lower address), branching to yes if A = B and to no
+    // otherwise. The stack is left as it was; the caller removes the 8 bytes.
+    void emitLongEqual(String yes, String no) {
+        out("LDWA 4,s");
+        out("CPWA 0,s");
+        out("BRNE %s,i", no);
+        out("LDWA 6,s");
+        out("CPWA 2,s");
+        out("BRNE %s,i", no);
+        out("BR %s,i", yes);
+    }
+
+    // Same, branching to yes if A < B as signed 32-bit values. The high words
+    // decide unless they are equal, in which case the low words are compared
+    // as unsigned numbers by flipping their top bit and comparing as signed.
+    void emitLongLess(String yes, String no) {
+        out("LDWA 4,s");
+        out("CPWA 0,s");
+        out("BRLT %s,i", yes);
+        out("BRGT %s,i", no);
+        out("LDWA 2,s");
+        out("XORA 0x8000,i");
+        out("STWA -2,s");
+        out("LDWA 6,s");
+        out("XORA 0x8000,i");
+        out("CPWA -2,s");
+        out("BRLT %s,i", yes);
+        out("BR %s,i", no);
+    }
+
     String newLabel() {
         return "__" + labelSeqNo++;
     }
@@ -278,6 +317,69 @@ public class Pep10 {
             out("CALL DSUB,i");
             out("ADDSP 4,i");
             break;
+        case LMUL:
+            usesMultiply = true;
+            out("CALL DMul,i");
+            out("ADDSP 4,i");
+            break;
+        case LDIV:
+            // DDiv leaves the quotient in the first operand's slot and the
+            // remainder in the second's; keep the quotient
+            usesDivide = true;
+            out("CALL DDiv,i");
+            out("ADDSP 4,i");
+            break;
+        case LMOD:
+            // Keep the remainder: move it over the quotient, then drop the top
+            usesDivide = true;
+            out("CALL DDiv,i");
+            out("LDWA 0,s");
+            out("STWA 4,s");
+            out("LDWA 2,s");
+            out("STWA 6,s");
+            out("ADDSP 4,i");
+            break;
+        case LNEG: {
+            // -x = ~x + 1: negate the low word, invert the high word, and add
+            // the carry into it when the low word was zero
+            String done = newLabel();
+            out("LDWA 0,s");
+            out("NOTA");
+            out("STWA 0,s");
+            out("LDWA 2,s");
+            out("NEGA");
+            out("STWA 2,s");
+            out("BRNE %s,i", done);
+            out("LDWA 0,s");
+            out("ADDA 1,i");
+            out("STWA 0,s");
+            out("%s: NOP", done);
+            break;
+        }
+        case LEQL: {
+            String yes = newLabel();
+            String no = newLabel();
+            String end = newLabel();
+            emitLongEqual(yes, no);
+            out("%s: LDWA 1,i", yes);
+            out("BR %s,i", end);
+            out("%s: LDWA 0,i", no);
+            out("%s: ADDSP 6,i", end);
+            out("STWA 0,s");
+            break;
+        }
+        case LLT: {
+            String yes = newLabel();
+            String no = newLabel();
+            String end = newLabel();
+            emitLongLess(yes, no);
+            out("%s: LDWA 1,i", yes);
+            out("BR %s,i", end);
+            out("%s: LDWA 0,i", no);
+            out("%s: ADDSP 6,i", end);
+            out("STWA 0,s");
+            break;
+        }
         case LONG: {
             // Widen the INTEGER on top of the stack to a 32-bit value: the old word
             // becomes the low word, and the new high word is its sign extension.
@@ -510,6 +612,26 @@ public class Pep10 {
             out("BRLT %s,i", bs.left);
             out("BR %s,i", bs.right);
             break;
+        case BRLEQL: {
+            String yes = newLabel();
+            String no = newLabel();
+            emitLongEqual(yes, no);
+            out("%s: ADDSP 8,i", yes);
+            out("BR %s,i", bs.left);
+            out("%s: ADDSP 8,i", no);
+            out("BR %s,i", bs.right);
+            break;
+        }
+        case BRLLT: {
+            String yes = newLabel();
+            String no = newLabel();
+            emitLongLess(yes, no);
+            out("%s: ADDSP 8,i", yes);
+            out("BR %s,i", bs.left);
+            out("%s: ADDSP 8,i", no);
+            out("BR %s,i", bs.right);
+            break;
+        }
         default:
             System.err.println("Unsupported instruction: " + bs);
         }

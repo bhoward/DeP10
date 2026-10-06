@@ -18,7 +18,8 @@ public abstract class RExpr {
 
     public static class Binary extends RExpr {
         public static enum OpCode {
-            IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, LADD, LSUB
+            IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, LADD, LSUB, LMUL, LDIV,
+            LMOD, LEQL, LLT
         }
 
         public final OpCode op;
@@ -45,7 +46,7 @@ public abstract class RExpr {
 
     public static class Unary extends RExpr {
         public static enum OpCode {
-            INEG, FNEG, LNOT, FLOAT, LONG, REF
+            INEG, FNEG, LNOT, FLOAT, LONG, LNEG, REF
         }
 
         public final OpCode op;
@@ -111,9 +112,14 @@ public abstract class RExpr {
         case AND:
             return new Binary(type, Binary.OpCode.LAND, left, right);
         case DIV:
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LDIV, left, right);
+            }
             return new Binary(type, Binary.OpCode.IDIV, left, right);
         case EQUAL:
-            if (left.type == Type.BOOLEAN) {
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LEQL, left, right);
+            } else if (left.type == Type.BOOLEAN) {
                 return new Binary(type, Binary.OpCode.LEQ, left, right);
             } else if (left.type == Type.INTEGER) {
                 return new Binary(type, Binary.OpCode.IEQ, left, right);
@@ -125,7 +131,9 @@ public abstract class RExpr {
         case GREATER_EQUAL:
             return makeUnary(type, TokenType.NOT, makeBinary(type, TokenType.LESS, left, right));
         case LESS:
-            if (left.type == Type.INTEGER) {
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LLT, left, right);
+            } else if (left.type == Type.INTEGER) {
                 return new Binary(type, Binary.OpCode.ILT, left, right);
             } else {
                 return new Binary(type, Binary.OpCode.FLT, left, right);
@@ -141,6 +149,9 @@ public abstract class RExpr {
                 return new Binary(type, Binary.OpCode.FSUB, left, right);
             }
         case MOD:
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LMOD, left, right);
+            }
             return new Binary(type, Binary.OpCode.IMOD, left, right);
         case NOT_EQUAL:
             return makeUnary(type, TokenType.NOT, makeBinary(type, TokenType.EQUAL, left, right));
@@ -157,7 +168,9 @@ public abstract class RExpr {
         case SLASH:
             return new Binary(type, Binary.OpCode.FDIV, left, right);
         case STAR:
-            if (left.type == Type.INTEGER) {
+            if (left.type == Type.LONGINT) {
+                return new Binary(type, Binary.OpCode.LMUL, left, right);
+            } else if (left.type == Type.INTEGER) {
                 return new Binary(type, Binary.OpCode.IMUL, left, right);
             } else {
                 return new Binary(type, Binary.OpCode.FMUL, left, right);
@@ -171,7 +184,9 @@ public abstract class RExpr {
     public static RExpr makeUnary(Type type, TokenType operator, RExpr right) {
         switch (operator) {
         case MINUS:
-            if (right.type == Type.INTEGER) {
+            if (right.type == Type.LONGINT) {
+                return new Unary(type, Unary.OpCode.LNEG, right);
+            } else if (right.type == Type.INTEGER) {
                 return new Unary(type, Unary.OpCode.INEG, right);
             } else {
                 return new Unary(type, Unary.OpCode.FNEG, right);

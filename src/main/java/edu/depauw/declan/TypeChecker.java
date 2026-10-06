@@ -139,20 +139,39 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
      */
     private RExpr longBinary(Binary expr, RExpr left, RExpr right) {
         int line = expr.operator.line;
+        if (left == null || right == null) {
+            return null;
+        }
         switch (expr.operator.type) {
         case PLUS:
         case MINUS:
-            if (left == null || right == null) {
-                return null;
-            } else if (isIntOrLong(left) && isIntOrLong(right)) {
+        case STAR:
+        case DIV:
+        case MOD:
+            if (isIntOrLong(left) && isIntOrLong(right)) {
                 return RExpr.makeBinary(Type.LONGINT, expr.operator.type, ensureLong(left), ensureLong(right));
             }
-            reporter.error(line, "LONGINT cannot be combined with " + (left.type == Type.REAL || right.type == Type.REAL ? "REAL" : "BOOLEAN") + " yet.");
+            reporter.error(line, "LONGINT cannot be combined with " + otherTypeName(left, right) + " yet.");
+            return null;
+        case EQUAL:
+        case NOT_EQUAL:
+        case LESS:
+        case GREATER:
+        case LESS_EQUAL:
+        case GREATER_EQUAL:
+            if (isIntOrLong(left) && isIntOrLong(right)) {
+                return RExpr.makeBinary(Type.BOOLEAN, expr.operator.type, ensureLong(left), ensureLong(right));
+            }
+            reporter.error(line, "LONGINT cannot be compared with " + otherTypeName(left, right) + " yet.");
             return null;
         default:
-            reporter.error(line, "Operator is not supported for LONGINT yet.");
+            reporter.error(line, "Operator is not supported for LONGINT.");
             return null;
         }
+    }
+
+    private String otherTypeName(RExpr left, RExpr right) {
+        return (left.type == Type.REAL || right.type == Type.REAL) ? "REAL" : "BOOLEAN";
     }
 
     private RExpr ensureLong(RExpr expr) {
@@ -214,8 +233,14 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
         RExpr right = expr.right.accept(this);
 
         if (isLong(right)) {
-            reporter.error(expr.operator.line, "Unary operators are not supported for LONGINT yet.");
-            return null;
+            switch (expr.operator.type) {
+            case PLUS:
+            case MINUS:
+                return RExpr.makeUnary(Type.LONGINT, expr.operator.type, right);
+            default:
+                reporter.error(expr.operator.line, "Operand must be boolean.");
+                return null;
+            }
         }
 
         switch (expr.operator.type) {

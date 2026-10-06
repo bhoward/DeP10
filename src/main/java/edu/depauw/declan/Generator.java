@@ -60,6 +60,16 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
                 expr.right.accept(Generator.this);
                 generateBranchILess(ifTrue, ifFalse);
                 break;
+            case LEQL:
+                expr.left.accept(Generator.this);
+                expr.right.accept(Generator.this);
+                instructions.add(Instruction.makeBranchEqual(Type.LONGINT, ifTrue, ifFalse));
+                break;
+            case LLT:
+                expr.left.accept(Generator.this);
+                expr.right.accept(Generator.this);
+                instructions.add(Instruction.makeBranchLess(Type.LONGINT, ifTrue, ifFalse));
+                break;
             case LAND: {
                 Label skip = newLabel();
                 expr.left.accept(new BoolGen(skip, ifFalse));
