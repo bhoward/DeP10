@@ -26,7 +26,20 @@
     </style>
 </head><body>
 	<h1>Pep/10 Reference</h1>
-	<h2>Operations</h2>
+	<p>
+		<a href="#operations">Operations</a> |
+		<a href="#extended">Extended Table Operations</a>
+		(<a href="#muldiv">MulDiv</a>,
+		<a href="#pushpop">PushPop</a>,
+		<a href="#ext">Extension</a>) |
+		<a href="#macros">Macros</a> |
+		<a href="#modes">Addressing Modes</a> |
+		<a href="#registers">Registers</a> |
+		<a href="#memory">Special Memory Locations</a> |
+		<a href="#cycle">Operation Cycle</a> |
+		<a href="#directives">Directives</a>
+	</p>
+	<h2 id="operations">Operations</h2>
 	<table>
 		<tbody>
 			<tr>
@@ -305,8 +318,8 @@
 		</tbody>
 	</table>
 
-	<h2>Extended Table Operations</h2>
-	<h3>MulDiv Table (prefix 0000 1000)</h3>
+	<h2 id="extended">Extended Table Operations</h2>
+	<h3 id="muldiv">MulDiv Table (prefix 0000 1000)</h3>
 	<table>
 		<tbody>
 			<tr>
@@ -444,7 +457,7 @@
 		</tbody>
 	</table>
 
-	<h3>PushPop Table (prefix 0000 1001)</h3>
+	<h3 id="pushpop">PushPop Table (prefix 0000 1001)</h3>
 	<table>
 		<tbody>
 			<tr>
@@ -502,7 +515,7 @@
 		</tbody>
 	</table>
 
-	<h3>Extension Table (prefix 0000 1010)</h3>
+	<h3 id="ext">Extension Table (prefix 0000 1010)</h3>
 	<table>
 		<tbody>
 			<tr>
@@ -598,7 +611,12 @@
 		</tbody>
 	</table>
 
-	<h2>Macros</h2>
+	<h2 id="macros">Macros</h2>
+	<p>Macros are written with a leading <samp>@</samp>, for example <samp>@DECO x,d</samp>. Most are defined in
+		<samp>stdmacro.pep</samp> and are available to every program. The stack macros (DUP, DDUP, DROP, DDROP,
+		SWAP, DSWAP) are defined in <samp>dstack.pep</samp>. Add <code>.INCLUDELIB "dstack"</code> before the
+		first use of any of them, since macros must be defined before they are used. LIBC and MALLOC define
+		routines, so place them after the halt sequence. MALLOC must be the last statement in the program.</p>
 	<table>
 		<tbody>
 			<tr>
@@ -639,32 +657,82 @@
 			<tr>
 				<td valign="top">DDUP</td>
 				<td valign="top">none</td>
-				<td valign="top">Duplicates the top 32-bit value (two words, high word at the lower address) on the stack. Clobbers A.</td>
+				<td valign="top">Duplicates the top 32-bit value (two words, high word at the lower address) on the stack. Clobbers A. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DROP</td>
 				<td valign="top">none</td>
-				<td valign="top">Discards the top word on the stack (ADDSP 2).</td>
+				<td valign="top">Discards the top word on the stack (ADDSP 2). Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DDROP</td>
 				<td valign="top">none</td>
-				<td valign="top">Discards the top 32-bit value on the stack (ADDSP 4).</td>
+				<td valign="top">Discards the top 32-bit value on the stack (ADDSP 4). Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">SWAP</td>
 				<td valign="top">none</td>
-				<td valign="top">Swaps the top two words on the stack. Clobbers A and X.</td>
+				<td valign="top">Swaps the top two words on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DSWAP</td>
 				<td valign="top">none</td>
-				<td valign="top">Swaps the top two 32-bit values on the stack. Clobbers A and X.</td>
+				<td valign="top">Swaps the top two 32-bit values on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+			</tr>
+			<tr>
+				<td valign="top">ASLAn, ASLXn, ASRAn, ASRXn,<br>ROLAn, ROLXn, RORAn, RORXn</td>
+				<td valign="top">none</td>
+				<td valign="top">Repeat the corresponding single-step shift or rotate n times, for n from 2 to 5 (for example ASLA3 is three ASLA). Flags are those left by the last repetition.</td>
+			</tr>
+			<tr>
+				<td valign="top">CHARI</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Reads one character from charIn and stores it in the byte at Operand (LDBA charIn,d then STBA Operand). Clobbers A.</td>
+			</tr>
+			<tr>
+				<td valign="top">CHARO</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Writes the low byte of Operand to charOut (LDBA Operand then STBA charOut,d). Clobbers A.</td>
+			</tr>
+			<tr>
+				<td valign="top">PUSH</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Pushes the word Operand on the stack (LDWA Operand, STWA −2,s, SUBSP 2). Clobbers A.</td>
+			</tr>
+			<tr>
+				<td valign="top">XCHGA</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Exchanges A with the word at Operand, using 4 bytes of stack temporaries. Not atomic; the SWAPA instruction does the same in one step. For the stack-relative modes, Operand is counted from SP after the temporaries are allocated.</td>
+			</tr>
+			<tr>
+				<td valign="top">XCHGX</td>
+				<td valign="top">d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">Exchanges X with the word at Operand, using 6 bytes of stack temporaries. A is preserved; N and Z come from the new X. Not atomic; the SWAPX instruction does the same in one step. The same note about stack-relative modes applies.</td>
+			</tr>
+			<tr>
+				<td valign="top">XNORA</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← NOT (A XOR Operand)</td>
+			</tr>
+			<tr>
+				<td valign="top">XNORX</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← NOT (X XOR Operand)</td>
+			</tr>
+			<tr>
+				<td valign="top">MALLOC</td>
+				<td valign="top">none</td>
+				<td valign="top">Defines a simple heap allocator, <samp>malloc</samp>, and the heap itself. Must be the last statement in the program. To allocate, load the number of bytes into A and <samp>CALL malloc,i</samp>; X returns a pointer to the new block. Memory is never freed. Place it after the halt sequence.</td>
+			</tr>
+			<tr>
+				<td valign="top">LIBC</td>
+				<td valign="top">none</td>
+				<td valign="top">Defines <samp>printf</samp>. After <samp>CALL printf,i</samp>, the format string pointer is at 2,s and the arguments follow it on the stack. In the format string, %H prints an argument in hexadecimal, %D in decimal, %S as a string (the argument is a pointer to a null-terminated string), %C as a character, and %% prints a percent sign. Any other placeholder prints an error message and powers off. Place it after the halt sequence.</td>
 			</tr>
 		</tbody>
 	</table>
 	
-	<h2>Addressing Modes</h2>
+	<h2 id="modes">Addressing Modes</h2>
 	<table>
 		<tr>
 			<th>Name</th>
@@ -731,7 +799,7 @@
 		</tr>
 	</table>
 	
-	<h2>Registers</h2>
+	<h2 id="registers">Registers</h2>
 	<table>
 		<tr>
 			<th>Name</th>
@@ -783,7 +851,7 @@
 		</tr>
 	</table>
 	
-	<h2>Special Memory Locations</h2>
+	<h2 id="memory">Special Memory Locations</h2>
 	<ul>
 		<li>FFF7,FFF8: Trap handler</li>
 		<li>FFF9,FFFA: Boot address</li>
@@ -793,7 +861,7 @@
 		<li>FFFF: Power off (pwrOff)</li>
 	</ul>
 	
-	<h2>Operation Cycle</h2>
+	<h2 id="cycle">Operation Cycle</h2>
 <pre>
 PC ← Mem[FFF9]
 SP ← Mem[FFFB]
@@ -811,7 +879,7 @@ do
 while not power off && instruction was legal
 </pre>
 
-	<h2>Directives</h2>
+	<h2 id="directives">Directives</h2>
 	<dl>
 		<dt><samp>.ASCII "string"</samp></dt>
 		<dd>insert the ASCII character code bytes for the string</dd>
