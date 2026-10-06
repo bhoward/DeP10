@@ -371,4 +371,40 @@ class LongintTest {
         assertEquals(5, word(s, 0));
         assertEquals(100000, lng(s, 1));
     }
+
+    @Test
+    @DisplayName("demo/longint-demo.dcl prints 1! to 12! and Fibonacci(45) digit by digit")
+    void demoProgram() throws Exception {
+        String src = java.nio.file.Files.readString(java.nio.file.Path.of("demo/longint-demo.dcl"));
+        String asm = compile(src);
+        StringBuilder sb = new StringBuilder();
+        // Log every word WriteInt would print to a buffer at 0xE000 instead of calling the OS
+        sb.append(".DEFMACRO DECI, 2\n.ENDMACRO\n");
+        sb.append(".DEFMACRO DECO, 2\n        STWX    0xEFFC,d\n        LDWX    0xEFFE,d\n");
+        sb.append("        LDWA    $1,$2\n        STWA    0xE000,x\n        ADDX    2,i\n");
+        sb.append("        STWX    0xEFFE,d\n        LDWX    0xEFFC,d\n.ENDMACRO\n");
+        sb.append("        LDWA    done,i\n        PUSHA\n");
+        sb.append(asm);
+        sb.append("\ndone:   NOP\n        LDBA    0,i\n        STBA    pwrOff,d\n        .END\n");
+        State s = PepHarness.run(sb.toString(), 5_000_000);
+        int n = mem(s, 0xEFFE) / 2;
+        StringBuilder digits = new StringBuilder();
+        for (int k = 0; k < n; k++) {
+            digits.append(mem(s, 0xE000 + 2 * k));
+        }
+        StringBuilder expected = new StringBuilder();
+        long f = 1;
+        for (int k = 1; k <= 12; k++) {
+            f *= k;
+            expected.append(f);
+        }
+        long a = 0, b = 1;
+        for (int k = 0; k < 45; k++) {
+            long t = a + b;
+            a = b;
+            b = t;
+        }
+        expected.append(a);
+        assertEquals(expected.toString(), digits.toString());
+    }
 }

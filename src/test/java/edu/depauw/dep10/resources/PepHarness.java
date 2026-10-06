@@ -34,6 +34,10 @@ public final class PepHarness {
     private static final int DEFAULT_STEP_LIMIT = 200_000;
 
     public static State run(String source) {
+        return run(source, DEFAULT_STEP_LIMIT);
+    }
+
+    public static State run(String source, int stepLimit) {
         var log = new ErrorLog();
         Sources sources = new Sources();
         sources.addResource("/pep10baremetal.peph", log);
@@ -62,7 +66,7 @@ public final class PepHarness {
         state.loadString(obj);
 
         Simulator sim = new Simulator(state);
-        var control = new StepCountController(new PlainController(), DEFAULT_STEP_LIMIT);
+        var control = new StepCountController(new PlainController(), stepLimit);
         sim.run(control);
 
         return state;
