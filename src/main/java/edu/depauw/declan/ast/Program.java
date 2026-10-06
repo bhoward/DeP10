@@ -44,6 +44,7 @@ public class Program extends Scope {
         procs.add(3, stdProc("WriteLn"));
         procs.add(4, stdProc("WriteReal", new Param(false, id("x"), Type.REAL)));
         procs.add(5, stdProc("Round", new Param(false, id("x"), Type.REAL), new Param(true, id("n"), Type.INTEGER)));
+        procs.add(6, stdProc("WriteLong", new Param(false, id("n"), Type.LONGINT)));
     }
 
     private Token id(String name) {

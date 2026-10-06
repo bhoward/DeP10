@@ -11,6 +11,7 @@ public class Pep10X extends Pep10 {
         out("       STBA charOut,d");
         out("       @DECO 2,s");
         out("       RET");
+        writeWriteLong();
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");

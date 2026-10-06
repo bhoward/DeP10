@@ -16,6 +16,7 @@ public class Pep10 {
     private boolean usesDoubleword;
     private boolean usesMultiply;
     private boolean usesDivide;
+    private boolean usesPrintLong;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -41,18 +42,40 @@ public class Pep10 {
 
         writeRuntime();
 
-        if (usesDoubleword) {
+        // ddprint includes daddsub and ddiv32 itself, so skip them here when it is used
+        if (usesDoubleword && !usesPrintLong) {
             // DADD and DSUB are callable routines, so they go after the code that ends in RET
             out(".INCLUDELIB \"daddsub\"");
         }
         if (usesMultiply) {
             out(".INCLUDELIB \"dmul\"");
         }
-        if (usesDivide) {
+        if (usesDivide && !usesPrintLong) {
             out(".INCLUDELIB \"ddiv32\"");
+        }
+        if (usesPrintLong) {
+            out(".INCLUDELIB \"ddprint\"");
         }
 
         return result;
+    }
+
+    void writeWriteLong() {
+        if (!usesPrintLong) {
+            return;
+        }
+        // WriteLong(n): a space, then the signed decimal value. The argument is
+        // already in the layout DPRINTD wants (high word at the lower address),
+        // but DPRINTD takes its own copy pushed low word first.
+        out("WriteLong: LDBA ' ',i");
+        out("       STBA charOut,d");
+        out("       LDWA 4,s");
+        out("       PUSHA");
+        out("       LDWA 4,s");
+        out("       PUSHA");
+        out("       CALL DPRINTD,i");
+        out("       ADDSP 4,i");
+        out("       RET");
     }
 
     void writeRuntime() {
@@ -62,6 +85,7 @@ public class Pep10 {
         out("       STBA charOut,d");
         out("       @DECO 2,s");
         out("       RET");
+        writeWriteLong();
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
@@ -596,6 +620,9 @@ public class Pep10 {
             out("BRNE %s,i", us.value);
             break;
         case CALL:
+            if (us.value.equals("WriteLong")) {
+                usesPrintLong = true;
+            }
             out("CALL %s,i", us.value);
             break;
         default:
