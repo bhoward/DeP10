@@ -407,4 +407,57 @@ class LongintTest {
         expected.append(a);
         assertEquals(expected.toString(), digits.toString());
     }
+
+    private static Object literal(String src) {
+        Reporter r = new Reporter(new PrintStream(new ByteArrayOutputStream()));
+        Object v = new Scanner(src, r).scanTokens().get(0).literal;
+        assertFalse(r.hadError(), src);
+        return v;
+    }
+
+    @Test
+    @DisplayName("Literal type is the minimal type containing the number")
+    void literalTypes() {
+        assertEquals(Integer.valueOf(0), literal("0"));
+        assertEquals(Integer.valueOf(32767), literal("32767"));
+        assertEquals(Long.valueOf(32768L), literal("32768"));
+        assertEquals(Long.valueOf(2147483647L), literal("2147483647"));
+        assertEquals(Integer.valueOf(0x7FFF), literal("7FFFH"));
+        assertEquals(Long.valueOf(0xFFFFL), literal("0FFFFH"));
+        assertEquals(Long.valueOf(0x7FFFFFFFL), literal("7FFFFFFFH"));
+    }
+
+    @Test
+    @DisplayName("Literal beyond 32 bits is a scanner error")
+    void literalTooLarge() {
+        Reporter r = new Reporter(new PrintStream(new ByteArrayOutputStream()));
+        new Scanner("2147483648", r).scanTokens();
+        assertTrue(r.hadError());
+    }
+
+    @Test
+    @DisplayName("LONGINT literals in assignments, constants and expressions")
+    void longLiterals() {
+        State s = run("""
+                CONST big = 100000; huge = big * 20000; small = big - 99990;
+                VAR a, b, c, d : LONGINT; i : INTEGER;
+                BEGIN
+                  a := 100000;
+                  b := a + 2147000000;
+                  c := -70000;
+                  d := huge;
+                  i := small;
+                  IF a < 123456 THEN a := a + 1 END
+                END.
+                """);
+        // slots: big=0 huge=2 small=4 (constants take slots too), a=5 b=7 c=9 d=11 i=13
+        assertEquals(100000, lng(s, 0));
+        assertEquals(2000000000, lng(s, 2));
+        assertEquals(10, word(s, 4));
+        assertEquals(100001, lng(s, 5));
+        assertEquals(100000 + 2147000000, lng(s, 7));
+        assertEquals(-70000, lng(s, 9));
+        assertEquals(2000000000, lng(s, 11));
+        assertEquals(10, word(s, 13));
+    }
 }
