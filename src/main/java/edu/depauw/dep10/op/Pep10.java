@@ -431,12 +431,12 @@ public class Pep10 {
             var sign1 = a1.isNegative();
 
             var op = operand.negate();
-            var signo = op.isNegative();
+            var signo = operand.isNegative(); // sign of the operand itself, not of its negation
 
             var a2 = a1.plus(op);
             var sign2 = a2.isNegative();
             var zero2 = a2.isZero();
-            var overflow = (sign1 == signo) && (sign1 != sign2);
+            var overflow = (sign1 != signo) && (sign1 != sign2);
             var carry = !a1.lessThan(operand); // true if a1 >= operand, so no borrow
 
             s.setN(sign2 ^ overflow);
@@ -454,12 +454,12 @@ public class Pep10 {
             var sign1 = x1.isNegative();
 
             var op = operand.negate();
-            var signo = op.isNegative();
+            var signo = operand.isNegative(); // sign of the operand itself, not of its negation
 
             var x2 = x1.plus(op);
             var sign2 = x2.isNegative();
             var zero2 = x2.isZero();
-            var overflow = (sign1 == signo) && (sign1 != sign2);
+            var overflow = (sign1 != signo) && (sign1 != sign2);
             var carry = !x1.lessThan(operand); // true if x1 >= operand, so no borrow
 
             s.setN(sign2 ^ overflow);
@@ -557,12 +557,12 @@ public class Pep10 {
             var sign1 = a1.isNegative();
 
             var op = operand.negate();
-            var signo = op.isNegative();
+            var signo = operand.isNegative(); // sign of the operand itself, not of its negation
 
             var a2 = a1.plus(op);
             var sign2 = a2.isNegative();
             var zero2 = a2.isZero();
-            var overflow = (sign1 == signo) && (sign1 != sign2);
+            var overflow = (sign1 != signo) && (sign1 != sign2);
             var carry = !a1.lessThan(operand); // true if a1 >= operand, so no borrow
 
             s.setA(a2);
@@ -581,12 +581,12 @@ public class Pep10 {
             var sign1 = x1.isNegative();
 
             var op = operand.negate();
-            var signo = op.isNegative();
+            var signo = operand.isNegative(); // sign of the operand itself, not of its negation
 
             var x2 = x1.plus(op);
             var sign2 = x2.isNegative();
             var zero2 = x2.isZero();
-            var overflow = (sign1 == signo) && (sign1 != sign2);
+            var overflow = (sign1 != signo) && (sign1 != sign2);
             var carry = !x1.lessThan(operand); // true if x1 >= operand, so no borrow
 
             s.setX(x2);
