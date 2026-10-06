@@ -161,4 +161,39 @@ class DAddDSubTest {
         assertEquals(0, mem(s, 0xF040));
         assertEquals(75, mem(s, 0xF042));
     }
+
+    private static final int[] EDGE = { 0, 1, 2, 0x7FFF, 0x8000, 0xFFFF, 0x10000, 0x1FFFF, 0x7FFFFFFF, 0x80000000,
+            0xFFFFFFFF, 0xFFFF0000, 70000, 123456789 };
+
+    @Test
+    @DisplayName("DADD and DSUB match Java int arithmetic for carry and borrow edge cases")
+    void edgeCases() {
+        for (int a : EDGE) {
+            for (int b : EDGE) {
+                for (String op : new String[] { "DADD", "DSUB" }) {
+                    State s = run(String.format("""
+                            LDWA    0x%04X,i
+                            PUSHA
+                            LDWA    0x%04X,i
+                            PUSHA
+                            LDWA    0x%04X,i
+                            PUSHA
+                            LDWA    0x%04X,i
+                            PUSHA
+                            CALL    %s,i
+                            ADDSP   4,i
+                            POPA
+                            STWA    0xF000,d
+                            POPA
+                            STWA    0xF002,d
+                            LDBA    0,i
+                            STBA    pwrOff,d
+                            """, a & 0xFFFF, a >>> 16, b & 0xFFFF, b >>> 16, op));
+                    int e = op.equals("DADD") ? a + b : a - b;
+                    assertEquals(e >>> 16, mem(s, 0xF000), op + " " + a + "," + b + " high");
+                    assertEquals(e & 0xFFFF, mem(s, 0xF002), op + " " + a + "," + b + " low");
+                }
+            }
+        }
+    }
 }

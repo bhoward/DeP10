@@ -45,31 +45,17 @@
 DADD:
         LDWA    8,s             ; a low  (first-pushed, deep)
         ADDA    4,s             ; + b low (last-pushed, shallow); C = carry out
-        STWA    8,s             ; result low -> a's slot
-        BRC     _DAddCarryIn
-        LDWA    6,s             ; a high
-        ADDA    2,s             ; + b high (no carry-in)
-        STWA    6,s             ; result high -> a's slot
-        RET
-_DAddCarryIn:
-        LDWA    6,s             ; a high
-        ADDA    2,s             ; + b high
-        ADDA    1,i             ; + carry-in from the low word
+        STWA    8,s             ; result low -> a's slot (STWA leaves C alone)
+        LDWA    6,s             ; a high (LDWA leaves C alone)
+        ADCA    2,s             ; + b high + carry-in from the low word
         STWA    6,s             ; result high -> a's slot
         RET
 
 DSUB:
         LDWA    8,s             ; a low
-        SUBA    4,s             ; - b low; C=1 means "no borrow needed" (Issue #11 fix),
-        STWA    8,s             ; result low -> a's slot    C=0 means a borrow was needed
-        BRC     _DSubNoBorrow
+        SUBA    4,s             ; - b low; C=1 means no borrow, C=0 means a borrow
+        STWA    8,s             ; result low -> a's slot
         LDWA    6,s             ; a high
-        SUBA    2,s             ; - b high
-        SUBA    1,i             ; - the borrow from the low word
-        STWA    6,s             ; result high -> a's slot
-        RET
-_DSubNoBorrow:
-        LDWA    6,s             ; a high
-        SUBA    2,s             ; - b high (no borrow-in)
+        SBCA    2,s             ; - b high - borrow from the low word
         STWA    6,s             ; result high -> a's slot
         RET
