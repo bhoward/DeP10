@@ -1,8 +1,14 @@
 package edu.depauw.dep10.op;
 
 import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.util.Word;
 
-public class Dep10PushPop {
+/**
+ * Utility extension table (prefix 0000 1001): stack, register swap and address
+ * instructions. Unary instructions use opcodes 1 to 15; two-register families
+ * take 16 codes each, with the A form at 16k and the X form at 16k + 8.
+ */
+public class Dep10Util {
     public static final Table table = new Table();
 
     public static final Operation PUSHX = new Operation.Unary("PUSHX") {
@@ -60,7 +66,51 @@ public class Dep10PushPop {
         }
     };
     
+    private static void setNZ(State s, Word w) {
+        s.setN(w.isNegative());
+        s.setZ(w.isZero());
+    }
+
+    /** A <- effective address of Operand (no memory access). Not valid with immediate mode. N and Z from A. */
+    public static final OpCore LEAA = new OpCore("LEAA", Modes.NotI) {
+        public void exec(State s, Mode mode) {
+            var a = mode.getAddress(s);
+            s.setA(a);
+            setNZ(s, a);
+        }
+    };
+
+    public static final OpCore LEAX = new OpCore("LEAX", Modes.NotI) {
+        public void exec(State s, Mode mode) {
+            var x = mode.getAddress(s);
+            s.setX(x);
+            setNZ(s, x);
+        }
+    };
+
+    /** Exchange A with the word at the operand address in one step. N and Z from the new A. */
+    public static final OpCore SWAPA = new OpCore("SWAPA", Modes.NotI) {
+        public void exec(State s, Mode mode) {
+            var addr = mode.getAddress(s);
+            var old = s.mem2(addr);
+            s.setMem2(addr, s.getA());
+            s.setA(old);
+            setNZ(s, old);
+        }
+    };
+
+    public static final OpCore SWAPX = new OpCore("SWAPX", Modes.NotI) {
+        public void exec(State s, Mode mode) {
+            var addr = mode.getAddress(s);
+            var old = s.mem2(addr);
+            s.setMem2(addr, s.getX());
+            s.setX(old);
+            setNZ(s, old);
+        }
+    };
+
     static {
+        // unary
         table.install(1, SWAPAX);
         table.install(2, SWAPHA);
         table.install(3, SWAPHX);
@@ -68,5 +118,10 @@ public class Dep10PushPop {
         table.install(5, PUSHX);
         table.install(6, POPA);
         table.install(7, POPX);
+        // A form at 16k, X form at 16k + 8
+        table.install(16, LEAA);
+        table.install(24, LEAX);
+        table.install(32, SWAPA);
+        table.install(40, SWAPX);
     }
 }

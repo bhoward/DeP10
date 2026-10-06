@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Nested;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for Dep10PushPop (PUSHA/PUSHX/POPA/POPX/SWAPAX/SWAPHA/SWAPHX), merged into
+ * Tests for Dep10Util (PUSHA/PUSHX/POPA/POPX/SWAPAX/SWAPHA/SWAPHX), merged into
  * main as part of the h_register/0.9.0 work. These instructions previously had no
  * test coverage at all.
  */
@@ -27,7 +27,7 @@ public class PushPopTest {
             s.setA(Word.of(0x1234));
             s.setSP(Word.of(0x1000));
 
-            Dep10PushPop.PUSHA.exec(s);
+            Dep10Util.PUSHA.exec(s);
 
             assertEquals(0x0FFE, s.getSP().value());
             assertEquals(0x1234, s.mem2(s.getSP()).value());
@@ -40,7 +40,7 @@ public class PushPopTest {
             s.setX(Word.of(0x5678));
             s.setSP(Word.of(0x1000));
 
-            Dep10PushPop.PUSHX.exec(s);
+            Dep10Util.PUSHX.exec(s);
 
             assertEquals(0x0FFE, s.getSP().value());
             assertEquals(0x5678, s.mem2(s.getSP()).value());
@@ -58,7 +58,7 @@ public class PushPopTest {
             s.setSP(Word.of(0x0FFE));
             s.setMem2(Word.of(0x0FFE), Word.of(0xABCD));
 
-            Dep10PushPop.POPA.exec(s);
+            Dep10Util.POPA.exec(s);
 
             assertEquals(0xABCD, s.getA().value());
             assertEquals(0x1000, s.getSP().value());
@@ -71,7 +71,7 @@ public class PushPopTest {
             s.setSP(Word.of(0x0FFE));
             s.setMem2(Word.of(0x0FFE), Word.of(0xCAFE));
 
-            Dep10PushPop.POPX.exec(s);
+            Dep10Util.POPX.exec(s);
 
             assertEquals(0xCAFE, s.getX().value());
             assertEquals(0x1000, s.getSP().value());
@@ -84,9 +84,9 @@ public class PushPopTest {
             s.setA(Word.of(0x4242));
             s.setSP(Word.of(0x1000));
 
-            Dep10PushPop.PUSHA.exec(s);
+            Dep10Util.PUSHA.exec(s);
             s.setA(Word.of(0)); // clobber A to prove POPA actually restores it
-            Dep10PushPop.POPA.exec(s);
+            Dep10Util.POPA.exec(s);
 
             assertEquals(0x4242, s.getA().value());
             assertEquals(0x1000, s.getSP().value(), "SP should be back where it started");
@@ -104,7 +104,7 @@ public class PushPopTest {
             s.setA(Word.of(0x1111));
             s.setX(Word.of(0x2222));
 
-            Dep10PushPop.SWAPAX.exec(s);
+            Dep10Util.SWAPAX.exec(s);
 
             assertEquals(0x2222, s.getA().value());
             assertEquals(0x1111, s.getX().value());
@@ -118,7 +118,7 @@ public class PushPopTest {
             s.setX(Word.of(0x9999));
             s.setH(Word.of(0x3333));
 
-            Dep10PushPop.SWAPHA.exec(s);
+            Dep10Util.SWAPHA.exec(s);
 
             assertEquals(0x3333, s.getA().value());
             assertEquals(0x1111, s.getH().value());
@@ -133,7 +133,7 @@ public class PushPopTest {
             s.setA(Word.of(0x9999));
             s.setH(Word.of(0x4444));
 
-            Dep10PushPop.SWAPHX.exec(s);
+            Dep10Util.SWAPHX.exec(s);
 
             assertEquals(0x4444, s.getX().value());
             assertEquals(0x2222, s.getH().value());
@@ -147,8 +147,8 @@ public class PushPopTest {
             s.setA(Word.of(0x1111));
             s.setH(Word.of(0x3333));
 
-            Dep10PushPop.SWAPHA.exec(s);
-            Dep10PushPop.SWAPHA.exec(s);
+            Dep10Util.SWAPHA.exec(s);
+            Dep10Util.SWAPHA.exec(s);
 
             assertEquals(0x1111, s.getA().value());
             assertEquals(0x3333, s.getH().value());
@@ -164,8 +164,8 @@ public class PushPopTest {
             s.setX(Word.of(0xBBBB));
             s.setH(Word.of(0));
 
-            Dep10PushPop.SWAPHA.exec(s); // H<->A: H=0xAAAA, A=0
-            Dep10PushPop.SWAPHX.exec(s); // H<->X: H=0xBBBB, X=0xAAAA
+            Dep10Util.SWAPHA.exec(s); // H<->A: H=0xAAAA, A=0
+            Dep10Util.SWAPHX.exec(s); // H<->X: H=0xBBBB, X=0xAAAA
 
             assertEquals(0xAAAA, s.getX().value());
             assertEquals(0xBBBB, s.getH().value());

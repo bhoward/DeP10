@@ -29,9 +29,8 @@
 	<p>
 		<a href="#operations">Operations</a> |
 		<a href="#extended">Extended Table Operations</a>
-		(<a href="#muldiv">MulDiv</a>,
-		<a href="#pushpop">PushPop</a>,
-		<a href="#ext">Extension</a>) |
+		(<a href="#arith">Arithmetic</a>,
+		<a href="#util">Utility</a>) |
 		<a href="#macros">Macros</a> |
 		<a href="#modes">Addressing Modes</a> |
 		<a href="#registers">Registers</a> |
@@ -98,13 +97,13 @@
 				<td valign="top">{No operation}</td>
 			</tr>
 			<tr>
-				<td valign="top">MulDiv Table</td>
+				<td valign="top">Arithmetic Table</td>
 				<td valign="top">0000 1000</td>
 				<td valign="top">Extended Table</td>
 				<td valign="top">Prefix for extended table (see below)</td>
 			</tr>
 			<tr>
-				<td valign="top">PushPop Table</td>
+				<td valign="top">Utility Table</td>
 				<td valign="top">0000 1001</td>
 				<td valign="top">Extended Table</td>
 				<td valign="top">Prefix for extended table (see below)</td>
@@ -319,7 +318,7 @@
 	</table>
 
 	<h2 id="extended">Extended Table Operations</h2>
-	<h3 id="muldiv">MulDiv Table (prefix 0000 1000)</h3>
+	<h3 id="arith">Arithmetic Table (prefix 0000 1000)</h3>
 	<table>
 		<tbody>
 			<tr>
@@ -327,6 +326,42 @@
 				<th>Opcode</th>
 				<th>Modes</th>
 				<th>Effect</th>
+			</tr>
+			<tr>
+				<td valign="top">TSTA</td>
+				<td valign="top">0000 0001</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">N ← A &lt; 0 , Z ← A = 0 , V ← 0 , C ← 1<br>Same flags as CPWA 0,i</td>
+			</tr>
+			<tr>
+				<td valign="top">TSTX</td>
+				<td valign="top">0000 0010</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">N ← X &lt; 0 , Z ← X = 0 , V ← 0 , C ← 1<br>Same flags as CPWX 0,i</td>
+			</tr>
+			<tr>
+				<td valign="top">SXBA</td>
+				<td valign="top">0000 0011</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">A ← sign extension of the low byte of A<br>N ← A &lt; 0 , Z ← A = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">SXBX</td>
+				<td valign="top">0000 0100</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">X ← sign extension of the low byte of X<br>N ← X &lt; 0 , Z ← X = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">SXWA</td>
+				<td valign="top">0000 0101</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">H ← 0xFFFF if A &lt; 0, otherwise 0, so H:A is the 32-bit signed value of A<br>N ← A &lt; 0 , Z ← A = 0</td>
+			</tr>
+			<tr>
+				<td valign="top">SXWX</td>
+				<td valign="top">0000 0110</td>
+				<td valign="top">Monadic</td>
+				<td valign="top">H ← 0xFFFF if X &lt; 0, otherwise 0, so H:X is the 32-bit signed value of X<br>N ← X &lt; 0 , Z ← X = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">MULA</td>
@@ -454,10 +489,35 @@
 				<td valign="top">X ← (H:X) ÷ Operand , H ← (H:X) mod Operand (unsigned); on divide-by-zero, X ← 0, H ← 0<br>
 					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
+			<tr>
+				<td valign="top">ADCA</td>
+				<td valign="top">0000 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A + Operand + C<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {carry out}<br>Z reflects only this word, not a multiword total</td>
+			</tr>
+			<tr>
+				<td valign="top">ADCX</td>
+				<td valign="top">0001 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X + Operand + C<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {carry out}</td>
+			</tr>
+			<tr>
+				<td valign="top">SBCA</td>
+				<td valign="top">0001 1aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">A ← A − Operand − (1 − C), so C = 1 means no borrow, as in SUBA<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {no borrow}</td>
+			</tr>
+			<tr>
+				<td valign="top">SBCX</td>
+				<td valign="top">0010 0aaa</td>
+				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
+				<td valign="top">X ← X − Operand − (1 − C)<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {no borrow}</td>
+			</tr>
+
 		</tbody>
 	</table>
 
-	<h3 id="pushpop">PushPop Table (prefix 0000 1001)</h3>
+<h3 id="util">Utility Table (prefix 0000 1001)</h3>
 	<table>
 		<tbody>
 			<tr>
@@ -512,78 +572,6 @@
 				<td valign="top">X ← Mem[SP]<br>
 					SP ← SP + 2</td>
 			</tr>
-		</tbody>
-	</table>
-
-	<h3 id="ext">Extension Table (prefix 0000 1010)</h3>
-	<table>
-		<tbody>
-			<tr>
-				<th>Mnemonic</th>
-				<th>Opcode</th>
-				<th>Modes</th>
-				<th>Effect</th>
-			</tr>
-			<tr>
-				<td valign="top">TSTA</td>
-				<td valign="top">0000 0001</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">N ← A &lt; 0 , Z ← A = 0 , V ← 0 , C ← 1<br>Same flags as CPWA 0,i</td>
-			</tr>
-			<tr>
-				<td valign="top">TSTX</td>
-				<td valign="top">0000 0010</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">N ← X &lt; 0 , Z ← X = 0 , V ← 0 , C ← 1<br>Same flags as CPWX 0,i</td>
-			</tr>
-			<tr>
-				<td valign="top">SXBA</td>
-				<td valign="top">0000 0011</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">A ← sign extension of the low byte of A<br>N ← A &lt; 0 , Z ← A = 0</td>
-			</tr>
-			<tr>
-				<td valign="top">SXBX</td>
-				<td valign="top">0000 0100</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">X ← sign extension of the low byte of X<br>N ← X &lt; 0 , Z ← X = 0</td>
-			</tr>
-			<tr>
-				<td valign="top">SXWA</td>
-				<td valign="top">0000 0101</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">H ← 0xFFFF if A &lt; 0, otherwise 0, so H:A is the 32-bit signed value of A<br>N ← A &lt; 0 , Z ← A = 0</td>
-			</tr>
-			<tr>
-				<td valign="top">SXWX</td>
-				<td valign="top">0000 0110</td>
-				<td valign="top">Monadic</td>
-				<td valign="top">H ← 0xFFFF if X &lt; 0, otherwise 0, so H:X is the 32-bit signed value of X<br>N ← X &lt; 0 , Z ← X = 0</td>
-			</tr>
-			<tr>
-				<td valign="top">ADCA</td>
-				<td valign="top">0000 1aaa</td>
-				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">A ← A + Operand + C<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {carry out}<br>Z reflects only this word, not a multiword total</td>
-			</tr>
-			<tr>
-				<td valign="top">ADCX</td>
-				<td valign="top">0001 0aaa</td>
-				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">X ← X + Operand + C<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {carry out}</td>
-			</tr>
-			<tr>
-				<td valign="top">SBCA</td>
-				<td valign="top">0001 1aaa</td>
-				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">A ← A − Operand − (1 − C), so C = 1 means no borrow, as in SUBA<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {no borrow}</td>
-			</tr>
-			<tr>
-				<td valign="top">SBCX</td>
-				<td valign="top">0010 0aaa</td>
-				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
-				<td valign="top">X ← X − Operand − (1 − C)<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {no borrow}</td>
-			</tr>
 			<tr>
 				<td valign="top">LEAA</td>
 				<td valign="top">0010 1aaa</td>
@@ -608,6 +596,7 @@
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ↔ Mem[Operand] in one step<br>N ← X &lt; 0 , Z ← X = 0 (after the exchange)</td>
 			</tr>
+
 		</tbody>
 	</table>
 
