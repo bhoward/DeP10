@@ -329,187 +329,187 @@
 			</tr>
 			<tr>
 				<td valign="top">TSTA</td>
-				<td valign="top">0000 0001</td>
+				<td valign="top">0000 0010</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">N ← A &lt; 0 , Z ← A = 0 , V ← 0 , C ← 1<br>Same flags as CPWA 0,i</td>
 			</tr>
 			<tr>
 				<td valign="top">TSTX</td>
-				<td valign="top">0000 0010</td>
+				<td valign="top">0000 0011</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">N ← X &lt; 0 , Z ← X = 0 , V ← 0 , C ← 1<br>Same flags as CPWX 0,i</td>
 			</tr>
 			<tr>
 				<td valign="top">SXBA</td>
-				<td valign="top">0000 0011</td>
+				<td valign="top">0000 0100</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">A ← sign extension of the low byte of A<br>N ← A &lt; 0 , Z ← A = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">SXBX</td>
-				<td valign="top">0000 0100</td>
+				<td valign="top">0000 0101</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">X ← sign extension of the low byte of X<br>N ← X &lt; 0 , Z ← X = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">SXWA</td>
-				<td valign="top">0000 0101</td>
+				<td valign="top">0000 0110</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">H ← 0xFFFF if A &lt; 0, otherwise 0, so H:A is the 32-bit signed value of A<br>N ← A &lt; 0 , Z ← A = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">SXWX</td>
-				<td valign="top">0000 0110</td>
+				<td valign="top">0000 0111</td>
 				<td valign="top">Monadic</td>
 				<td valign="top">H ← 0xFFFF if X &lt; 0, otherwise 0, so H:X is the 32-bit signed value of X<br>N ← X &lt; 0 , Z ← X = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">MULA</td>
-				<td valign="top">0000 1aaa</td>
+				<td valign="top">0001 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A × Operand (low 16 bits of signed product)<br>
 					N ← A &lt; 0 , Z ← A = 0 , V ← 0 , C ← {full product does not fit in 16 bits}</td>
 			</tr>
 			<tr>
 				<td valign="top">MULX</td>
-				<td valign="top">0001 0aaa</td>
+				<td valign="top">0001 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X × Operand (low 16 bits of signed product)<br>
 					N ← X &lt; 0 , Z ← X = 0 , V ← 0 , C ← {full product does not fit in 16 bits}</td>
 			</tr>
 			<tr>
 				<td valign="top">DIVA</td>
-				<td valign="top">0001 1aaa</td>
+				<td valign="top">0010 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A ÷ Operand (signed); on divide-by-zero, A ← 0<br>
 					N ← A &lt; 0 , Z ← A = 0 , V ← {divide-by-zero or overflow (only for −32768 ÷ −1)} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">DIVX</td>
-				<td valign="top">0010 0aaa</td>
+				<td valign="top">0010 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X ÷ Operand (signed); on divide-by-zero, X ← 0<br>
 					N ← X &lt; 0 , Z ← X = 0 , V ← {divide-by-zero or overflow (only for −32768 ÷ −1)} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">MODA</td>
-				<td valign="top">0010 1aaa</td>
+				<td valign="top">0011 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A mod Operand (signed); on divide-by-zero, A ← 0<br>
 					N ← A &lt; 0 , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">MODX</td>
-				<td valign="top">0011 0aaa</td>
+				<td valign="top">0011 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X mod Operand (signed); on divide-by-zero, X ← 0<br>
 					N ← X &lt; 0 , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UDIVA</td>
-				<td valign="top">0011 1aaa</td>
+				<td valign="top">0100 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A ÷ Operand (unsigned); on divide-by-zero, A ← 0<br>
 					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UDIVX</td>
-				<td valign="top">0100 0aaa</td>
+				<td valign="top">0100 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X ÷ Operand (unsigned); on divide-by-zero, X ← 0<br>
 					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UMODA</td>
-				<td valign="top">0100 1aaa</td>
+				<td valign="top">0101 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A mod Operand (unsigned); on divide-by-zero, A ← 0<br>
 					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UMODX</td>
-				<td valign="top">0101 0aaa</td>
+				<td valign="top">0101 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X mod Operand (unsigned); on divide-by-zero, X ← 0<br>
 					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">SMULA</td>
-				<td valign="top">0101 1aaa</td>
+				<td valign="top">0110 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">H:A ← A × Operand (signed, full 32-bit product)<br>
 					N ← H &lt; 0 , Z ← H:A = 0 , V unaffected , C ← {H is not just the sign-extension of A}</td>
 			</tr>
 			<tr>
 				<td valign="top">SMULX</td>
-				<td valign="top">0110 0aaa</td>
+				<td valign="top">0110 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">H:X ← X × Operand (signed, full 32-bit product)<br>
 					N ← H &lt; 0 , Z ← H:X = 0 , V unaffected , C ← {H is not just the sign-extension of X}</td>
 			</tr>
 			<tr>
 				<td valign="top">UMULA</td>
-				<td valign="top">0110 1aaa</td>
+				<td valign="top">0111 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">H:A ← A × Operand (unsigned, full 32-bit product)<br>
 					N ← H &lt; 0 (as signed 32-bit) , Z ← H:A = 0 , V unaffected , C ← {H ≠ 0}</td>
 			</tr>
 			<tr>
 				<td valign="top">UMULX</td>
-				<td valign="top">0111 0aaa</td>
+				<td valign="top">0111 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">H:X ← X × Operand (unsigned, full 32-bit product)<br>
 					N ← H &lt; 0 (as signed 32-bit) , Z ← H:X = 0 , V unaffected , C ← {H ≠ 0}</td>
 			</tr>
 			<tr>
 				<td valign="top">SDMA</td>
-				<td valign="top">0111 1aaa</td>
+				<td valign="top">1000 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← (H:A) ÷ Operand , H ← (H:A) mod Operand (signed); on divide-by-zero, A ← 0, H ← 0<br>
 					N ← A &lt; 0 , Z ← A = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">SDMX</td>
-				<td valign="top">1000 0aaa</td>
+				<td valign="top">1000 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← (H:X) ÷ Operand , H ← (H:X) mod Operand (signed); on divide-by-zero, X ← 0, H ← 0<br>
 					N ← X &lt; 0 , Z ← X = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UDMA</td>
-				<td valign="top">1000 1aaa</td>
+				<td valign="top">1001 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← (H:A) ÷ Operand , H ← (H:A) mod Operand (unsigned); on divide-by-zero, A ← 0, H ← 0<br>
 					N ← A &lt; 0 (as signed 16-bit) , Z ← A = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">UDMX</td>
-				<td valign="top">1001 0aaa</td>
+				<td valign="top">1001 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← (H:X) ÷ Operand , H ← (H:X) mod Operand (unsigned); on divide-by-zero, X ← 0, H ← 0<br>
 					N ← X &lt; 0 (as signed 16-bit) , Z ← X = 0 , V ← {quotient does not fit in 16 bits, or divide-by-zero} , C ← {divide-by-zero}</td>
 			</tr>
 			<tr>
 				<td valign="top">ADCA</td>
-				<td valign="top">0000 1aaa</td>
+				<td valign="top">1010 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A + Operand + C<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {carry out}<br>Z reflects only this word, not a multiword total</td>
 			</tr>
 			<tr>
 				<td valign="top">ADCX</td>
-				<td valign="top">0001 0aaa</td>
+				<td valign="top">1010 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X + Operand + C<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {carry out}</td>
 			</tr>
 			<tr>
 				<td valign="top">SBCA</td>
-				<td valign="top">0001 1aaa</td>
+				<td valign="top">1011 0aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← A − Operand − (1 − C), so C = 1 means no borrow, as in SUBA<br>N ← A &lt; 0 , Z ← A = 0 , V ← {overflow} , C ← {no borrow}</td>
 			</tr>
 			<tr>
 				<td valign="top">SBCX</td>
-				<td valign="top">0010 0aaa</td>
+				<td valign="top">1011 1aaa</td>
 				<td valign="top">i, d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← X − Operand − (1 − C)<br>N ← X &lt; 0 , Z ← X = 0 , V ← {overflow} , C ← {no borrow}</td>
 			</tr>
@@ -574,25 +574,25 @@
 			</tr>
 			<tr>
 				<td valign="top">LEAA</td>
-				<td valign="top">0010 1aaa</td>
+				<td valign="top">0001 0aaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ← effective address of Operand (no memory access)<br>N ← A &lt; 0 , Z ← A = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">LEAX</td>
-				<td valign="top">0011 0aaa</td>
+				<td valign="top">0001 1aaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ← effective address of Operand (no memory access)<br>N ← X &lt; 0 , Z ← X = 0</td>
 			</tr>
 			<tr>
 				<td valign="top">SWAPA</td>
-				<td valign="top">0011 1aaa</td>
+				<td valign="top">0010 0aaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">A ↔ Mem[Operand] in one step<br>N ← A &lt; 0 , Z ← A = 0 (after the exchange)</td>
 			</tr>
 			<tr>
 				<td valign="top">SWAPX</td>
-				<td valign="top">0100 0aaa</td>
+				<td valign="top">0010 1aaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ↔ Mem[Operand] in one step<br>N ← X &lt; 0 , Z ← X = 0 (after the exchange)</td>
 			</tr>
