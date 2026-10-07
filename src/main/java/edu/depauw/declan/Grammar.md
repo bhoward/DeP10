@@ -146,3 +146,71 @@ Factor -> number | TRUE | FALSE | ident
 Factor -> ( Expression )
 Factor -> ~ Factor
 ```
+
+## Types and LONGINT
+
+DeCLan has four types: `BOOLEAN`, `INTEGER`, `LONGINT` and `REAL`.
+
+| Type | Size | Range |
+| --- | --- | --- |
+| `INTEGER` | 16 bits | -32768 to 32767 |
+| `LONGINT` | 32 bits | -2147483648 to 2147483647 |
+
+Both integer types use two's complement and wrap around silently on overflow, as `int` does in Java.
+
+**Literals.** There is no separate syntax for `LONGINT` literals. The type of an integer literal is the minimal type to which the number belongs: `32767` is an `INTEGER`, and `32768` is a `LONGINT`. A literal larger than 2147483647 is an error. Constant expressions follow the same rule, so after `CONST big = 200 * 200;` the constant `big` (40000) is a `LONGINT`.
+
+**Widening.** An `INTEGER` is converted to `LONGINT` automatically in assignments, in value parameters, and when it is mixed with a `LONGINT` in an expression. There is no automatic conversion the other way.
+
+**Operations.** `LONGINT` supports `+`, `-` (binary and unary), `*`, `DIV`, `MOD`, and all six comparisons (`=`, `#`, `<`, `<=`, `>`, `>=`). `DIV` and `MOD` truncate toward zero, like their `INTEGER` versions. A `LONGINT` can be a global, a local, a value parameter or a `VAR` parameter.
+
+**Watch out: widen before you multiply.** An expression whose operands are both `INTEGER` is computed in 16 bits, even if it is assigned to a `LONGINT`:
+
+```
+VAR i, j : INTEGER; a : LONGINT;
+BEGIN
+  i := 300; j := 300;
+  a := i * j;     (* 16-bit multiply, wraps: a = 24464 *)
+  a := i;
+  a := a * j      (* 32-bit multiply: a = 90000 *)
+END.
+```
+
+**Not supported yet.** Mixing `LONGINT` with `REAL` (including assigning a `LONGINT` to a `REAL`), using a `LONGINT` as a `FOR` counter, and reading a `LONGINT` with a standard procedure.
+
+### Standard procedures for output
+
+| Call | Prints |
+| --- | --- |
+| `WriteInt(n)` | a space, then the `INTEGER` `n` |
+| `WriteLong(n)` | a space, then the signed decimal value of the `LONGINT` `n` (an `INTEGER` argument is widened) |
+| `WriteLn()` | a newline |
+
+### Example
+
+Factorials and a Fibonacci number that do not fit in 16 bits (also in `demo/longint-demo.dcl`):
+
+```
+VAR f, a, b, t : LONGINT; i : INTEGER;
+
+BEGIN
+  f := 1;
+  FOR i := 1 TO 12 DO
+    f := f * i;
+    WriteLong(i);
+    WriteLong(f);
+    WriteLn()
+  END;
+  a := 0;
+  b := 1;
+  FOR i := 1 TO 45 DO
+    t := a + b;
+    a := b;
+    b := t
+  END;
+  WriteLong(a);      (* Fibonacci(45) = 1134903170 *)
+  WriteLn()
+END.
+```
+
+The compiler implements `LONGINT` arithmetic with the library routines `DADD`, `DSUB`, `DMul` and `DDiv`, and printing with `DPRINTD`. A program that does not use `LONGINT` compiles to exactly the same code as before, and each library is included only when the program needs it.
