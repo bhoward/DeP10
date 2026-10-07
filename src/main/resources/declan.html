@@ -17,13 +17,15 @@ scaleFactor -&gt; E (+ | -)? digit digit*
 
 number -&gt; integer | real
 </code></pre>
+<p>The type of an integer literal is the minimal type to which the number belongs: <code>INTEGER</code> if it is at most 32767,
+otherwise <code>LONGINT</code> (at most 2147483647). There is no separate syntax for <code>LONGINT</code> literals.</p>
 <p>Whitespace between tokens may be zero or more spaces, tabs, newlines, carriage returns, or comments.
 A comment is any sequence of characters, other than <code>*)</code>, surrounded by a leading <code>(*</code> and a trailing <code>*)</code>.
 The body of a comment may contain another comment, which must be properly closed (and which itself may
 contain further nested comments).</p>
 <h3>Reserved Words</h3>
 <pre><code>BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR,
-IF, INTEGER, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
+IF, INTEGER, LONGINT, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
 </code></pre>
 <h2>Syntax Rules</h2>
 <pre><code>Program -&gt; DeclSequence ProcedureDeclSequence BEGIN StatementSequence END .
@@ -53,7 +55,7 @@ IdentList -&gt; ident IdentListRest
 IdentListRest -&gt; , ident IdentListRest
 IdentListRest -&gt;
 
-Type -&gt; BOOLEAN | INTEGER | REAL
+Type -&gt; BOOLEAN | INTEGER | LONGINT | REAL
 
 ProcedureDeclSequence -&gt; ProcedureDecl ; ProcedureDeclSequence
 ProcedureDeclSequence -&gt;
@@ -134,4 +136,64 @@ Factor -&gt; number | TRUE | FALSE | ident
 Factor -&gt; ( Expression )
 Factor -&gt; ~ Factor
 </code></pre>
+<h2>Types and LONGINT</h2>
+<p>DeCLan has four types: <code>BOOLEAN</code>, <code>INTEGER</code>, <code>LONGINT</code> and <code>REAL</code>.</p>
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Type</th><th>Size</th><th>Range</th></tr>
+<tr><td><code>INTEGER</code></td><td>16 bits</td><td>-32768 to 32767</td></tr>
+<tr><td><code>LONGINT</code></td><td>32 bits</td><td>-2147483648 to 2147483647</td></tr>
+</table>
+<p>Both integer types use two's complement and wrap around silently on overflow, as <code>int</code> does in Java.</p>
+<p><b>Literals.</b> <code>32767</code> is an <code>INTEGER</code> and <code>32768</code> is a <code>LONGINT</code>. A literal larger than 2147483647 is an error.
+Constant expressions follow the same rule, so after <code>CONST big = 200 * 200;</code> the constant <code>big</code> (40000) is a <code>LONGINT</code>.</p>
+<p><b>Widening.</b> An <code>INTEGER</code> is converted to <code>LONGINT</code> automatically in assignments, in value parameters, and when it is mixed
+with a <code>LONGINT</code> in an expression. There is no automatic conversion the other way.</p>
+<p><b>Operations.</b> <code>LONGINT</code> supports <code>+</code>, <code>-</code> (binary and unary), <code>*</code>, <code>DIV</code>, <code>MOD</code>,
+and all six comparisons. <code>DIV</code> and <code>MOD</code> truncate toward zero, like their <code>INTEGER</code> versions.
+A <code>LONGINT</code> can be a global, a local, a value parameter or a <code>VAR</code> parameter.</p>
+<p><b>Watch out: widen before you multiply.</b> An expression whose operands are both <code>INTEGER</code> is computed in 16 bits,
+even if it is assigned to a <code>LONGINT</code>:</p>
+<pre><code>VAR i, j : INTEGER; a : LONGINT;
+BEGIN
+  i := 300; j := 300;
+  a := i * j;     (* 16-bit multiply, wraps: a = 24464 *)
+  a := i;
+  a := a * j      (* 32-bit multiply: a = 90000 *)
+END.
+</code></pre>
+<p><b>Not supported yet.</b> Mixing <code>LONGINT</code> with <code>REAL</code> (including assigning a <code>LONGINT</code> to a <code>REAL</code>),
+using a <code>LONGINT</code> as a <code>FOR</code> counter, and reading a <code>LONGINT</code> with a standard procedure.</p>
+<h3>Standard procedures for output</h3>
+<table border="1" cellpadding="4" cellspacing="0">
+<tr><th>Call</th><th>Prints</th></tr>
+<tr><td><code>WriteInt(n)</code></td><td>a space, then the <code>INTEGER</code> <code>n</code></td></tr>
+<tr><td><code>WriteLong(n)</code></td><td>a space, then the signed decimal value of the <code>LONGINT</code> <code>n</code> (an <code>INTEGER</code> argument is widened)</td></tr>
+<tr><td><code>WriteLn()</code></td><td>a newline</td></tr>
+</table>
+<h3>Example</h3>
+<p>Factorials and a Fibonacci number that do not fit in 16 bits (also in <code>demo/longint-demo.dcl</code>):</p>
+<pre><code>VAR f, a, b, t : LONGINT; i : INTEGER;
+
+BEGIN
+  f := 1;
+  FOR i := 1 TO 12 DO
+    f := f * i;
+    WriteLong(i);
+    WriteLong(f);
+    WriteLn()
+  END;
+  a := 0;
+  b := 1;
+  FOR i := 1 TO 45 DO
+    t := a + b;
+    a := b;
+    b := t
+  END;
+  WriteLong(a);      (* Fibonacci(45) = 1134903170 *)
+  WriteLn()
+END.
+</code></pre>
+<p>The compiler implements <code>LONGINT</code> arithmetic with the library routines <code>DADD</code>, <code>DSUB</code>, <code>DMul</code> and <code>DDiv</code>,
+and printing with <code>DPRINTD</code>. A program that does not use <code>LONGINT</code> compiles to exactly the same code as before,
+and each library is included only when the program needs it.</p>
 </body></html>
