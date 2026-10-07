@@ -38,6 +38,10 @@ class LongintTest {
     }
 
     private static State run(String source) {
+        return run(source, 200_000);
+    }
+
+    private static State run(String source, int stepLimit) {
         String asm = compile(source);
 
         int slots = 0;
@@ -58,7 +62,7 @@ class LongintTest {
             sb.append(String.format("        LDWA    _g%d,d\n        STWA    0x%04X,d\n", k, DUMP + 2 * k));
         }
         sb.append("        LDBA    0,i\n        STBA    pwrOff,d\n        .END\n");
-        return PepHarness.run(sb.toString());
+        return PepHarness.run(sb.toString(), stepLimit);
     }
 
     private static int word(State s, int slot) {
@@ -373,30 +377,14 @@ class LongintTest {
     }
 
     @Test
-    @DisplayName("demo/longint-demo.dcl prints 1! to 12! and Fibonacci(45) digit by digit")
+    @DisplayName("demo/longint-demo.dcl prints 1! to 12! and Fibonacci(45) with WriteLong")
     void demoProgram() throws Exception {
         String src = java.nio.file.Files.readString(java.nio.file.Path.of("demo/longint-demo.dcl"));
-        String asm = compile(src);
-        StringBuilder sb = new StringBuilder();
-        // Log every word WriteInt would print to a buffer at 0xE000 instead of calling the OS
-        sb.append(".DEFMACRO DECI, 2\n.ENDMACRO\n");
-        sb.append(".DEFMACRO DECO, 2\n        STWX    0xEFFC,d\n        LDWX    0xEFFE,d\n");
-        sb.append("        LDWA    $1,$2\n        STWA    0xE000,x\n        ADDX    2,i\n");
-        sb.append("        STWX    0xEFFE,d\n        LDWX    0xEFFC,d\n.ENDMACRO\n");
-        sb.append("        LDWA    done,i\n        PUSHA\n");
-        sb.append(asm);
-        sb.append("\ndone:   NOP\n        LDBA    0,i\n        STBA    pwrOff,d\n        .END\n");
-        State s = PepHarness.run(sb.toString(), 5_000_000);
-        int n = mem(s, 0xEFFE) / 2;
-        StringBuilder digits = new StringBuilder();
-        for (int k = 0; k < n; k++) {
-            digits.append(mem(s, 0xE000 + 2 * k));
-        }
         StringBuilder expected = new StringBuilder();
         long f = 1;
         for (int k = 1; k <= 12; k++) {
             f *= k;
-            expected.append(f);
+            expected.append(" ").append(k).append(" ").append(f).append("\n");
         }
         long a = 0, b = 1;
         for (int k = 0; k < 45; k++) {
@@ -404,8 +392,8 @@ class LongintTest {
             a = b;
             b = t;
         }
-        expected.append(a);
-        assertEquals(expected.toString(), digits.toString());
+        expected.append(" ").append(a).append("\n");
+        assertEquals(expected.toString(), printed(src));
     }
 
     private static Object literal(String src) {
@@ -459,5 +447,55 @@ class LongintTest {
         assertEquals(-70000, lng(s, 9));
         assertEquals(2000000000, lng(s, 11));
         assertEquals(10, word(s, 13));
+    }
+
+    private static String printed(String source) {
+        PrintStream saved = System.out;
+        var buf = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(buf, true));
+        try {
+            run(source, 5_000_000);
+        } finally {
+            System.setOut(saved);
+        }
+        return buf.toString().replace("\r", "");
+    }
+
+    @Test
+    @DisplayName("WriteLong prints signed 32-bit values, like WriteInt with a leading space")
+    void writeLong() {
+        String out = printed("""
+                VAR a : LONGINT; i : INTEGER;
+                BEGIN
+                  a := 0; WriteLong(a);
+                  a := 7; WriteLong(a);
+                  a := 100000; WriteLong(a);
+                  a := -123456; WriteLong(a);
+                  a := 2147483647; WriteLong(a);
+                  a := -2147483647 - 1; WriteLong(a);
+                  i := -5; WriteLong(i);
+                  WriteLong(1000000);
+                  WriteLong(a + a + 1);
+                  WriteLn()
+                END.
+                """);
+        assertEquals(" 0 7 100000 -123456 2147483647 -2147483648 -5 1000000 1\n", out);
+    }
+
+    @Test
+    @DisplayName("WriteLong together with LONGINT arithmetic does not duplicate libraries")
+    void writeLongWithArithmetic() {
+        String out = printed("""
+                VAR f : LONGINT; i : INTEGER;
+                BEGIN
+                  f := 1;
+                  FOR i := 1 TO 12 DO f := f * i END;
+                  WriteLong(f);
+                  WriteLong(f DIV 1000);
+                  WriteLong(f MOD 1000);
+                  WriteLn()
+                END.
+                """);
+        assertEquals(" 479001600 479001 600\n", out);
     }
 }

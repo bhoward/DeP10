@@ -1,32 +1,14 @@
-(* LONGINT demo: factorials and Fibonacci numbers past 16 bits.
-   Prints each digit with WriteInt, so digits come out separated by spaces.
-   writeLong handles non-negative values only. *)
+(* LONGINT demo: factorials and a Fibonacci number past 16 bits.
+   Each line shows n and then n! (WriteLong prints a LONGINT, or an INTEGER widened to one).
+   The last line is Fibonacci(45), which does not fit in 16 bits either. *)
 VAR f, a, b, t : LONGINT; i : INTEGER;
-
-PROCEDURE writeLong(v : LONGINT);
-  VAR p : LONGINT; d, k, started : INTEGER;
-  BEGIN
-    p := 1000000000;
-    started := 0;
-    FOR k := 1 TO 10 DO
-      d := 0;
-      WHILE v >= p DO
-        v := v - p;
-        d := d + 1
-      END;
-      IF (started = 1) OR (d > 0) OR (k = 10) THEN
-        WriteInt(d);
-        started := 1
-      END;
-      p := p DIV 10
-    END
-  END writeLong;
 
 BEGIN
   f := 1;
   FOR i := 1 TO 12 DO
     f := f * i;
-    writeLong(f);
+    WriteLong(i);
+    WriteLong(f);
     WriteLn()
   END;
   a := 0;
@@ -36,6 +18,6 @@ BEGIN
     a := b;
     b := t
   END;
-  writeLong(a);
+  WriteLong(a);
   WriteLn()
 END.
