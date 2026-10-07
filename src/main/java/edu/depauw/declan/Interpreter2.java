@@ -187,7 +187,7 @@ public class Interpreter2 implements RExpr.Visitor<Object>, RProc.Visitor<Void>,
 
             visitStatementList(stmt.body);
 
-            index.value = (int) index.value + stmt.step;
+            index.value = (int) index.value + (int) stmt.step;
         }
 
         return null;

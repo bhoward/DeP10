@@ -17,6 +17,7 @@ public class Pep10 {
     private boolean usesMultiply;
     private boolean usesDivide;
     private boolean usesPrintLong;
+    private boolean usesReadLong;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -43,11 +44,11 @@ public class Pep10 {
         writeRuntime();
 
         // ddprint includes daddsub and ddiv32 itself, so skip them here when it is used
-        if (usesDoubleword && !usesPrintLong) {
+        if ((usesDoubleword || usesReadLong) && !usesPrintLong) {
             // DADD and DSUB are callable routines, so they go after the code that ends in RET
             out(".INCLUDELIB \"daddsub\"");
         }
-        if (usesMultiply) {
+        if (usesMultiply || usesReadLong) {
             out(".INCLUDELIB \"dmul\"");
         }
         if (usesDivide && !usesPrintLong) {
@@ -55,6 +56,10 @@ public class Pep10 {
         }
         if (usesPrintLong) {
             out(".INCLUDELIB \"ddprint\"");
+        }
+        if (usesReadLong) {
+            // ddread uses DADD, DSUB and DMul, included above
+            out(".INCLUDELIB \"ddread\"");
         }
 
         return result;
@@ -78,6 +83,21 @@ public class Pep10 {
         out("       RET");
     }
 
+    void writeReadLong() {
+        if (!usesReadLong) {
+            return;
+        }
+        // ReadLong(VAR n): DREAD leaves the value in rdlHi:rdlLo; the argument is
+        // the address of n's high word, with the low word 2 bytes after it.
+        out("ReadLong: CALL DREAD,i");
+        out("       LDWA rdlHi,d");
+        out("       STWA 2,sf");
+        out("       LDWX 2,i");
+        out("       LDWA rdlLo,d");
+        out("       STWA 2,sfx");
+        out("       RET");
+    }
+
     void writeRuntime() {
         out("ReadInt: @DECI 2,sf");
         out("       RET");
@@ -86,6 +106,7 @@ public class Pep10 {
         out("       @DECO 2,s");
         out("       RET");
         writeWriteLong();
+        writeReadLong();
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
@@ -622,6 +643,8 @@ public class Pep10 {
         case CALL:
             if (us.value.equals("WriteLong")) {
                 usesPrintLong = true;
+            } else if (us.value.equals("ReadLong")) {
+                usesReadLong = true;
             }
             out("CALL %s,i", us.value);
             break;

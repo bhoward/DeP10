@@ -176,12 +176,16 @@ BEGIN
 END.
 ```
 
-**Not supported yet.** Mixing `LONGINT` with `REAL` (including assigning a `LONGINT` to a `REAL`), using a `LONGINT` as a `FOR` counter, and reading a `LONGINT` with a standard procedure.
+A `LONGINT` variable can be the counter of a `FOR` loop. Its start and stop values may be `INTEGER` or `LONGINT`, and the `BY` step may be an `INTEGER` or `LONGINT` constant. An `INTEGER` counter still needs `INTEGER` bounds and step.
 
-### Standard procedures for output
+**Not supported yet.** Mixing `LONGINT` with `REAL`, including assigning a `LONGINT` to a `REAL`.
 
-| Call | Prints |
+### Standard procedures for input and output
+
+| Call | Does |
 | --- | --- |
+| `ReadInt(n)` | reads a decimal `INTEGER` into the variable `n` |
+| `ReadLong(n)` | reads a signed decimal number into the `LONGINT` variable `n`; skips blanks and line ends first, and wraps silently like other `LONGINT` arithmetic |
 | `WriteInt(n)` | a space, then the `INTEGER` `n` |
 | `WriteLong(n)` | a space, then the signed decimal value of the `LONGINT` `n` (an `INTEGER` argument is widened) |
 | `WriteLn()` | a newline |

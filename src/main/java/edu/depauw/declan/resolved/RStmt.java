@@ -93,11 +93,13 @@ public abstract class RStmt {
         public final Location loc;
         public final RExpr start;
         public final RExpr stop;
-        public final int step;
+        public final long step;
+        public final Type type;
         public final List<RStmt> body;
 
-        public For(int line, Location loc, RExpr start, RExpr stop, int step, List<RStmt> body) {
+        public For(int line, Type type, Location loc, RExpr start, RExpr stop, long step, List<RStmt> body) {
             super(line);
+            this.type = type;
             this.loc = loc;
             this.start = start;
             this.stop = stop;
@@ -189,8 +191,9 @@ public abstract class RStmt {
         return new Empty(line);
     }
 
-    public static RStmt makeFor(int line, Location loc, RExpr start, RExpr stop, int step, List<RStmt> body) {
-        return new For(line, loc, start, stop, step, body);
+    public static RStmt makeFor(int line, Type type, Location loc, RExpr start, RExpr stop, long step,
+            List<RStmt> body) {
+        return new For(line, type, loc, start, stop, step, body);
     }
 
     public static RStmt makeIf(int line, List<RCase> cases, List<RStmt> elseClause) {
