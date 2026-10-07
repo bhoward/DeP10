@@ -500,7 +500,7 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
     }
 
     private Object defaultValue(Type type) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
             return false;
         case INTEGER:

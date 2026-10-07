@@ -1,25 +1,43 @@
 package edu.depauw.declan;
 
-public enum Type {
-    BOOLEAN, INTEGER, REAL, LONGINT;
+/**
+ * A Declan type. The four scalar types are shared constants, so they can be
+ * compared with ==. Structured types (arrays, records) will be subclasses that
+ * report their own {@link #kind()} and {@link #width()}; code that selects on the
+ * kind of a type should switch on {@code type.kind()}.
+ */
+public class Type {
+    public enum Kind {
+        BOOLEAN, INTEGER, REAL, LONGINT
+    }
+
+    public static final Type BOOLEAN = new Type(Kind.BOOLEAN);
+    public static final Type INTEGER = new Type(Kind.INTEGER);
+    public static final Type REAL = new Type(Kind.REAL);
+    public static final Type LONGINT = new Type(Kind.LONGINT);
+
+    private final Kind kind;
+
+    protected Type(Kind kind) {
+        this.kind = kind;
+    }
+
+    public Kind kind() {
+        return kind;
+    }
 
     /**
-     * Number of 16-bit words a variable of this type occupies, both as a
-     * global and as a local (stack) slot. Everything is 1 word today;
-     * LONGINT is the first type that needs 2 (it is a 32-bit value built
-     * on the DADD/DSUB/DDiv/UDDiv library). Scope/VarInfo slot allocation
-     * and the Pep10/Pep10X codegen must agree with this value: codegen for
-     * LONGINT loads/stores/refs does not exist yet (see
-     * compiler_longint_project_scope.md), so declaring a LONGINT variable
-     * will reserve the right number of slots but won't generate working
-     * assembly until that codegen is written.
+     * Number of 16-bit words a variable of this type occupies, both as a global
+     * and as a local (stack) slot. Scalars take 1 word, except LONGINT, which is
+     * a 32-bit value and takes 2. Slot allocation in Scope/VarInfo and the
+     * Pep10/Pep10X code generation must agree with this value.
      */
     public int width() {
-        switch (this) {
-        case LONGINT:
-            return 2;
-        default:
-            return 1;
-        }
+        return kind == Kind.LONGINT ? 2 : 1;
+    }
+
+    @Override
+    public String toString() {
+        return kind.toString();
     }
 }

@@ -178,7 +178,7 @@ public interface Instruction {
     }
 
     public static Instruction makeConstant(Type type, Object x) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
             return new UnaryInteger(UnaryInteger.Op.ICONST, (boolean) x ? 1 : 0);
         case INTEGER:
@@ -203,7 +203,7 @@ public interface Instruction {
     }
 
     public static Instruction makeLoad(Type type, int slot, IMode mode) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
         case INTEGER:
             switch (mode) {
@@ -247,7 +247,7 @@ public interface Instruction {
     }
 
     public static Instruction makeLoadConstant(Type type, Object value) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
             return new UnaryInteger(UnaryInteger.Op.ILD_CONST, (boolean) value ? 1 : 0);
         case INTEGER:
@@ -262,7 +262,7 @@ public interface Instruction {
     }
 
     public static Instruction makeRef(Type type, int slot, IMode mode) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
         case INTEGER:
             switch (mode) {
@@ -307,7 +307,7 @@ public interface Instruction {
     };
 
     public static Instruction makeStore(Type type, int slot, IMode mode) {
-        switch (type) {
+        switch (type.kind()) {
         case BOOLEAN:
         case INTEGER:
             switch (mode) {
@@ -374,7 +374,7 @@ public interface Instruction {
     }
 
     public static Instruction makeBranchEqual(Type type, Label ifTrue, Label ifFalse) {
-        switch (type) {
+        switch (type.kind()) {
         case REAL:
             return new BinaryString(BinaryString.Op.BRFEQ, ifTrue.name, ifFalse.name);
         case INTEGER:
@@ -387,7 +387,7 @@ public interface Instruction {
     }
 
     public static Instruction makeBranchLess(Type type, Label ifTrue, Label ifFalse) {
-        switch (type) {
+        switch (type.kind()) {
         case REAL:
             return new BinaryString(BinaryString.Op.BRFLT, ifTrue.name, ifFalse.name);
         case INTEGER:
