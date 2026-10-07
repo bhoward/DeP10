@@ -38,6 +38,11 @@ public final class PepHarness {
     }
 
     public static State run(String source, int stepLimit) {
+        return run(source, stepLimit, null);
+    }
+
+    /** As above, with the given text supplied as the console input (read through charIn). */
+    public static State run(String source, int stepLimit, String input) {
         var log = new ErrorLog();
         Sources sources = new Sources();
         sources.addResource("/pep10baremetal.peph", log);
@@ -62,6 +67,9 @@ public final class PepHarness {
         String obj = result.toObjectFile();
 
         State state = new State();
+        if (input != null) {
+            state.setInput(new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+        }
         state.loadResource("/pep10baremetal.pepo");
         state.loadString(obj);
 

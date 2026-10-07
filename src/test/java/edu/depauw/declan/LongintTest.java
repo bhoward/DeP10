@@ -42,6 +42,10 @@ class LongintTest {
     }
 
     private static State run(String source, int stepLimit) {
+        return run(source, stepLimit, null);
+    }
+
+    private static State run(String source, int stepLimit, String input) {
         String asm = compile(source);
 
         int slots = 0;
@@ -62,7 +66,7 @@ class LongintTest {
             sb.append(String.format("        LDWA    _g%d,d\n        STWA    0x%04X,d\n", k, DUMP + 2 * k));
         }
         sb.append("        LDBA    0,i\n        STBA    pwrOff,d\n        .END\n");
-        return PepHarness.run(sb.toString(), stepLimit);
+        return PepHarness.run(sb.toString(), stepLimit, input);
     }
 
     private static int word(State s, int slot) {
@@ -450,11 +454,15 @@ class LongintTest {
     }
 
     private static String printed(String source) {
+        return printed(source, null);
+    }
+
+    private static String printed(String source, String input) {
         PrintStream saved = System.out;
         var buf = new ByteArrayOutputStream();
         System.setOut(new PrintStream(buf, true));
         try {
-            run(source, 5_000_000);
+            run(source, 5_000_000, input);
         } finally {
             System.setOut(saved);
         }
@@ -497,5 +505,125 @@ class LongintTest {
                 END.
                 """);
         assertEquals(" 479001600 479001 600\n", out);
+    }
+
+    @Test
+    @DisplayName("ReadLong reads signed 32-bit decimal values, skipping blanks and line ends")
+    void readLong() {
+        String out = printed("""
+                VAR a : LONGINT; i : INTEGER;
+                BEGIN
+                  FOR i := 1 TO 9 DO
+                    ReadLong(a); WriteLong(a)
+                  END;
+                  WriteLn()
+                END.
+                """, "0 7\n  100000\n-123456 +42 2147483647\n-2147483648\n99999999999 5 ");
+        assertEquals(" 0 7 100000 -123456 42 2147483647 -2147483648 1215752191 5\n", out);
+    }
+
+    @Test
+    @DisplayName("ReadLong works on a local LONGINT and through a VAR parameter")
+    void readLongVar() {
+        String out = printed("""
+                PROCEDURE Get(VAR x : LONGINT);
+                BEGIN
+                  ReadLong(x)
+                END Get;
+                PROCEDURE Twice();
+                VAR t : LONGINT;
+                BEGIN
+                  Get(t); WriteLong(t + t)
+                END Twice;
+                BEGIN
+                  Twice(); Twice(); WriteLn()
+                END.
+                """, "70000 -3000000 ");
+        assertEquals(" 140000 -6000000\n", out);
+    }
+
+    @Test
+    @DisplayName("ReadLong reads a number and echoes it back with ReadInt-style loops")
+    void readLongSum() {
+        String out = printed("""
+                VAR n, sum, x : LONGINT; i : INTEGER;
+                BEGIN
+                  ReadLong(n);
+                  sum := 0;
+                  FOR i := 1 TO 3 DO
+                    ReadLong(x); sum := sum + x
+                  END;
+                  WriteLong(n); WriteLong(sum); WriteLn()
+                END.
+                """, "3 1000000 2000000 3000000\n");
+        assertEquals(" 3 6000000\n", out);
+    }
+
+    @Test
+    @DisplayName("A LONGINT FOR counter runs past the INTEGER range")
+    void forLongCounter() {
+        String out = printed("""
+                VAR k, sum : LONGINT;
+                BEGIN
+                  sum := 0;
+                  FOR k := 32765 TO 32770 DO
+                    sum := sum + k; WriteLong(k)
+                  END;
+                  WriteLong(sum); WriteLn()
+                END.
+                """);
+        assertEquals(" 32765 32766 32767 32768 32769 32770 196605\n", out);
+    }
+
+    @Test
+    @DisplayName("A LONGINT FOR counter with a negative step, a LONGINT step and LONGINT bounds")
+    void forLongSteps() {
+        String out = printed("""
+                CONST big = 100000;
+                VAR k : LONGINT; n : INTEGER;
+                BEGIN
+                  FOR k := big TO 99998 BY -1 DO WriteLong(k) END;
+                  WriteLn();
+                  FOR k := -200000 TO 200000 BY big DO WriteLong(k) END;
+                  WriteLn();
+                  FOR k := 5 TO 1 DO WriteLong(k) END;
+                  n := 3;
+                  FOR k := 1 TO n BY 1 DO WriteLong(k) END;
+                  WriteLn()
+                END.
+                """);
+        assertEquals(" 100000 99999 99998\n -200000 -100000 0 100000 200000\n 1 2 3\n", out);
+    }
+
+    @Test
+    @DisplayName("A LONGINT FOR counter works as a local variable and inside nested loops")
+    void forLongLocal() {
+        String out = printed("""
+                PROCEDURE Count(n : LONGINT);
+                VAR k : LONGINT; i : INTEGER;
+                BEGIN
+                  FOR k := n TO n + 2 DO
+                    FOR i := 1 TO 2 DO WriteLong(k * 10 + i) END
+                  END
+                END Count;
+                BEGIN
+                  Count(70000); WriteLn()
+                END.
+                """);
+        assertEquals(" 700001 700002 700011 700012 700021 700022\n", out);
+    }
+
+    @Test
+    @DisplayName("FOR rejects a LONGINT step for an INTEGER counter and REAL counters")
+    void forErrors() {
+        for (String body : new String[] {
+                "VAR i : INTEGER; BEGIN FOR i := 1 TO 3 BY 100000 DO END END.",
+                "VAR i : INTEGER; BEGIN FOR i := 1 TO 100000 DO END END.",
+                "VAR x : REAL; BEGIN FOR x := 1 TO 3 DO END END." }) {
+            var err = new ByteArrayOutputStream();
+            var reporter = new Reporter(new PrintStream(err));
+            DeCLan.run(body, reporter);
+            assertTrue(reporter.hadError(), body);
+        }
     }
 }

@@ -241,6 +241,45 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
     public Void visitFor(For stmt) {
         Location loc = stmt.loc;
 
+        if (stmt.type == Type.LONGINT) {
+            // A LONGINT occupies two words, which the single-word DUP and SWAP used below
+            // cannot handle, so keep the counter in its variable and reload it each time.
+            Label top = newLabel();
+            Label end = newLabel();
+
+            stmt.start.accept(this);
+            generateStore(Type.LONGINT, loc);
+
+            generateLabel(top);
+
+            if (stmt.step > 0) {
+                // leave the loop when stop < counter
+                stmt.stop.accept(this);
+                generateLoad(Type.LONGINT, loc);
+            } else {
+                // leave the loop when counter < stop
+                generateLoad(Type.LONGINT, loc);
+                stmt.stop.accept(this);
+            }
+            generateBinOp(Binary.OpCode.LLT);
+            generateBranchTrue(end);
+
+            for (RStmt s : stmt.body) {
+                s.accept(this);
+            }
+
+            generateLoad(Type.LONGINT, loc);
+            generateLoadConstant(Type.LONGINT, stmt.step);
+            generateBinOp(Binary.OpCode.LADD);
+            generateStore(Type.LONGINT, loc);
+
+            generateBranch(top);
+
+            generateLabel(end);
+
+            return null;
+        }
+
         stmt.start.accept(this);
         generateDup();
         generateStore(Type.INTEGER, loc);
@@ -263,7 +302,7 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         }
 
         generateLoad(Type.INTEGER, loc);
-        generateLoadConstant(Type.INTEGER, stmt.step);
+        generateLoadConstant(Type.INTEGER, (int) stmt.step);
         generateBinOp(Binary.OpCode.IADD);
         generateDup();
         generateStore(Type.INTEGER, loc);

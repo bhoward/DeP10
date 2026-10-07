@@ -377,32 +377,42 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
         boolean isLocal = current.contains(name) && current != global;
         if (info == null) {
             reporter.error(line, "Unknown variable '" + name + "'.");
-        } else if (info.type != Type.INTEGER) {
-            reporter.error(line, "Index variable must be of type INTEGER.");
+            return null;
+        }
+        if (info.type != Type.INTEGER && info.type != Type.LONGINT) {
+            reporter.error(line, "Index variable must be of type INTEGER or LONGINT.");
         } else if (info.isConstant()) {
             reporter.error(line, "Index variable must not be CONST.");
         }
+        Type indexType = info.type;
         Location loc = new Location(info.slot, isLocal, info.isVarParam);
 
         RExpr start = stmt.start.accept(this);
-        if (!isInteger(start)) {
+        if (start == null || (indexType == Type.INTEGER ? !isInteger(start) : !isIntOrLong(start))) {
             reporter.error(line, "Start index must be integral.");
+        } else if (indexType == Type.LONGINT) {
+            start = ensureLong(start);
         }
 
         RExpr stop = stmt.stop.accept(this);
-        if (!isInteger(stop)) {
+        if (stop == null || (indexType == Type.INTEGER ? !isInteger(stop) : !isIntOrLong(stop))) {
             reporter.error(line, "Stop index must be integral.");
+        } else if (indexType == Type.LONGINT) {
+            stop = ensureLong(stop);
         }
 
+        long step = 1;
         Object stepValue = ConstEvaluator.eval(stmt.step, current, reporter);
-        if (typeOf(stepValue) != Type.INTEGER) {
-            reporter.error(line, "Step index must be integral constant expression.");
-        } else {
-            stmt.stepValue = (int) stepValue;
+        Type stepType = typeOf(stepValue);
+        if (stepType == Type.INTEGER || (stepType == Type.LONGINT && indexType == Type.LONGINT)) {
+            step = ((Number) stepValue).longValue();
+            stmt.stepValue = (int) step;
 
-            if (stmt.stepValue == 0) {
+            if (step == 0) {
                 reporter.error(line, "Step index must not be zero.");
             }
+        } else {
+            reporter.error(line, "Step index must be integral constant expression.");
         }
 
         List<RStmt> rbody = new ArrayList<>();
@@ -410,7 +420,7 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             rbody.add(statement.accept(this));
         }
 
-        return RStmt.makeFor(line, loc, start, stop, (int) stepValue, rbody);
+        return RStmt.makeFor(line, indexType, loc, start, stop, step, rbody);
     }
 
     @Override

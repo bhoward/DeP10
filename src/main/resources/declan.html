@@ -161,11 +161,14 @@ BEGIN
   a := a * j      (* 32-bit multiply: a = 90000 *)
 END.
 </code></pre>
-<p><b>Not supported yet.</b> Mixing <code>LONGINT</code> with <code>REAL</code> (including assigning a <code>LONGINT</code> to a <code>REAL</code>),
-using a <code>LONGINT</code> as a <code>FOR</code> counter, and reading a <code>LONGINT</code> with a standard procedure.</p>
-<h3>Standard procedures for output</h3>
+<p>A <code>LONGINT</code> variable can be the counter of a <code>FOR</code> loop. Its start and stop values may be <code>INTEGER</code> or <code>LONGINT</code>,
+and the <code>BY</code> step may be an <code>INTEGER</code> or <code>LONGINT</code> constant. An <code>INTEGER</code> counter still needs <code>INTEGER</code> bounds and step.</p>
+<p><b>Not supported yet.</b> Mixing <code>LONGINT</code> with <code>REAL</code>, including assigning a <code>LONGINT</code> to a <code>REAL</code>.</p>
+<h3>Standard procedures for input and output</h3>
 <table border="1" cellpadding="4" cellspacing="0">
-<tr><th>Call</th><th>Prints</th></tr>
+<tr><th>Call</th><th>Does</th></tr>
+<tr><td><code>ReadInt(n)</code></td><td>reads a decimal <code>INTEGER</code> into the variable <code>n</code></td></tr>
+<tr><td><code>ReadLong(n)</code></td><td>reads a signed decimal number into the <code>LONGINT</code> variable <code>n</code>; skips blanks and line ends first, and wraps silently like other <code>LONGINT</code> arithmetic</td></tr>
 <tr><td><code>WriteInt(n)</code></td><td>a space, then the <code>INTEGER</code> <code>n</code></td></tr>
 <tr><td><code>WriteLong(n)</code></td><td>a space, then the signed decimal value of the <code>LONGINT</code> <code>n</code> (an <code>INTEGER</code> argument is widened)</td></tr>
 <tr><td><code>WriteLn()</code></td><td>a newline</td></tr>
