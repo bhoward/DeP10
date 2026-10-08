@@ -10,6 +10,8 @@ public abstract class Expr {
 
         R visitUnaryExpr(Unary expr);
 
+        R visitIndexExpr(Index expr);
+
         R visitVariableExpr(Variable expr);
     }
 
@@ -72,6 +74,28 @@ public abstract class Expr {
 
         public final Token operator;
         public final Expr right;
+    }
+
+    public static class Index extends Expr {
+        public Index(Expr base, Token bracket, Expr index) {
+            this.base = base;
+            this.bracket = bracket;
+            this.index = index;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitIndexExpr(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s[%s]", base, index);
+        }
+
+        public final Expr base;
+        public final Token bracket;
+        public final Expr index;
     }
 
     public static class Variable extends Expr {

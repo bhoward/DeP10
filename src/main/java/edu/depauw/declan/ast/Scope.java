@@ -5,13 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import edu.depauw.declan.Type;
+
 public abstract class Scope {
     private Map<String, VarInfo> variables;
+    private Map<String, Type> types;
     private Program parent;
     private int slotNumber;
 
     public Scope() {
         this.variables = new HashMap<>();
+        this.types = new HashMap<>();
         this.parent = null;
         this.slotNumber = 0;
     }
@@ -38,6 +42,24 @@ public abstract class Scope {
         } else {
             return null;
         }
+    }
+
+    public void addType(String name, Type type) {
+        types.put(name, type);
+    }
+
+    public Type lookupType(String name) {
+        if (types.containsKey(name)) {
+            return types.get(name);
+        } else if (parent != null) {
+            return parent.lookupType(name);
+        } else {
+            return null;
+        }
+    }
+
+    public boolean containsType(String name) {
+        return types.containsKey(name);
     }
 
     public boolean contains(String name) {

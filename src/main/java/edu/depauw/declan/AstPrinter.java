@@ -104,6 +104,11 @@ public class AstPrinter implements Procedure.Visitor<String>, Expr.Visitor<Strin
     }
 
     @Override
+    public String visitIndexExpr(Expr.Index expr) {
+        return parenthesize("index", expr.base, expr.index);
+    }
+
+    @Override
     public String visitVariableExpr(Expr.Variable expr) {
         return expr.name.lexeme;
     }
@@ -111,6 +116,11 @@ public class AstPrinter implements Procedure.Visitor<String>, Expr.Visitor<Strin
     @Override
     public String visitConstDecl(ConstDecl decl) {
         return parenthesize2("const", decl.name, decl.expr);
+    }
+
+    @Override
+    public String visitTypeDecl(Decl.TypeDecl decl) {
+        return parenthesize2("type", decl.name, decl.type);
     }
 
     @Override

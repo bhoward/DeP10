@@ -29,7 +29,7 @@ class LongintTest {
 
     private static final int DUMP = 0xF000;
 
-    private static String compile(String source) {
+    static String compile(String source) {
         var err = new ByteArrayOutputStream();
         var reporter = new Reporter(new PrintStream(err));
         String asm = DeCLan.run(source, reporter);
@@ -45,7 +45,7 @@ class LongintTest {
         return run(source, stepLimit, null);
     }
 
-    private static State run(String source, int stepLimit, String input) {
+    static State run(String source, int stepLimit, String input) {
         String asm = compile(source);
 
         int slots = 0;
@@ -453,11 +453,11 @@ class LongintTest {
         assertEquals(10, word(s, 13));
     }
 
-    private static String printed(String source) {
+    static String printed(String source) {
         return printed(source, null);
     }
 
-    private static String printed(String source, String input) {
+    static String printed(String source, String input) {
         PrintStream saved = System.out;
         var buf = new ByteArrayOutputStream();
         System.setOut(new PrintStream(buf, true));

@@ -253,6 +253,12 @@ public class ConstEvaluator implements Expr.Visitor<Object> {
     }
 
     @Override
+    public Object visitIndexExpr(Expr.Index expr) {
+        reporter.error(expr.bracket.line, "An array element is not a constant.");
+        return null;
+    }
+
+    @Override
     public Object visitVariableExpr(Variable expr) {
         String name = expr.name.lexeme;
 

@@ -12,6 +12,7 @@ public class Scanner {
 
     static {
         keywords = new HashMap<>();
+        keywords.put("ARRAY", ARRAY);
         keywords.put("BEGIN", BEGIN);
         keywords.put("BOOLEAN", BOOLEAN);
         keywords.put("BY", BY);
@@ -27,6 +28,7 @@ public class Scanner {
         keywords.put("INTEGER", INTEGER);
         keywords.put("LONGINT", LONGINT);
         keywords.put("MOD", MOD);
+        keywords.put("OF", OF);
         keywords.put("OR", OR);
         keywords.put("PROCEDURE", PROCEDURE);
         keywords.put("REAL", REAL);
@@ -34,6 +36,7 @@ public class Scanner {
         keywords.put("THEN", THEN);
         keywords.put("TO", TO);
         keywords.put("TRUE", TRUE);
+        keywords.put("TYPE", TYPE);
         keywords.put("UNTIL", UNTIL);
         keywords.put("VAR", VAR);
         keywords.put("WHILE", WHILE);
@@ -99,6 +102,12 @@ public class Scanner {
             break;
         case '#':
             addToken(NOT_EQUAL);
+            break;
+        case '[':
+            addToken(LEFT_BRACKET);
+            break;
+        case ']':
+            addToken(RIGHT_BRACKET);
             break;
         case ':':
             addToken(match('=') ? ASSIGN : COLON);

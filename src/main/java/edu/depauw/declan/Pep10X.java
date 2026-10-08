@@ -13,6 +13,7 @@ public class Pep10X extends Pep10 {
         out("       RET");
         writeWriteLong();
         writeReadLong();
+        writeRangeCheck();
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");

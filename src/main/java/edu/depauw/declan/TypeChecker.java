@@ -12,10 +12,13 @@ import edu.depauw.declan.ast.Procedure;
 import edu.depauw.declan.ast.Program;
 import edu.depauw.declan.ast.Scope;
 import edu.depauw.declan.ast.Stmt;
+import edu.depauw.declan.ast.TypeSpec;
 import edu.depauw.declan.ast.VarInfo;
 import edu.depauw.declan.ast.Decl.ConstDecl;
+import edu.depauw.declan.ast.Decl.TypeDecl;
 import edu.depauw.declan.ast.Decl.VarDecl;
 import edu.depauw.declan.ast.Expr.Binary;
+import edu.depauw.declan.ast.Expr.Index;
 import edu.depauw.declan.ast.Expr.Literal;
 import edu.depauw.declan.ast.Expr.Unary;
 import edu.depauw.declan.ast.Expr.Variable;
@@ -210,7 +213,19 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
         return expr != null && expr.type == Type.BOOLEAN;
     }
 
+    /** The initial value of an array variable: every word is zero. */
+    public static class ArrayInit {
+        public final ArrayType type;
+
+        public ArrayInit(ArrayType type) {
+            this.type = type;
+        }
+    }
+
     public static Type typeOf(Object value) {
+        if (value instanceof ArrayInit init) {
+            return init.type;
+        }
         if (value instanceof Integer) {
             return Type.INTEGER;
         } else if (value instanceof Double) {
@@ -280,14 +295,82 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             return null;
         }
 
+        if (info.type instanceof ArrayType) {
+            reporter.error(expr.name.line, "Array '" + name + "' must be indexed.");
+            return null;
+        }
+
         Location loc = new Location(info.slot, isLocal, info.isVarParam);
         return RExpr.makeVariable(info.type, loc);
+    }
+
+    @Override
+    public RExpr visitIndexExpr(Index expr) {
+        RExpr addr = designatorAddress(expr);
+        if (addr == null) {
+            return null;
+        }
+
+        if (addr.type instanceof ArrayType) {
+            reporter.error(expr.bracket.line, "A whole array cannot be used as a value.");
+            return null;
+        }
+
+        return RExpr.makeElement(addr);
+    }
+
+    /**
+     * Resolve a designator that names an array or an element of one into an
+     * expression that evaluates to its address. The type of the result is the type
+     * of the thing designated.
+     */
+    private RExpr designatorAddress(Expr expr) {
+        if (expr instanceof Variable v) {
+            String name = v.name.lexeme;
+            VarInfo info = current.lookup(name);
+            boolean isLocal = current.contains(name) && current != global;
+
+            if (info == null) {
+                reporter.error(v.name.line, "Unknown variable '" + name + "'.");
+                return null;
+            }
+            if (!(info.type instanceof ArrayType)) {
+                reporter.error(v.name.line, "'" + name + "' is not an array.");
+                return null;
+            }
+
+            return RExpr.makeArrayBase(info.type, new Location(info.slot, isLocal, info.isVarParam));
+        } else if (expr instanceof Index ix) {
+            RExpr base = designatorAddress(ix.base);
+            RExpr index = ix.index.accept(this);
+            if (base == null || index == null) {
+                return null;
+            }
+
+            if (!(base.type instanceof ArrayType array)) {
+                reporter.error(ix.bracket.line, "Only an array can be indexed.");
+                return null;
+            }
+            if (!isInteger(index)) {
+                reporter.error(ix.bracket.line, "Array index must be INTEGER.");
+                return null;
+            }
+
+            return RExpr.makeElementAddr(array.element, base, index);
+        }
+
+        reporter.error(0, "Invalid designator.");
+        return null;
     }
 
     @Override
     public RStmt visitAssignmentStmt(Assignment stmt) {
         String name = stmt.name.lexeme;
         int line = stmt.name.line;
+
+        if (stmt.target instanceof Index) {
+            return elementAssignment(stmt, line);
+        }
         VarInfo info = current.lookup(name);
         boolean isLocal = current.contains(name) && current != global;
 
@@ -300,7 +383,9 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             RExpr right = stmt.expr.accept(this);
             Location loc = new Location(info.slot, isLocal, info.isVarParam);
 
-            if (right == null) {
+            if (left instanceof ArrayType) {
+                reporter.error(line, "A whole array cannot be assigned.");
+            } else if (right == null) {
                 // The error in the expression has already been reported
                 return null;
             } else if (left == right.type) {
@@ -312,6 +397,30 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             } else {
                 reporter.error(line, "Incompatible types in assignment.");
             }
+        }
+
+        return null;
+    }
+
+    private RStmt elementAssignment(Assignment stmt, int line) {
+        RExpr addr = designatorAddress(stmt.target);
+        RExpr right = stmt.expr.accept(this);
+
+        if (addr == null || right == null) {
+            return null;
+        }
+
+        Type left = addr.type;
+        if (left instanceof ArrayType) {
+            reporter.error(line, "A whole array cannot be assigned.");
+        } else if (left == right.type) {
+            return RStmt.makeElementAssignment(line, left, addr, right);
+        } else if (left == Type.REAL && isInteger(right)) {
+            return RStmt.makeElementAssignment(line, left, addr, ensureReal(right));
+        } else if (left == Type.LONGINT && isInteger(right)) {
+            return RStmt.makeElementAssignment(line, left, addr, ensureLong(right));
+        } else {
+            reporter.error(line, "Incompatible types in assignment.");
         }
 
         return null;
@@ -341,8 +450,16 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             RExpr rarg = arg.accept(this);
 
             Param param = proc.params.get(i);
+            if (rarg == null) {
+                // The error in the argument has already been reported
+                return null;
+            }
+
             if (param.isVar) {
-                if (param.type == rarg.type) {
+                if (param.type == rarg.type && rarg instanceof RExpr.Element element) {
+                    // An array element is passed by its address
+                    rargs.add(element.addr);
+                } else if (param.type == rarg.type) {
                     rargs.add(RExpr.makeRef(rarg));
                 } else {
                     reporter.error(line, "VAR parameter must match argument type exactly.");
@@ -486,6 +603,23 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
     }
 
     @Override
+    public Object visitTypeDecl(TypeDecl decl) {
+        String name = decl.name.lexeme;
+
+        if (current.containsType(name)) {
+            reporter.error(decl.name.line, "Duplicate type '" + name + "'.");
+            return null;
+        }
+
+        Type type = resolve(decl.type, decl.name.line);
+        if (type != null) {
+            current.addType(name, type);
+        }
+
+        return null;
+    }
+
+    @Override
     public Object visitVarDecl(VarDecl decl) {
         String name = decl.name.lexeme;
 
@@ -494,9 +628,51 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
             return null;
         }
 
-        current.add(name, new VarInfo(decl.type, false));
+        Type type = resolve(decl.type, decl.name.line);
+        if (type == null) {
+            return null;
+        }
 
-        return defaultValue(decl.type);
+        current.add(name, new VarInfo(type, false));
+
+        if (type instanceof ArrayType array) {
+            return new ArrayInit(array);
+        }
+        return defaultValue(type);
+    }
+
+    // The largest array, in words, that can be addressed with a 16-bit index
+    private static final int MAX_ARRAY_WORDS = 16000;
+
+    private Type resolve(TypeSpec spec, int line) {
+        if (spec instanceof TypeSpec.Basic basic) {
+            return basic.type;
+        } else if (spec instanceof TypeSpec.Named named) {
+            Type type = current.lookupType(named.name.lexeme);
+            if (type == null) {
+                reporter.error(named.name.line, "Unknown type '" + named.name.lexeme + "'.");
+            }
+            return type;
+        } else if (spec instanceof TypeSpec.Array array) {
+            Object length = ConstEvaluator.eval(array.length, current, reporter);
+            Type element = resolve(array.element, line);
+
+            if (!(length instanceof Integer n) || n <= 0) {
+                reporter.error(array.head.line, "Array length must be a positive INTEGER constant.");
+                return null;
+            }
+            if (element == null) {
+                return null;
+            }
+            if ((long) n * element.width() > MAX_ARRAY_WORDS) {
+                reporter.error(array.head.line, "Array is too large.");
+                return null;
+            }
+
+            return new ArrayType(n, element);
+        }
+
+        return null;
     }
 
     private Object defaultValue(Type type) {
@@ -519,7 +695,10 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
     public RProg visitProgram(Program program) {
         List<Object> inits = new ArrayList<>();
         for (Decl decl : program.decls) {
-            inits.add(decl.accept(this));
+            Object init = decl.accept(this);
+            if (!(decl instanceof TypeDecl)) {
+                inits.add(init);
+            }
         }
 
         List<RProc> procs = new ArrayList<>();
@@ -569,7 +748,10 @@ public class TypeChecker implements Expr.Visitor<RExpr>, Procedure.Visitor<RProc
 
         List<Object> inits = new ArrayList<>();
         for (Decl decl : proc.decls) {
-            inits.add(decl.accept(this));
+            Object init = decl.accept(this);
+            if (!(decl instanceof TypeDecl)) {
+                inits.add(init);
+            }
         }
 
         List<RStmt> stmts = new ArrayList<>();

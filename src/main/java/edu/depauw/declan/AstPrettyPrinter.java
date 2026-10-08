@@ -248,6 +248,12 @@ public class AstPrettyPrinter implements Procedure.Visitor<Void>, Expr.Visitor<V
     }
 
     @Override
+    public Void visitIndexExpr(Expr.Index expr) {
+        appendNode("index", expr.base, expr.index);
+        return null;
+    }
+
+    @Override
     public Void visitVariableExpr(Variable expr) {
         append(expr.name.lexeme);
         return null;
@@ -298,6 +304,12 @@ public class AstPrettyPrinter implements Procedure.Visitor<Void>, Expr.Visitor<V
     @Override
     public Void visitConstDecl(ConstDecl decl) {
         appendNode("const", decl.name, decl.expr);
+        return null;
+    }
+
+    @Override
+    public Void visitTypeDecl(Decl.TypeDecl decl) {
+        appendNode("type", decl.name, decl.type);
         return null;
     }
 

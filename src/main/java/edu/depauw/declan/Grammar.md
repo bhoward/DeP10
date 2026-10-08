@@ -1,7 +1,7 @@
 # Context-free Grammar for DeCLan
 
 This is the grammar for the DePauw Compilers Language (DeCLan).
-It is based on the Oberon programming language, with no modules, arrays, records, pointers, case statements, sets, type declarations, function procedures, or procedure variables.
+It is based on the Oberon programming language, with no modules, records, pointers, case statements, sets, function procedures, or procedure variables. Arrays of arrays are allowed, but an array cannot be assigned or passed as a whole.
 
 ## Lexical Rules
 
@@ -32,7 +32,7 @@ contain further nested comments).
 ### Reserved Words
 
 ```
-BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, INTEGER, LONGINT, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
+ARRAY, BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, INTEGER, LONGINT, MOD, OF, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, TYPE, UNTIL, VAR, WHILE
 ```
 
 ## Syntax Rules
@@ -40,7 +40,7 @@ BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, INTEGER, L
 ```
 Program -> DeclSequence ProcedureDeclSequence BEGIN StatementSequence END .
 
-DeclSequence -> Constants Variables
+DeclSequence -> Constants Types Variables
 
 Constants -> CONST ConstDecl ; ConstDeclSequence
 Constants ->
@@ -51,6 +51,14 @@ ConstDeclSequence ->
 ConstDecl -> ident = ConstExpr
 
 ConstExpr -> Expression  // may only use idents defined in previous ConstDecls
+
+Types -> TYPE TypeDecl ; TypeDeclSequence
+Types ->
+
+TypeDeclSequence -> TypeDecl ; TypeDeclSequence
+TypeDeclSequence ->
+
+TypeDecl -> ident = Type
 
 Variables -> VAR VariableDecl ; VariableDeclSequence
 Variables ->
@@ -65,7 +73,11 @@ IdentList -> ident IdentListRest
 IdentListRest -> , ident IdentListRest
 IdentListRest ->
 
-Type -> BOOLEAN | INTEGER | LONGINT | REAL
+BasicType -> BOOLEAN | INTEGER | LONGINT | REAL
+
+Type -> BasicType
+Type -> ident  // a type declared with TYPE
+Type -> ARRAY ConstExpr OF Type  // the length must be a positive INTEGER constant
 
 ProcedureDeclSequence -> ProcedureDecl ; ProcedureDeclSequence
 ProcedureDeclSequence ->
@@ -82,8 +94,8 @@ FormalParameters -> ( )
 FPSectionSequence -> ; FPSection FPSectionSequence
 FPSectionSequence ->
 
-FPSection -> VAR IdentList : Type
-FPSection -> IdentList : Type
+FPSection -> VAR IdentList : BasicType
+FPSection -> IdentList : BasicType
 
 StatementSequence -> Statement StatementSequenceRest
 
@@ -93,7 +105,12 @@ StatementSequenceRest ->
 Statement -> Assignment | ProcedureCall | IfStatement | WhileStatement | RepeatStatement | ForStatement
 Statement ->
 
-Assignment -> ident := Expression
+Assignment -> Designator := Expression
+
+Designator -> ident Selectors
+
+Selectors -> [ Expression ] Selectors
+Selectors ->
 
 ProcedureCall -> ident ActualParameters
 
@@ -142,7 +159,7 @@ TermRest ->
 
 MulOperator -> * | / | DIV | MOD | &
 
-Factor -> number | TRUE | FALSE | ident
+Factor -> number | TRUE | FALSE | Designator
 Factor -> ( Expression )
 Factor -> ~ Factor
 ```
@@ -218,3 +235,33 @@ END.
 ```
 
 The compiler implements `LONGINT` arithmetic with the library routines `DADD`, `DSUB`, `DMul` and `DDiv`, and printing with `DPRINTD`. A program that does not use `LONGINT` compiles to exactly the same code as before, and each library is included only when the program needs it.
+
+## Arrays and TYPE
+
+A `TYPE` section, between `CONST` and `VAR`, gives names to types:
+
+```
+CONST n = 10;
+TYPE Vector = ARRAY n OF INTEGER;
+     Table = ARRAY 3 OF Vector;
+VAR v : Vector; t : Table; x : ARRAY 5 OF LONGINT;
+```
+
+An `ARRAY` type has a length, which is a constant expression with a positive `INTEGER` value, and an element type. The elements are numbered from 0 to length - 1, so `v[0]` is the first element of `v` and `v[n - 1]` is the last. Write `t[i][j]` for element `j` of element `i` of `t`.
+
+* An index must be an `INTEGER`. If it is out of range when the program runs, the program prints `Array index out of range` and stops.
+* The element type can be any type, including another array. A local array is allocated in the procedure's stack frame, so a very large array should be global.
+* An array element can be used like a variable of the element type: assigned to, used in an expression, and passed to a `VAR` parameter, as in `ReadLong(x[i])`.
+* An array as a whole cannot be assigned, compared, or passed to a procedure, and a procedure parameter cannot have an array type. Use a global array, or copy the elements one by one.
+
+```
+VAR a : ARRAY 5 OF INTEGER; i, sum : INTEGER;
+
+BEGIN
+  FOR i := 0 TO 4 DO a[i] := i * i END;
+  sum := 0;
+  FOR i := 0 TO 4 DO sum := sum + a[i] END;
+  WriteLong(sum);    (* 30 *)
+  WriteLn()
+END.
+```

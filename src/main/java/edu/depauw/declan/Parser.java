@@ -13,6 +13,7 @@ import edu.depauw.declan.ast.Param;
 import edu.depauw.declan.ast.Procedure;
 import edu.depauw.declan.ast.Program;
 import edu.depauw.declan.ast.Stmt;
+import edu.depauw.declan.ast.TypeSpec;
 
 public class Parser {
     @SuppressWarnings("serial")
@@ -62,6 +63,17 @@ public class Parser {
             } while (check(IDENTIFIER));
         }
 
+        if (match(TYPE)) {
+            do {
+                try {
+                    result.add(typeDecl());
+                    consume(SEMICOLON, "Expected ';' after type declaration.");
+                } catch (ParseError e) {
+                    synchronize();
+                }
+            } while (check(IDENTIFIER));
+        }
+
         if (match(VAR)) {
             do {
                 try {
@@ -84,10 +96,18 @@ public class Parser {
         return new Decl.ConstDecl(name, expr);
     }
 
+    private Decl typeDecl() {
+        Token name = consume(IDENTIFIER, "Expected type name.");
+        consume(EQUAL, "Expected '='.");
+        TypeSpec type = type();
+
+        return new Decl.TypeDecl(name, type);
+    }
+
     private List<Decl> varDecl() {
         List<Token> names = identList();
         consume(COLON, "Expected ':'.");
-        Type type = type();
+        TypeSpec type = type();
 
         List<Decl> result = new ArrayList<>();
         for (Token name : names) {
@@ -108,19 +128,37 @@ public class Parser {
         return result;
     }
 
-    private Type type() {
+    private TypeSpec type() {
         if (match(BOOLEAN)) {
-            return Type.BOOLEAN;
+            return new TypeSpec.Basic(Type.BOOLEAN);
         } else if (match(INTEGER)) {
-            return Type.INTEGER;
+            return new TypeSpec.Basic(Type.INTEGER);
         } else if (match(LONGINT)) {
-            return Type.LONGINT;
+            return new TypeSpec.Basic(Type.LONGINT);
         } else if (match(REAL)) {
-            return Type.REAL;
+            return new TypeSpec.Basic(Type.REAL);
+        } else if (match(IDENTIFIER)) {
+            return new TypeSpec.Named(previous());
+        } else if (match(ARRAY)) {
+            Token head = previous();
+            Expr length = expression();
+            consume(OF, "Expected 'OF'.");
+            TypeSpec element = type();
+            return new TypeSpec.Array(head, length, element);
         } else {
             error(peek(), "Expected type.");
             return null;
         }
+    }
+
+    /** A parameter has one of the basic types. */
+    private Type basicType() {
+        TypeSpec spec = type();
+        if (spec instanceof TypeSpec.Basic basic) {
+            return basic.type;
+        }
+        error(previous(), "A parameter must have type BOOLEAN, INTEGER, LONGINT or REAL.");
+        return null;
     }
 
     private List<Procedure> procedureDeclSequence() {
@@ -178,7 +216,7 @@ public class Parser {
         boolean isVar = match(VAR);
         List<Token> names = identList();
         consume(COLON, "Expected ':'.");
-        Type type = type();
+        Type type = basicType();
 
         List<Param> result = new ArrayList<>();
         for (Token name : names) {
@@ -215,7 +253,11 @@ public class Parser {
             return forStatement();
         if (match(IDENTIFIER)) {
             Token name = previous();
-            if (match(ASSIGN)) {
+            if (check(LEFT_BRACKET)) {
+                Expr target = selectors(new Expr.Variable(name));
+                consume(ASSIGN, "Expected ':='.");
+                return new Stmt.Assignment(name, target, expression());
+            } else if (match(ASSIGN)) {
                 return assignmentStatement(name);
             } else if (match(LEFT_PAREN)) {
                 return procedureCall(name);
@@ -298,6 +340,18 @@ public class Parser {
         return new Stmt.For(name, start, stop, step, body);
     }
 
+    /** Zero or more index selectors [expr] after a designator. */
+    private Expr selectors(Expr base) {
+        while (match(LEFT_BRACKET)) {
+            Token bracket = previous();
+            Expr index = expression();
+            consume(RIGHT_BRACKET, "Expected ']'.");
+            base = new Expr.Index(base, bracket, index);
+        }
+
+        return base;
+    }
+
     private Stmt assignmentStatement(Token name) {
         Expr expr = expression();
         return new Stmt.Assignment(name, expr);
@@ -365,7 +419,7 @@ public class Parser {
         if (match(TRUE))
             return new Expr.Literal(true);
         if (match(IDENTIFIER))
-            return new Expr.Variable(previous());
+            return selectors(new Expr.Variable(previous()));
 
         if (match(LEFT_PAREN)) {
             Expr expr = expression();
@@ -445,6 +499,7 @@ public class Parser {
             switch (peek().type) {
             // The following tokens may start a statement or declaration
             case CONST:
+            case TYPE:
             case VAR:
             case PROCEDURE:
             case IF:

@@ -156,6 +156,11 @@ public class Interpreter2 implements RExpr.Visitor<Object>, RProc.Visitor<Void>,
     }
 
     @Override
+    public Void visitElementAssignment(RStmt.ElementAssignment stmt) {
+        throw new UnsupportedOperationException("Arrays are not supported by the interpreter.");
+    }
+
+    @Override
     public Void visitEmpty(Empty stmt) {
         return null;
     }
@@ -324,6 +329,21 @@ public class Interpreter2 implements RExpr.Visitor<Object>, RProc.Visitor<Void>,
             // Should not happen.
             return null;
         }
+    }
+
+    @Override
+    public Object visitArrayBase(RExpr.ArrayBase expr) {
+        throw new UnsupportedOperationException("Arrays are not supported by the interpreter.");
+    }
+
+    @Override
+    public Object visitElementAddr(RExpr.ElementAddr expr) {
+        throw new UnsupportedOperationException("Arrays are not supported by the interpreter.");
+    }
+
+    @Override
+    public Object visitElement(RExpr.Element expr) {
+        throw new UnsupportedOperationException("Arrays are not supported by the interpreter.");
     }
 
     @Override

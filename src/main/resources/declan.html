@@ -1,8 +1,9 @@
 <html><body>
 <h1>DeCLan</h1>
 <p>This is the grammar for the DePauw Compilers Language (DeCLan).
-It is based on the <a href="https://oberon.org/en">Oberon</a> programming language, with no modules, arrays,
-records, pointers, case statements, sets, type declarations, function procedures, or procedure variables.</p>
+It is based on the <a href="https://oberon.org/en">Oberon</a> programming language, with no modules,
+records, pointers, case statements, sets, function procedures, or procedure variables. Arrays of arrays are allowed,
+but an array cannot be assigned or passed as a whole.</p>
 <h2>Lexical Rules</h2>
 <pre><code>letter -&gt; [A-Za-z]
 digit -&gt; [0-9]
@@ -24,13 +25,13 @@ A comment is any sequence of characters, other than <code>*)</code>, surrounded 
 The body of a comment may contain another comment, which must be properly closed (and which itself may
 contain further nested comments).</p>
 <h3>Reserved Words</h3>
-<pre><code>BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR,
-IF, INTEGER, LONGINT, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE
+<pre><code>ARRAY, BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR,
+IF, INTEGER, LONGINT, MOD, OF, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, TYPE, UNTIL, VAR, WHILE
 </code></pre>
 <h2>Syntax Rules</h2>
 <pre><code>Program -&gt; DeclSequence ProcedureDeclSequence BEGIN StatementSequence END .
 
-DeclSequence -&gt; Constants Variables
+DeclSequence -&gt; Constants Types Variables
 
 Constants -&gt; CONST ConstDecl ; ConstDeclSequence
 Constants -&gt;
@@ -41,6 +42,14 @@ ConstDeclSequence -&gt;
 ConstDecl -&gt; ident = ConstExpr
 
 ConstExpr -&gt; Expression  // may only use idents defined in previous ConstDecls
+
+Types -&gt; TYPE TypeDecl ; TypeDeclSequence
+Types -&gt;
+
+TypeDeclSequence -&gt; TypeDecl ; TypeDeclSequence
+TypeDeclSequence -&gt;
+
+TypeDecl -&gt; ident = Type
 
 Variables -&gt; VAR VariableDecl ; VariableDeclSequence
 Variables -&gt;
@@ -55,7 +64,11 @@ IdentList -&gt; ident IdentListRest
 IdentListRest -&gt; , ident IdentListRest
 IdentListRest -&gt;
 
-Type -&gt; BOOLEAN | INTEGER | LONGINT | REAL
+BasicType -&gt; BOOLEAN | INTEGER | LONGINT | REAL
+
+Type -&gt; BasicType
+Type -&gt; ident  // a type declared with TYPE
+Type -&gt; ARRAY ConstExpr OF Type  // the length must be a positive INTEGER constant
 
 ProcedureDeclSequence -&gt; ProcedureDecl ; ProcedureDeclSequence
 ProcedureDeclSequence -&gt;
@@ -72,8 +85,8 @@ FormalParameters -&gt; ( )
 FPSectionSequence -&gt; ; FPSection FPSectionSequence
 FPSectionSequence -&gt;
 
-FPSection -&gt; VAR IdentList : Type
-FPSection -&gt; IdentList : Type
+FPSection -&gt; VAR IdentList : BasicType
+FPSection -&gt; IdentList : BasicType
 
 StatementSequence -&gt; Statement StatementSequenceRest
 
@@ -83,7 +96,12 @@ StatementSequenceRest -&gt;
 Statement -&gt; Assignment | ProcedureCall | IfStatement | WhileStatement | RepeatStatement | ForStatement
 Statement -&gt;
 
-Assignment -&gt; ident := Expression
+Assignment -&gt; Designator := Expression
+
+Designator -&gt; ident Selectors
+
+Selectors -&gt; [ Expression ] Selectors
+Selectors -&gt;
 
 ProcedureCall -&gt; ident ActualParameters
 
@@ -132,7 +150,7 @@ TermRest -&gt;
 
 MulOperator -&gt; * | / | DIV | MOD | &amp;
 
-Factor -&gt; number | TRUE | FALSE | ident
+Factor -&gt; number | TRUE | FALSE | Designator
 Factor -&gt; ( Expression )
 Factor -&gt; ~ Factor
 </code></pre>
@@ -199,4 +217,30 @@ END.
 <p>The compiler implements <code>LONGINT</code> arithmetic with the library routines <code>DADD</code>, <code>DSUB</code>, <code>DMul</code> and <code>DDiv</code>,
 and printing with <code>DPRINTD</code>. A program that does not use <code>LONGINT</code> compiles to exactly the same code as before,
 and each library is included only when the program needs it.</p>
+<h2>Arrays and TYPE</h2>
+<p>A <code>TYPE</code> section, between <code>CONST</code> and <code>VAR</code>, gives names to types:</p>
+<pre><code>CONST n = 10;
+TYPE Vector = ARRAY n OF INTEGER;
+     Table = ARRAY 3 OF Vector;
+VAR v : Vector; t : Table; x : ARRAY 5 OF LONGINT;
+</code></pre>
+<p>An <code>ARRAY</code> type has a length, which is a constant expression with a positive <code>INTEGER</code> value, and an element type.
+The elements are numbered from 0 to length - 1, so <code>v[0]</code> is the first element of <code>v</code> and <code>v[n - 1]</code> is the last.
+Write <code>t[i][j]</code> for element <code>j</code> of element <code>i</code> of <code>t</code>.</p>
+<ul>
+<li>An index must be an <code>INTEGER</code>. If it is out of range when the program runs, the program prints <code>Array index out of range</code> and stops.</li>
+<li>The element type can be any type, including another array. A local array is allocated in the procedure's stack frame, so a very large array should be global.</li>
+<li>An array element can be used like a variable of the element type: assigned to, used in an expression, and passed to a <code>VAR</code> parameter, as in <code>ReadLong(x[i])</code>.</li>
+<li>An array as a whole cannot be assigned, compared, or passed to a procedure, and a procedure parameter cannot have an array type. Use a global array, or copy the elements one by one.</li>
+</ul>
+<pre><code>VAR a : ARRAY 5 OF INTEGER; i, sum : INTEGER;
+
+BEGIN
+  FOR i := 0 TO 4 DO a[i] := i * i END;
+  sum := 0;
+  FOR i := 0 TO 4 DO sum := sum + a[i] END;
+  WriteLong(sum);    (* 30 *)
+  WriteLn()
+END.
+</code></pre>
 </body></html>

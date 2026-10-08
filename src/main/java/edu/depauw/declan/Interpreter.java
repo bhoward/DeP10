@@ -402,6 +402,11 @@ public class Interpreter implements Expr.Visitor<Object>, Procedure.Visitor<Void
     }
 
     @Override
+    public Object visitIndexExpr(Expr.Index expr) {
+        throw new RuntimeError(expr.bracket, "Arrays are not supported by the interpreter.");
+    }
+
+    @Override
     public Object visitVariableExpr(Variable expr) {
         return current.lookup(expr.name.lexeme);
     }
