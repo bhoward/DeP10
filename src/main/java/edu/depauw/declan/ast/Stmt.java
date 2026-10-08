@@ -24,7 +24,13 @@ public abstract class Stmt {
     // Nested Stmt classes here...
     public static class Assignment extends Stmt {
         public Assignment(Token name, Expr expr) {
+            this(name, new Expr.Variable(name), expr);
+        }
+
+        /** An assignment to a designator such as a[i]; name is its first identifier. */
+        public Assignment(Token name, Expr target, Expr expr) {
             this.name = name;
+            this.target = target;
             this.expr = expr;
         }
 
@@ -39,6 +45,7 @@ public abstract class Stmt {
         }
 
         public final Token name;
+        public final Expr target;
         public final Expr expr;
     }
 

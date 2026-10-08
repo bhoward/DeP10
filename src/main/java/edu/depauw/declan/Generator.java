@@ -12,12 +12,16 @@ import edu.depauw.declan.resolved.RExpr;
 import edu.depauw.declan.resolved.RProc;
 import edu.depauw.declan.resolved.RProg;
 import edu.depauw.declan.resolved.RStmt;
+import edu.depauw.declan.resolved.RExpr.ArrayBase;
 import edu.depauw.declan.resolved.RExpr.Binary;
+import edu.depauw.declan.resolved.RExpr.Element;
+import edu.depauw.declan.resolved.RExpr.ElementAddr;
 import edu.depauw.declan.resolved.RExpr.Literal;
 import edu.depauw.declan.resolved.RExpr.Unary;
 import edu.depauw.declan.resolved.RExpr.Variable;
 import edu.depauw.declan.resolved.RStmt.Assignment;
 import edu.depauw.declan.resolved.RStmt.Call;
+import edu.depauw.declan.resolved.RStmt.ElementAssignment;
 import edu.depauw.declan.resolved.RStmt.Empty;
 import edu.depauw.declan.resolved.RStmt.For;
 import edu.depauw.declan.resolved.RStmt.If;
@@ -128,6 +132,25 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
 
             return null;
         }
+
+        @Override
+        public Void visitElement(Element expr) {
+            expr.accept(Generator.this);
+            generateBranchTrue(ifTrue);
+            generateBranch(ifFalse);
+
+            return null;
+        }
+
+        @Override
+        public Void visitArrayBase(ArrayBase expr) {
+            return null;
+        }
+
+        @Override
+        public Void visitElementAddr(ElementAddr expr) {
+            return null;
+        }
     }
 
     public Generator() {
@@ -150,7 +173,12 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         int i = 0;
         for (Object x : program.inits) {
             Type type = TypeChecker.typeOf(x);
-            if (type == Type.LONGINT) {
+            if (type instanceof ArrayType) {
+                for (int k = 0; k < type.width(); k++) {
+                    generateLabel(new Label("_g" + i++));
+                    generateConstant(Type.INTEGER, 0);
+                }
+            } else if (type == Type.LONGINT) {
                 // Two words, high word first (at the lower address)
                 int value = (int) (long) x;
                 generateLabel(new Label("_g" + i++));
@@ -188,7 +216,13 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         for (Object x : proc.inits) {
             Type type = TypeChecker.typeOf(x);
             numLocals += type.width();
-            generateLoadConstant(type, x);
+            if (type instanceof ArrayType) {
+                for (int k = 0; k < type.width(); k++) {
+                    generateLoadConstant(Type.INTEGER, 0);
+                }
+            } else {
+                generateLoadConstant(type, x);
+            }
         }
 
         generateSetFP(proc.numSlots);
@@ -208,6 +242,15 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
     public Void visitAssignment(Assignment stmt) {
         stmt.right.accept(this);
         generateStore(stmt.type, stmt.loc);
+
+        return null;
+    }
+
+    @Override
+    public Void visitElementAssignment(ElementAssignment stmt) {
+        stmt.addr.accept(this);
+        stmt.right.accept(this);
+        instructions.add(Instruction.makeIndirectStore(stmt.type));
 
         return null;
     }
@@ -397,6 +440,43 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
         return null;
     }
 
+    @Override
+    public Void visitArrayBase(ArrayBase expr) {
+        // The first element has the lowest address. Global slots are consecutive words
+        // in increasing address order, but local slots decrease from the frame pointer,
+        // so the first element of a local array is in its highest-numbered slot.
+        Location loc = expr.loc;
+        if (loc.isLocal) {
+            generateRefLocal(Type.INTEGER, loc.slot + expr.type.width() - 1);
+        } else {
+            generateRefGlobal(Type.INTEGER, loc.slot);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Void visitElementAddr(ElementAddr expr) {
+        ArrayType array = (ArrayType) expr.base.type;
+
+        expr.base.accept(this);
+        expr.index.accept(this);
+        instructions.add(Instruction.makeCheckIndex(array.length));
+        generateLoadConstant(Type.INTEGER, 2 * expr.type.width());
+        generateBinOp(Binary.OpCode.IMUL);
+        generateBinOp(Binary.OpCode.IADD);
+
+        return null;
+    }
+
+    @Override
+    public Void visitElement(Element expr) {
+        expr.addr.accept(this);
+        instructions.add(Instruction.makeIndirectLoad(expr.type));
+
+        return null;
+    }
+
     private void generateCase(RCase kase, Label ifTrue, Label ifFalse) {
         Label skip = newLabel();
         kase.cond.accept(new BoolGen(skip, ifFalse));
@@ -413,6 +493,10 @@ public class Generator implements RExpr.Visitor<Void>, RStmt.Visitor<Void>, RPro
     // one word, otherwise the width of the value's type.
     private int wordsOf(RExpr expr) {
         if (expr instanceof Unary u && u.op == Unary.OpCode.REF) {
+            return 1;
+        }
+        if (expr instanceof ElementAddr) {
+            // An element passed as a VAR argument is passed by its address
             return 1;
         }
         return expr.type.width();

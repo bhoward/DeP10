@@ -1,11 +1,12 @@
 package edu.depauw.declan.ast;
 
 import edu.depauw.declan.Token;
-import edu.depauw.declan.Type;
 
 public abstract class Decl {
     public interface Visitor<R> {
         R visitConstDecl(ConstDecl decl);
+
+        R visitTypeDecl(TypeDecl decl);
 
         R visitVarDecl(VarDecl decl);
     }
@@ -25,8 +26,23 @@ public abstract class Decl {
         public final Expr expr;
     }
 
+    public static class TypeDecl extends Decl {
+        public TypeDecl(Token name, TypeSpec type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitTypeDecl(this);
+        }
+
+        public final Token name;
+        public final TypeSpec type;
+    }
+
     public static class VarDecl extends Decl {
-        public VarDecl(Token name, Type type) {
+        public VarDecl(Token name, TypeSpec type) {
             this.name = name;
             this.type = type;
         }
@@ -37,7 +53,7 @@ public abstract class Decl {
         }
 
         public final Token name;
-        public final Type type;
+        public final TypeSpec type;
     }
 
     public abstract <R> R accept(Visitor<R> visitor);

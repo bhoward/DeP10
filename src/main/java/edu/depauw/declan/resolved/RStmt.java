@@ -16,6 +16,8 @@ public abstract class RStmt {
 
         R visitCall(Call stmt);
 
+        R visitElementAssignment(ElementAssignment stmt);
+
         R visitEmpty(Empty stmt);
 
         R visitFor(For stmt);
@@ -47,6 +49,30 @@ public abstract class RStmt {
         @Override
         public String toString() {
             return String.format("%d: %s := %s", line, loc, right);
+        }
+    }
+
+    /** Stores the value of right at the address computed by addr. */
+    public static class ElementAssignment extends RStmt {
+        public final Type type;
+        public final RExpr addr;
+        public final RExpr right;
+
+        public ElementAssignment(int line, Type type, RExpr addr, RExpr right) {
+            super(line);
+            this.type = type;
+            this.addr = addr;
+            this.right = right;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitElementAssignment(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%d: %s := %s", line, addr, right);
         }
     }
 
@@ -189,6 +215,10 @@ public abstract class RStmt {
 
     public static RStmt makeEmpty(int line) {
         return new Empty(line);
+    }
+
+    public static RStmt makeElementAssignment(int line, Type type, RExpr addr, RExpr right) {
+        return new ElementAssignment(line, type, addr, right);
     }
 
     public static RStmt makeFor(int line, Type type, Location loc, RExpr start, RExpr stop, long step,

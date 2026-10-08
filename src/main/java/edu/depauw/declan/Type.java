@@ -8,7 +8,7 @@ package edu.depauw.declan;
  */
 public class Type {
     public enum Kind {
-        BOOLEAN, INTEGER, REAL, LONGINT
+        BOOLEAN, INTEGER, REAL, LONGINT, ARRAY
     }
 
     public static final Type BOOLEAN = new Type(Kind.BOOLEAN);

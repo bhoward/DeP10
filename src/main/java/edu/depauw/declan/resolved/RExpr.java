@@ -7,7 +7,13 @@ public abstract class RExpr {
     public Type type;
 
     public interface Visitor<R> {
+        R visitArrayBase(ArrayBase expr);
+
         R visitBinary(Binary expr);
+
+        R visitElement(Element expr);
+
+        R visitElementAddr(ElementAddr expr);
 
         R visitLiteral(Literal expr);
 
@@ -85,6 +91,71 @@ public abstract class RExpr {
         @Override
         public String toString() {
             return value.toString();
+        }
+    }
+
+    /** Evaluates to the address of the first element of an array variable. */
+    public static class ArrayBase extends RExpr {
+        public final Location loc;
+
+        public ArrayBase(Type arrayType, Location loc) {
+            this.type = arrayType;
+            this.loc = loc;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitArrayBase(this);
+        }
+
+        @Override
+        public String toString() {
+            return "&" + loc;
+        }
+    }
+
+    /**
+     * Evaluates to the address of base[index]; its type is the element type. The
+     * index is checked against the length of the array, which is the type of base.
+     */
+    public static class ElementAddr extends RExpr {
+        public final RExpr base;
+        public final RExpr index;
+
+        public ElementAddr(Type elementType, RExpr base, RExpr index) {
+            this.type = elementType;
+            this.base = base;
+            this.index = index;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitElementAddr(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("&%s[%s]", base, index);
+        }
+    }
+
+    /** The value stored at an address; its type is the type of the value. */
+    public static class Element extends RExpr {
+        public final RExpr addr;
+
+        public Element(RExpr addr) {
+            this.type = addr.type;
+            this.addr = addr;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitElement(this);
+        }
+
+        @Override
+        public String toString() {
+            return "*" + addr;
         }
     }
 
@@ -214,6 +285,18 @@ public abstract class RExpr {
 
     public static RExpr makeVariable(Type type, Location loc) {
         return new Variable(type, loc);
+    }
+
+    public static RExpr makeArrayBase(Type arrayType, Location loc) {
+        return new ArrayBase(arrayType, loc);
+    }
+
+    public static RExpr makeElementAddr(Type elementType, RExpr base, RExpr index) {
+        return new ElementAddr(elementType, base, index);
+    }
+
+    public static RExpr makeElement(RExpr addr) {
+        return new Element(addr);
     }
 
     public static RExpr makeRef(RExpr expr) {

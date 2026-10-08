@@ -13,7 +13,9 @@ public interface Instruction {
             IADD, FADD, ISUB, FSUB, IMUL, FMUL, IDIV, FDIV, IMOD, LAND, LOR, IEQ, FEQ, LEQ, ILT, FLT, INEG, FNEG, LNOT,
             FLOAT, DUP, END, RETURN, SWAP, SAVEFP, RESTOREFP,
             // 32-bit LONGINT values: widen INTEGER, add, subtract
-            LONG, LADD, LSUB, LMUL, LDIV, LMOD, LNEG, LEQL, LLT
+            LONG, LADD, LSUB, LMUL, LDIV, LMOD, LNEG, LEQL, LLT,
+            // Load or store 1 or 2 words through an address on the stack
+            IND_LD1, IND_LD2, IND_ST1, IND_ST2
         }
 
         public Nullary(Op op) {
@@ -56,7 +58,9 @@ public interface Instruction {
             IST_GLOBAL, IST_LOCAL, IST_VARP, FRF_GLOBAL, FRF_LOCAL, IRF_GLOBAL, IRF_LOCAL, ICONST, ILD_CONST, DROP,
             SETFP,
             // 32-bit LONGINT values occupy two words, high word at the lower address
-            LLD_GLOBAL, LLD_LOCAL, LLD_VARP, LST_GLOBAL, LST_LOCAL, LST_VARP, LLD_CONST
+            LLD_GLOBAL, LLD_LOCAL, LLD_VARP, LST_GLOBAL, LST_LOCAL, LST_VARP, LLD_CONST,
+            // Stop the program unless 0 <= index < value, where the index is on top of the stack
+            CHECKIDX
         }
 
         public UnaryInteger(Op op, int value) {
@@ -163,6 +167,18 @@ public interface Instruction {
         default:
             return null;
         }
+    }
+
+    public static Instruction makeIndirectLoad(Type type) {
+        return new Nullary(type.width() == 2 ? Nullary.Op.IND_LD2 : Nullary.Op.IND_LD1);
+    }
+
+    public static Instruction makeIndirectStore(Type type) {
+        return new Nullary(type.width() == 2 ? Nullary.Op.IND_ST2 : Nullary.Op.IND_ST1);
+    }
+
+    public static Instruction makeCheckIndex(int length) {
+        return new UnaryInteger(UnaryInteger.Op.CHECKIDX, length);
     }
 
     public static Instruction makeBranch(Label label) {

@@ -4,6 +4,8 @@ public enum TokenType {
     // Single-character tokens.
     LEFT_PAREN, // '('
     RIGHT_PAREN, // ')'
+    LEFT_BRACKET, // '['
+    RIGHT_BRACKET, // ']'
     SEMICOLON, // ';'
     COMMA, // ','
     DOT, // '.'
@@ -28,8 +30,8 @@ public enum TokenType {
     IDENTIFIER, NUMBER,
 
     // Keywords.
-    BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, //
-    INTEGER, LONGINT, MOD, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, UNTIL, VAR, WHILE,
+    ARRAY, BEGIN, BOOLEAN, BY, CONST, DIV, DO, ELSE, ELSIF, END, FALSE, FOR, IF, //
+    INTEGER, LONGINT, MOD, OF, OR, PROCEDURE, REAL, REPEAT, THEN, TO, TRUE, TYPE, UNTIL, VAR, WHILE,
 
     // Other.
     ERROR, EOF

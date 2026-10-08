@@ -18,6 +18,7 @@ public class Pep10 {
     private boolean usesDivide;
     private boolean usesPrintLong;
     private boolean usesReadLong;
+    private boolean usesRangeCheck;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -83,6 +84,23 @@ public class Pep10 {
         out("       RET");
     }
 
+    void writeRangeCheck() {
+        if (!usesRangeCheck) {
+            return;
+        }
+        // An array index was out of range: say so and stop the machine
+        out("_range: LDWX 0,i");
+        out("_rng0: LDBA _rngMsg,x");
+        out("       BREQ _rng1");
+        out("       STBA charOut,d");
+        out("       ADDX 1,i");
+        out("       BR _rng0");
+        out("_rng1: LDBA 0xDE,i");
+        out("       STBA pwrOff,d");
+        out("_rng2: BR _rng2");
+        out("_rngMsg: .ASCII \"Array index out of range\\n\\x00\"");
+    }
+
     void writeReadLong() {
         if (!usesReadLong) {
             return;
@@ -107,6 +125,7 @@ public class Pep10 {
         out("       RET");
         writeWriteLong();
         writeReadLong();
+        writeRangeCheck();
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
@@ -299,6 +318,42 @@ public class Pep10 {
             break;
         case END:
             out("RET");
+            break;
+        case IND_LD1:
+            // replace the address on the stack with the word it points to
+            out("LDWA 0,sf");
+            out("STWA 0,s");
+            break;
+        case IND_LD2:
+            // replace the address with the two words it points to, high word on top
+            out("SUBSP 2,i");
+            out("LDWA 2,sf");
+            out("STWA 0,s");
+            out("LDWA 2,s");
+            out("ADDA 2,i");
+            out("STWA 2,s");
+            out("LDWA 2,sf");
+            out("STWA 2,s");
+            break;
+        case IND_ST1:
+            // stack: value on top, address below
+            out("LDWA 0,s");
+            out("STWA 2,sf");
+            out("ADDSP 4,i");
+            break;
+        case IND_ST2:
+            // stack: high word on top, then low word, then the address
+            out("LDWA 4,s");
+            out("ADDA 2,i");
+            out("STWA 4,s");
+            out("LDWA 2,s");
+            out("STWA 4,sf");
+            out("LDWA 4,s");
+            out("SUBA 2,i");
+            out("STWA 4,s");
+            out("LDWA 0,s");
+            out("STWA 4,sf");
+            out("ADDSP 6,i");
             break;
         case IADD:
             out("LDWA 2,s");
@@ -618,6 +673,14 @@ public class Pep10 {
             out("LDWA 2,s");
             out("STWA -2,sf");
             out("ADDSP 4,i");
+            break;
+        case CHECKIDX:
+            // the index stays on the stack when it is in range
+            usesRangeCheck = true;
+            out("LDWA 0,s");
+            out("BRLT _range,i");
+            out("CPWA %d,i", ui.value);
+            out("BRGE _range,i");
             break;
         case SETFP:
             out("MOVSPA");
