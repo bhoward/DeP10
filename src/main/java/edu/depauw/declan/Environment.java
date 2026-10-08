@@ -36,7 +36,7 @@ public class Environment {
             if (info.isConstant()) {
                 value = ((ConstInfo) info).value;
             } else {
-                switch (info.type) {
+                switch (info.type.kind()) {
                 case INTEGER:
                     value = 0;
                     break;
