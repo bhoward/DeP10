@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static edu.depauw.dep10.resources.PepHarness.mem;
 
 /**
- * End-to-end tests for DDiv/UDDiv (src/main/resources/ddiv32.pep), pulled in
+ * End-to-end tests for DDiv/UDDiv (src/main/resources/int32.pep), pulled in
  * with .INCLUDELIB.
  *
  * Calling convention (as of PR #20, 9/30/2026, matching the DADD/DSUB/DMUL
@@ -26,7 +26,7 @@ import static edu.depauw.dep10.resources.PepHarness.mem;
 class DDivUDDivTest {
 
     private static State run(String driverAndChecks) {
-        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"ddiv32\"\n        .END\n");
+        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"int32\"\n        .END\n");
     }
 
     @Test

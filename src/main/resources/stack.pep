@@ -1,5 +1,5 @@
 ;=======================================================================
-; dstack.pep -- caller-side stack manipulation macros, single-word and
+; stack.pep -- caller-side stack manipulation macros, single-word and
 ; double-word (32-bit). Per Prof. Howard: these should not need to know
 ; what is semantically on the stack, just where the boundary between
 ; words (or 32-bit pairs of words) falls, so a caller can set up or tear
@@ -7,7 +7,7 @@
 ; return address.
 ;
 ; These are preprocessor macros (.DEFMACRO), NOT callable routines, so
-; unlike daddsub.pep/ddiv32.pep they must be pulled in with .INCLUDELIB
+; unlike int32.pep they must be pulled in with .INCLUDELIB
 ; BEFORE first use, not after: macro definitions have to be seen by the
 ; preprocessor before the @NAME invocation that expands them, while a
 ; callable routine only has to exist somewhere the assembler can see it
@@ -37,6 +37,15 @@
         ADDSP   2,i
 .ENDMACRO
 
+.DEFMACRO NIP, 0
+; Discards the second word on the stack, keeping the top one. Before:
+; SP,0 = a, SP,2 = b. After: SP,0 = a. Uses only A, so X (the frame
+; pointer in compiled code) is preserved.
+        LDWA    0,s
+        STWA    2,s
+        ADDSP   2,i
+.ENDMACRO
+
 .DEFMACRO SWAP, 0
 ; Swaps the top two words on the stack. Before: SP,0 = a, SP,2 = b.
 ; After: SP,0 = b, SP,2 = a.
@@ -61,6 +70,17 @@
 
 .DEFMACRO DDROP, 0
 ; Discards the top 32-bit value on the stack.
+        ADDSP   4,i
+.ENDMACRO
+
+.DEFMACRO DNIP, 0
+; Discards the second 32-bit value on the stack, keeping the top one.
+; Before: SP,0/SP,2 = a's high/low, SP,4/SP,6 = b's high/low. After:
+; SP,0/SP,2 = a's high/low. Uses only A, so X is preserved.
+        LDWA    0,s
+        STWA    4,s
+        LDWA    2,s
+        STWA    6,s
         ADDSP   4,i
 .ENDMACRO
 

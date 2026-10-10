@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static edu.depauw.dep10.resources.PepHarness.mem;
 
 /**
- * End-to-end tests for DADD/DSUB (src/main/resources/daddsub.pep), pulled in
+ * End-to-end tests for DADD/DSUB (src/main/resources/int32.pep), pulled in
  * with .INCLUDELIB the same way a student or another routine would use them.
  *
  * Calling convention (as of PR #19, 9/30/2026): operands are pushed low word
@@ -21,7 +21,7 @@ import static edu.depauw.dep10.resources.PepHarness.mem;
 class DAddDSubTest {
 
     private static State run(String driverAndChecks) {
-        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"daddsub\"\n        .END\n");
+        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"int32\"\n        .END\n");
     }
 
     @Test

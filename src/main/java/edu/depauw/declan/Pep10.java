@@ -18,6 +18,7 @@ public class Pep10 {
     private boolean usesDivide;
     private boolean usesPrintLong;
     private boolean usesReadLong;
+    private boolean usesStackMacros;
     private boolean usesRangeCheck;
 
     public Pep10() {
@@ -44,23 +45,13 @@ public class Pep10 {
 
         writeRuntime();
 
-        // ddprint includes daddsub and ddiv32 itself, so skip them here when it is used
-        if ((usesDoubleword || usesReadLong) && !usesPrintLong) {
-            // DADD and DSUB are callable routines, so they go after the code that ends in RET
-            out(".INCLUDELIB \"daddsub\"");
+        // The whole 32-bit library goes in as one blob, after the code that ends in RET
+        if (usesDoubleword || usesMultiply || usesDivide || usesPrintLong || usesReadLong) {
+            out(".INCLUDELIB \"int32\"");
         }
-        if (usesMultiply || usesReadLong) {
-            out(".INCLUDELIB \"dmul\"");
-        }
-        if (usesDivide && !usesPrintLong) {
-            out(".INCLUDELIB \"ddiv32\"");
-        }
-        if (usesPrintLong) {
-            out(".INCLUDELIB \"ddprint\"");
-        }
-        if (usesReadLong) {
-            // ddread uses DADD, DSUB and DMul, included above
-            out(".INCLUDELIB \"ddread\"");
+        // Macros must be defined before they are used, so this goes first
+        if (usesStackMacros) {
+            result.add(0, ".INCLUDELIB \"stack\"");
         }
 
         return result;
@@ -437,14 +428,11 @@ public class Pep10 {
             out("ADDSP 4,i");
             break;
         case LMOD:
-            // Keep the remainder: move it over the quotient, then drop the top
+            // Keep the remainder: drop the quotient from under it
             usesDivide = true;
+            usesStackMacros = true;
             out("CALL DDiv,i");
-            out("LDWA 0,s");
-            out("STWA 4,s");
-            out("LDWA 2,s");
-            out("STWA 6,s");
-            out("ADDSP 4,i");
+            out("@DNIP");
             break;
         case LNEG: {
             // -x = ~x + 1: negate the low word, invert the high word, and add

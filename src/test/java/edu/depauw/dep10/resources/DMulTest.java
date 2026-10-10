@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static edu.depauw.dep10.resources.PepHarness.mem;
 
 /**
- * End-to-end tests for DMul (src/main/resources/dmul.pep), pulled in with
+ * End-to-end tests for DMul (src/main/resources/int32.pep), pulled in with
  * .INCLUDELIB the same way a student or another routine would use it.
  *
  * Calling convention matches DADD/DSUB/DDiv/UDDiv: operands are pushed low
@@ -24,7 +24,7 @@ import static edu.depauw.dep10.resources.PepHarness.mem;
 class DMulTest {
 
     private static State run(String driverAndChecks) {
-        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"dmul\"\n        .END\n");
+        return PepHarness.run(driverAndChecks + "\n.INCLUDELIB \"int32\"\n        .END\n");
     }
 
     /** Multiplies two 32-bit values and leaves hi/lo of the product at 0xF000/0xF002. */

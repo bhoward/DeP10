@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * (driver code plus one or more .INCLUDELIB library routines) against the
  * real preprocessor, assembler, and simulator, rather than unit-testing a
  * single opcode's exec() method in isolation. This is for library routines
- * written in DeP10 assembly itself (daddsub.pep, ddiv32.pep), which have no
+ * written in DeP10 assembly itself (int32.pep), which have no
  * single Java class to unit-test directly.
  *
  * Driver code must come first in the source, with any .INCLUDELIB directives

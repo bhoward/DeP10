@@ -603,7 +603,7 @@
 	<h2 id="macros">Macros</h2>
 	<p>Macros are written with a leading <samp>@</samp>, for example <samp>@DECO x,d</samp>. Most are defined in
 		<samp>stdmacro.pep</samp> and are available to every program. The stack macros (DUP, DDUP, DROP, DDROP,
-		SWAP, DSWAP) are defined in <samp>dstack.pep</samp>. Add <code>.INCLUDELIB "dstack"</code> before the
+		NIP, DNIP, SWAP, DSWAP) are defined in <samp>stack.pep</samp>. Add <code>.INCLUDELIB "stack"</code> before the
 		first use of any of them, since macros must be defined before they are used. LIBC and MALLOC define
 		routines, so place them after the halt sequence. MALLOC must be the last statement in the program.</p>
 	<table>
@@ -641,32 +641,42 @@
 			<tr>
 				<td valign="top">DUP</td>
 				<td valign="top">none</td>
-				<td valign="top">Duplicates the top word on the stack: SUBSP 2, then copies the old top word into the new top. Clobbers A. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Duplicates the top word on the stack: SUBSP 2, then copies the old top word into the new top. Clobbers A. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DDUP</td>
 				<td valign="top">none</td>
-				<td valign="top">Duplicates the top 32-bit value (two words, high word at the lower address) on the stack. Clobbers A. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Duplicates the top 32-bit value (two words, high word at the lower address) on the stack. Clobbers A. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DROP</td>
 				<td valign="top">none</td>
-				<td valign="top">Discards the top word on the stack (ADDSP 2). Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Discards the top word on the stack (ADDSP 2). Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DDROP</td>
 				<td valign="top">none</td>
-				<td valign="top">Discards the top 32-bit value on the stack (ADDSP 4). Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Discards the top 32-bit value on the stack (ADDSP 4). Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
+			</tr>
+			<tr>
+				<td valign="top">NIP</td>
+				<td valign="top">none</td>
+				<td valign="top">Discards the second word on the stack, keeping the top one. Clobbers A only. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
+			</tr>
+			<tr>
+				<td valign="top">DNIP</td>
+				<td valign="top">none</td>
+				<td valign="top">Discards the second 32-bit value on the stack, keeping the top one. Clobbers A only. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">SWAP</td>
 				<td valign="top">none</td>
-				<td valign="top">Swaps the top two words on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Swaps the top two words on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">DSWAP</td>
 				<td valign="top">none</td>
-				<td valign="top">Swaps the top two 32-bit values on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "dstack"</code> before first use.</td>
+				<td valign="top">Swaps the top two 32-bit values on the stack. Clobbers A and X. Requires <code>.INCLUDELIB "stack"</code> before first use.</td>
 			</tr>
 			<tr>
 				<td valign="top">ASLAn, ASLXn, ASRAn, ASRXn,<br>ROLAn, ROLXn, RORAn, RORXn</td>

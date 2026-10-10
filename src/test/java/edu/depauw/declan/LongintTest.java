@@ -230,13 +230,13 @@ class LongintTest {
     }
 
     @Test
-    @DisplayName("Programs with LONGINT include daddsub after the code")
+    @DisplayName("Programs with LONGINT include int32 after the code")
     void libraryWithLong() {
         String asm = compile("""
                 VAR a : LONGINT;
                 BEGIN a := a + a END.
                 """);
-        assertTrue(asm.contains(".INCLUDELIB \"daddsub\""));
+        assertTrue(asm.contains(".INCLUDELIB \"int32\""));
     }
 
     private static boolean rejects(String source) {
