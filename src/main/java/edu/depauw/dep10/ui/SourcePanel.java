@@ -151,6 +151,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private static class StatusBar extends JPanel {
+        private static final long serialVersionUID = -8132584109632782731L;
+        
         private JLabel label;
 
         public StatusBar() {
@@ -265,6 +267,8 @@ public class SourcePanel extends JPanel implements SearchListener {
      * Shows the Find dialog.
      */
     private class ShowFindDialogAction extends AbstractAction {
+        private static final long serialVersionUID = 3984884489642219739L;
+
         public ShowFindDialogAction() {
             super("Find...");
             int c = getToolkit().getMenuShortcutKeyMaskEx();
@@ -292,6 +296,8 @@ public class SourcePanel extends JPanel implements SearchListener {
      * Shows the Replace dialog.
      */
     private class ShowReplaceDialogAction extends AbstractAction {
+        private static final long serialVersionUID = 8712440621830110429L;
+
         public ShowReplaceDialogAction() {
             super("Replace...");
             int c = getToolkit().getMenuShortcutKeyMaskEx();
@@ -319,6 +325,8 @@ public class SourcePanel extends JPanel implements SearchListener {
      * Opens the "Go to Line" dialog.
      */
     private class GoToLineAction extends AbstractAction {
+        private static final long serialVersionUID = -4692244454848794539L;
+
         public GoToLineAction() {
             super("Go To Line...");
             int c = getToolkit().getMenuShortcutKeyMaskEx();
@@ -357,6 +365,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class BuildAction extends AbstractAction {
+        private static final long serialVersionUID = 7293647898019218237L;
+        
         private OutputPanel listing;
         private OutputPanel object;
 
@@ -386,6 +396,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class RunAction extends AbstractAction {
+        private static final long serialVersionUID = -1140970514699364890L;
+
         public RunAction() {
             super("Run");
         }
@@ -418,6 +430,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class DebugAction extends AbstractAction {
+        private static final long serialVersionUID = -6131375880019259398L;
+
         public DebugAction() {
             super("Debug");
         }
@@ -451,6 +465,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
     
     private class StepAction extends AbstractAction {
+        private static final long serialVersionUID = 8039510471073829841L;
+
         public StepAction() {
             super("Step");
         }
@@ -471,6 +487,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
     
     private class BackAction extends AbstractAction {
+        private static final long serialVersionUID = 2222542354555992822L;
+
         public BackAction() {
             super("Back");
         }
@@ -491,6 +509,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class NewAction extends AbstractAction {
+        private static final long serialVersionUID = 7217391752823374519L;
+
         public NewAction() {
             super("New");
             var key = KeyStroke.getKeyStroke(KeyEvent.VK_N, getToolkit().getMenuShortcutKeyMaskEx());
@@ -533,6 +553,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class OpenDialogAction extends AbstractAction {
+        private static final long serialVersionUID = -2250962913688302159L;
+
         public OpenDialogAction() {
             super("Open...");
         }
@@ -578,6 +600,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class SaveAction extends AbstractAction {
+        private static final long serialVersionUID = -272434131007284377L;
+
         public SaveAction() {
             super("Save");
             var key = KeyStroke.getKeyStroke(KeyEvent.VK_S, getToolkit().getMenuShortcutKeyMaskEx());
@@ -604,6 +628,8 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     private class SaveAsDialogAction extends AbstractAction {
+        private static final long serialVersionUID = -5848229817626747864L;
+
         public SaveAsDialogAction() {
             super("Save As...");
         }
