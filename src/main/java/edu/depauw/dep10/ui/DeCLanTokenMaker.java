@@ -258,6 +258,7 @@ public class DeCLanTokenMaker extends AbstractTokenMaker {
 
         tokenMap.put("BOOLEAN", Token.DATA_TYPE);
         tokenMap.put("INTEGER", Token.DATA_TYPE);
+        tokenMap.put("LONGINT", Token.DATA_TYPE);
         tokenMap.put("REAL", Token.DATA_TYPE);
 
         tokenMap.put("FALSE", Token.RESERVED_WORD_2);

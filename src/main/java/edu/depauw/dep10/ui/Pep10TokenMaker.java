@@ -511,6 +511,47 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
         tokenMap.put("ADDSP", Token.FUNCTION);
         tokenMap.put("SUBSP", Token.FUNCTION);
 
+        tokenMap.put("TSTA", Token.FUNCTION);
+        tokenMap.put("TSTX", Token.FUNCTION);
+        tokenMap.put("SXBA", Token.FUNCTION);
+        tokenMap.put("SXBX", Token.FUNCTION);
+        tokenMap.put("SXWA", Token.FUNCTION);
+        tokenMap.put("SXWX", Token.FUNCTION);
+        tokenMap.put("MULA", Token.FUNCTION);
+        tokenMap.put("MULX", Token.FUNCTION);
+        tokenMap.put("DIVA", Token.FUNCTION);
+        tokenMap.put("DIVX", Token.FUNCTION);
+        tokenMap.put("MODA", Token.FUNCTION);
+        tokenMap.put("MODX", Token.FUNCTION);
+        tokenMap.put("UDIVA", Token.FUNCTION);
+        tokenMap.put("UDIVX", Token.FUNCTION);
+        tokenMap.put("UMODA", Token.FUNCTION);
+        tokenMap.put("UMODX", Token.FUNCTION);
+        tokenMap.put("SMULA", Token.FUNCTION);
+        tokenMap.put("SMULX", Token.FUNCTION);
+        tokenMap.put("UMULA", Token.FUNCTION);
+        tokenMap.put("UMULX", Token.FUNCTION);
+        tokenMap.put("SDMA", Token.FUNCTION);
+        tokenMap.put("SDMX", Token.FUNCTION);
+        tokenMap.put("UDMA", Token.FUNCTION);
+        tokenMap.put("UDMX", Token.FUNCTION);
+        tokenMap.put("ADCA", Token.FUNCTION);
+        tokenMap.put("ADCX", Token.FUNCTION);
+        tokenMap.put("SBCA", Token.FUNCTION);
+        tokenMap.put("SBCX", Token.FUNCTION);
+        
+        tokenMap.put("SWAPAX", Token.FUNCTION);
+        tokenMap.put("SWAPHA", Token.FUNCTION);
+        tokenMap.put("SWAPHX", Token.FUNCTION);
+        tokenMap.put("PUSHA", Token.FUNCTION);
+        tokenMap.put("PUSHX", Token.FUNCTION);
+        tokenMap.put("POPA", Token.FUNCTION);
+        tokenMap.put("POPX", Token.FUNCTION);
+        tokenMap.put("LEAA", Token.FUNCTION);
+        tokenMap.put("LEAX", Token.FUNCTION);
+        tokenMap.put("SWAPA", Token.FUNCTION);
+        tokenMap.put("SWAPX", Token.FUNCTION);
+
         // TODO easy way to extend the list of opcodes?
         
         return tokenMap;
