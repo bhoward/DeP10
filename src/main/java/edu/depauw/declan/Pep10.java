@@ -96,13 +96,13 @@ public class Pep10 {
         if (!usesReadLong) {
             return;
         }
-        // ReadLong(VAR n): DREAD leaves the value in rdlHi:rdlLo; the argument is
+        // ReadLong(VAR n): DREAD returns the high word in A and the low word in X
+        // (no static storage, so it is safe under preemption); the argument is
         // the address of n's high word, with the low word 2 bytes after it.
         out("ReadLong: CALL DREAD,i");
-        out("       LDWA rdlHi,d");
         out("       STWA 2,sf");
+        out("       SWAPAX");
         out("       LDWX 2,i");
-        out("       LDWA rdlLo,d");
         out("       STWA 2,sfx");
         out("       RET");
     }

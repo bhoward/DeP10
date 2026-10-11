@@ -43,6 +43,16 @@ public final class PepHarness {
 
     /** As above, with the given text supplied as the console input (read through charIn). */
     public static State run(String source, int stepLimit, String input) {
+        State state = load(assemble(source), input);
+        Simulator sim = new Simulator(state);
+        var control = new StepCountController(new PlainController(), stepLimit);
+        sim.run(control);
+
+        return state;
+    }
+
+    /** Preprocesses and assembles a source string, failing the test on any error. Returns the object file text. */
+    public static String assemble(String source) {
         var log = new ErrorLog();
         Sources sources = new Sources();
         sources.addResource("/pep10baremetal.peph", log);
@@ -64,19 +74,21 @@ public final class PepHarness {
             fail("Assemble errors: " + log.getMessages() + "\n" + sw);
         }
 
-        String obj = result.toObjectFile();
+        return result.toObjectFile();
+    }
 
+    /**
+     * Loads an object file into a fresh machine without running it, so a test
+     * can supply its own controller (for example one that simulates timer
+     * interrupts). The caller creates the Simulator, which sets the initial PC and SP.
+     */
+    public static State load(String obj, String input) {
         State state = new State();
         if (input != null) {
             state.setInput(new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
         }
         state.loadResource("/pep10baremetal.pepo");
         state.loadString(obj);
-
-        Simulator sim = new Simulator(state);
-        var control = new StepCountController(new PlainController(), stepLimit);
-        sim.run(control);
-
         return state;
     }
 

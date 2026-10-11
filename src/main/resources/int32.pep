@@ -6,10 +6,13 @@
 ; after the halt sequence to load all of them. The stack macros are in
 ; stack.pep and must be included BEFORE their first use.
 ;
-; NOTE: the digit buffer and working variables of the print and read
-; routines are statically allocated, not stack-based, so they are not safe
-; to call from code that might be interrupted mid-routine once context
-; switching exists.
+; REENTRANT: no routine in this file uses static storage. Working
+; variables live in stack frames and small helpers take their operands in
+; registers, so the routines are safe to call from several threads and
+; from code that might be interrupted mid-routine by a context switch.
+; The one interface change this required: DREAD returns its result in
+; registers (A = high word, X = low word) instead of the old static
+; words rdlHi and rdlLo.
 
 ;======================================================================
 ; ---- from daddsub.pep ----
@@ -136,56 +139,122 @@ DMul:   LDWA  sAHigh, s
 ;======================================================================
 ; ---- from ddiv32.pep ----
 ;======================================================================
+;======================================================================
+; ---- from ddiv32.pep ----
+;======================================================================
 ;=======================================================================
 ; DDiv / UDDiv -- 32-bit / 32-bit division, matching the stack calling
 ; convention Prof. Howard gave Jess for DMul (see "DMUL - checking if
 ; on the right track" thread, 9/14/2026).
+;
+; REENTRANT: none of the division code uses static storage. UDDiv and DDiv
+; allocate one working frame on the stack (DVFRAME bytes) and the helpers
+; _UDiv32 and _UDiv32By16 read and write it through ",s" addressing. The
+; small helpers _UCmp16 and _Negate32 take their operands in registers.
+; Any number of threads may therefore be inside these routines at once.
+;
+; Frame layout (offsets from SP right after SUBSP DVFRAME,i in UDDiv/DDiv):
+;    0 dividend high   2 dividend low    (shifted away as the division runs)
+;    4 divisor high    6 divisor low
+;    8 remainder high 10 remainder low
+;   12 quotient high  14 quotient low
+;   16 loop counter   18 scratch
+;   20 negate-quotient flag   22 negate-remainder flag
+; The helpers are entered with a return address on top of the frame, so they
+; see every offset above plus 2 (the h... names below).
 ;=======================================================================
 
+DVFRAME:   .EQUATE 24
+
+dvDvdHi:   .EQUATE 0
+dvDvdLo:   .EQUATE 2
+dvDvrHi:   .EQUATE 4
+dvDvrLo:   .EQUATE 6
+dvRemHi:   .EQUATE 8
+dvRemLo:   .EQUATE 10
+dvQuoHi:   .EQUATE 12
+dvQuoLo:   .EQUATE 14
+dvCnt:     .EQUATE 16
+dvTmp:     .EQUATE 18
+dvNegQ:    .EQUATE 20
+dvNegR:    .EQUATE 22
+
+hDvdHi:    .EQUATE 2
+hDvdLo:    .EQUATE 4
+hDvrHi:    .EQUATE 6
+hDvrLo:    .EQUATE 8
+hRemHi:    .EQUATE 10
+hRemLo:    .EQUATE 12
+hQuoHi:    .EQUATE 14
+hQuoLo:    .EQUATE 16
+hCnt:      .EQUATE 18
+hTmp:      .EQUATE 20
+
+; The caller's operands, as seen from inside UDDiv/DDiv after the frame has
+; been allocated (entry offsets 6,8 and 2,4 plus DVFRAME).
+argDvdHi:  .EQUATE 30
+argDvdLo:  .EQUATE 32
+argDvrHi:  .EQUATE 26
+argDvrLo:  .EQUATE 28
+
+;=======================================================================
+; _UCmp16: unsigned 16-bit compare.  In: A = x, X = y.
+; Out: A = 1 if x > y, 0 if x = y, 0xFFFF if x < y, with N and Z set to
+; match (BRLT, BREQ and BRGT can be used right after the CALL).
+; Uses 4 bytes of stack for the duration of the call; no static storage.
+;=======================================================================
 _UCmp16:
-        LDWA    udivCmpY,d
+        SUBSP   4,i
+        STWA    2,s             ; x
+        STWX    0,s             ; y
+        LDWA    0,s
         BREQ    _UCmp16YZero
-        LDWA    udivCmpX,d
+        LDWA    2,s
         XORA    0x8000,i
-        STWA    udivTmp1,d
-        LDWA    udivCmpY,d
+        STWA    2,s
+        LDWA    0,s
         XORA    0x8000,i
-        STWA    udivTmp2,d
-        LDWA    udivTmp1,d
-        CPWA    udivTmp2,d
+        STWA    0,s
+        LDWA    2,s
+        CPWA    0,s
         BREQ    _UCmp16Eq
         BRLT    _UCmp16Lt
+_UCmp16Gt:
+        ADDSP   4,i
         LDWA    1,i
         RET
 _UCmp16Lt:
+        ADDSP   4,i
         LDWA    0xFFFF,i
         RET
 _UCmp16Eq:
+        ADDSP   4,i
         LDWA    0,i
         RET
 _UCmp16YZero:
-        LDWA    udivCmpX,d
+        LDWA    2,s
         BREQ    _UCmp16Eq
-        LDWA    1,i
-        RET
+        BR      _UCmp16Gt
 
 ;=======================================================================
 ; _UDiv32: unsigned 32-bit / 32-bit division, restoring shift-subtract.
-; Precondition:  udivDvdHi:udivDvdLo = dividend, udivDvrHi:udivDvrLo = divisor.
-; Postcondition: udivQuoHi:udivQuoLo = quotient, udivRemHi:udivRemLo = remainder.
-; Postcondition: udivDvdHi:udivDvdLo is destroyed (used as scratch).
+; Operates on the caller's frame (see the layout above), entered with the
+; return address on top of it.
+; Precondition:  hDvdHi:hDvdLo = dividend, hDvrHi:hDvrLo = divisor.
+; Postcondition: hQuoHi:hQuoLo = quotient, hRemHi:hRemLo = remainder.
+; Postcondition: hDvdHi:hDvdLo is destroyed (used as scratch).
 ;=======================================================================
 _UDiv32:
         LDWA    0,i
-        STWA    udivRemHi,d
-        STWA    udivRemLo,d
-        STWA    udivQuoHi,d
-        STWA    udivQuoLo,d
+        STWA    hRemHi,s
+        STWA    hRemLo,s
+        STWA    hQuoHi,s
+        STWA    hQuoLo,s
         LDWA    32,i
-        STWA    udivCnt,d
+        STWA    hCnt,s
 
 _UDiv32Loop:
-        LDWA    udivCnt,d
+        LDWA    hCnt,s
         BREQ    _UDiv32Done
 
         ; Shift the still-unconsumed dividend left by 1; the bit shifted
@@ -193,52 +262,46 @@ _UDiv32Loop:
         ; first) lands in Carry for the next step to consume. (This use
         ; of Carry is safe -- ASLA/ROLA aren't subject to issue #11,
         ; which is specific to SUBA/SUBX/CPWA/CPWX.)
-        LDWA    udivDvdLo,d
+        LDWA    hDvdLo,s
         ASLA
-        STWA    udivDvdLo,d
-        LDWA    udivDvdHi,d
+        STWA    hDvdLo,s
+        LDWA    hDvdHi,s
         ROLA
-        STWA    udivDvdHi,d
+        STWA    hDvdHi,s
 
         ; Shift that bit into the bottom of the remainder.
-        LDWA    udivRemLo,d
+        LDWA    hRemLo,s
         ROLA
-        STWA    udivRemLo,d
-        LDWA    udivRemHi,d
+        STWA    hRemLo,s
+        LDWA    hRemHi,s
         ROLA
-        STWA    udivRemHi,d
+        STWA    hRemHi,s
 
         ; Shift the quotient left by 1 too, injecting a 0 that gets
         ; upgraded to 1 below if this iteration's subtraction succeeds.
-        LDWA    udivQuoLo,d
+        LDWA    hQuoLo,s
         ASLA
-        STWA    udivQuoLo,d
-        LDWA    udivQuoHi,d
+        STWA    hQuoLo,s
+        LDWA    hQuoHi,s
         ROLA
-        STWA    udivQuoHi,d
+        STWA    hQuoHi,s
 
         ; Is Rem (32-bit) >= Dvr (32-bit), unsigned?
-        LDWA    udivRemHi,d
-        STWA    udivCmpX,d
-        LDWA    udivDvrHi,d
-        STWA    udivCmpY,d
+        LDWA    hRemHi,s
+        LDWX    hDvrHi,s
         CALL    _UCmp16
         BRLT    _UDiv32NoSub
         BRGT    _UDiv32DoSub
-        LDWA    udivRemLo,d
-        STWA    udivCmpX,d
-        LDWA    udivDvrLo,d
-        STWA    udivCmpY,d
+        LDWA    hRemLo,s
+        LDWX    hDvrLo,s
         CALL    _UCmp16
         BRLT    _UDiv32NoSub
 
 _UDiv32DoSub:
         ; Determine (before subtracting) whether the low-word subtraction
         ; will need to borrow.
-        LDWA    udivRemLo,d
-        STWA    udivCmpX,d
-        LDWA    udivDvrLo,d
-        STWA    udivCmpY,d
+        LDWA    hRemLo,s
+        LDWX    hDvrLo,s
         CALL    _UCmp16
         BRLT    _UDiv32Borrows
         LDWA    0,i
@@ -246,27 +309,27 @@ _UDiv32DoSub:
 _UDiv32Borrows:
         LDWA    1,i
 _UDiv32BorrowDone:
-        STWA    udivTmp3,d
+        STWA    hTmp,s
 
         ; The raw difference values from SUBA are correct regardless of
         ; issue #11 (only its flags are wrong), so we use the values and
         ; supply the borrow computed above by hand.
-        LDWA    udivRemLo,d
-        SUBA    udivDvrLo,d
-        STWA    udivRemLo,d
-        LDWA    udivRemHi,d
-        SUBA    udivDvrHi,d
-        SUBA    udivTmp3,d
-        STWA    udivRemHi,d
+        LDWA    hRemLo,s
+        SUBA    hDvrLo,s
+        STWA    hRemLo,s
+        LDWA    hRemHi,s
+        SUBA    hDvrHi,s
+        SUBA    hTmp,s
+        STWA    hRemHi,s
 
-        LDWA    udivQuoLo,d
+        LDWA    hQuoLo,s
         ORA     1,i
-        STWA    udivQuoLo,d
+        STWA    hQuoLo,s
 
 _UDiv32NoSub:
-        LDWA    udivCnt,d
+        LDWA    hCnt,s
         SUBA    1,i
-        STWA    udivCnt,d
+        STWA    hCnt,s
         BR      _UDiv32Loop
 
 _UDiv32Done:
@@ -274,154 +337,20 @@ _UDiv32Done:
 
 ;=======================================================================
 ; _Negate32: two's complement negation of a 32-bit value.
-; Precondition/postcondition: sNegHi:sNegLo.
+; In: A = high word, X = low word.  Out: A = high word, X = low word of
+; the negated value.  No memory is used.
 ; Deliberately avoids the Carry flag (issue #11): whether the low word's
 ; +1 carries into the high word is decided by checking if the low word
 ; became exactly 0 (BREQ/BRNE on the Z flag), not by Carry.
 ;=======================================================================
 _Negate32:
-        LDWA    sNegHi,d
         NOTA
-        STWA    sNegHi,d
-        LDWA    sNegLo,d
-        NOTA
-        STWA    sNegLo,d
-        LDWA    sNegLo,d
-        ADDA    1,i
-        STWA    sNegLo,d
+        NOTX
+        ADDX    1,i
         BRNE    _Negate32Done
-        LDWA    sNegHi,d
         ADDA    1,i
-        STWA    sNegHi,d
 _Negate32Done:
         RET
-
-;=======================================================================
-; _SDiv32: signed 32-bit / 32-bit division.
-; Precondition/postcondition storage same as _UDiv32 (they share it).
-; Per design proposal section 5: extract signs, run the unsigned
-; routine on the absolute values, fix up the signs of the results
-; afterward. Remainder takes the dividend's sign, matching Java/C and
-; the existing 16-bit MODA.
-;=======================================================================
-_SDiv32:
-        LDWA    udivDvdHi,d
-        ANDA    0x8000,i
-        STWA    sdivSignDvd,d
-        LDWA    udivDvrHi,d
-        ANDA    0x8000,i
-        STWA    sdivSignDvr,d
-
-        LDWA    sdivSignDvd,d
-        STWA    sdivNegR,d              ; nonzero (0x8000) iff dividend negative
-
-        LDWA    sdivSignDvd,d
-        XORA    sdivSignDvr,d
-        STWA    sdivNegQ,d              ; nonzero iff signs differ
-
-        ; |dividend|
-        LDWA    sdivSignDvd,d
-        BREQ    _SDiv32DvdAbsDone
-        LDWA    udivDvdHi,d
-        STWA    sNegHi,d
-        LDWA    udivDvdLo,d
-        STWA    sNegLo,d
-        CALL    _Negate32
-        LDWA    sNegHi,d
-        STWA    udivDvdHi,d
-        LDWA    sNegLo,d
-        STWA    udivDvdLo,d
-_SDiv32DvdAbsDone:
-
-        ; |divisor|
-        LDWA    sdivSignDvr,d
-        BREQ    _SDiv32DvrAbsDone
-        LDWA    udivDvrHi,d
-        STWA    sNegHi,d
-        LDWA    udivDvrLo,d
-        STWA    sNegLo,d
-        CALL    _Negate32
-        LDWA    sNegHi,d
-        STWA    udivDvrHi,d
-        LDWA    sNegLo,d
-        STWA    udivDvrLo,d
-_SDiv32DvrAbsDone:
-
-        ; Same fast-path-with-fallback as UDDiv, now operating on the
-        ; magnitudes (sign already handled above).
-        LDWA    udivDvrHi,d
-        BRNE    _SDiv32General
-        LDWA    udivDvdHi,d
-        STWA    f16DvdHi,d
-        LDWA    udivDvdLo,d
-        STWA    f16DvdLo,d
-        LDWA    udivDvrLo,d
-        STWA    f16Dvr,d
-        CALL    _UDiv32By16
-        LDWA    f16Overflow,d
-        BRNE    _SDiv32General
-        LDWA    0,i
-        STWA    udivQuoHi,d
-        LDWA    f16Quo,d
-        STWA    udivQuoLo,d
-        LDWA    0,i
-        STWA    udivRemHi,d
-        LDWA    f16Rem,d
-        STWA    udivRemLo,d
-        BR      _SDiv32AfterDivide
-_SDiv32General:
-        CALL    _UDiv32
-_SDiv32AfterDivide:
-
-        ; fix up quotient sign
-        LDWA    sdivNegQ,d
-        BREQ    _SDiv32QDone
-        LDWA    udivQuoHi,d
-        STWA    sNegHi,d
-        LDWA    udivQuoLo,d
-        STWA    sNegLo,d
-        CALL    _Negate32
-        LDWA    sNegHi,d
-        STWA    udivQuoHi,d
-        LDWA    sNegLo,d
-        STWA    udivQuoLo,d
-_SDiv32QDone:
-
-        ; fix up remainder sign
-        LDWA    sdivNegR,d
-        BREQ    _SDiv32RDone
-        LDWA    udivRemHi,d
-        STWA    sNegHi,d
-        LDWA    udivRemLo,d
-        STWA    sNegLo,d
-        CALL    _Negate32
-        LDWA    sNegHi,d
-        STWA    udivRemHi,d
-        LDWA    sNegLo,d
-        STWA    udivRemLo,d
-_SDiv32RDone:
-        RET
-
-udivDvdHi:   .BLOCK 2
-udivDvdLo:   .BLOCK 2
-udivDvrHi:   .BLOCK 2
-udivDvrLo:   .BLOCK 2
-udivRemHi:   .BLOCK 2
-udivRemLo:   .BLOCK 2
-udivQuoHi:   .BLOCK 2
-udivQuoLo:   .BLOCK 2
-udivCnt:     .BLOCK 2
-udivTmp1:    .BLOCK 2
-udivTmp2:    .BLOCK 2
-udivTmp3:    .BLOCK 2
-udivCmpX:    .BLOCK 2
-udivCmpY:    .BLOCK 2
-sNegHi:      .BLOCK 2
-sNegLo:      .BLOCK 2
-sdivSignDvd: .BLOCK 2
-sdivSignDvr: .BLOCK 2
-sdivNegQ:    .BLOCK 2
-sdivNegR:    .BLOCK 2
 
 ;=======================================================================
 ; DDiv / UDDiv -- 32-bit / 32-bit division, matching the stack template
@@ -476,223 +405,222 @@ sdivNegR:    .BLOCK 2
 ;=======================================================================
 
 UDDiv:
-        LDWA    6,s
-        STWA    udivDvdHi,d
-        LDWA    8,s
-        STWA    udivDvdLo,d
-        LDWA    2,s
-        STWA    udivDvrHi,d
-        LDWA    4,s
-        STWA    udivDvrLo,d
-
-        LDWA    udivDvrHi,d
-        ORA     udivDvrLo,d
+        SUBSP   DVFRAME,i
+        LDWA    argDvdHi,s
+        STWA    dvDvdHi,s
+        LDWA    argDvdLo,s
+        STWA    dvDvdLo,s
+        LDWA    argDvrHi,s
+        STWA    dvDvrHi,s
+        LDWA    argDvrLo,s
+        STWA    dvDvrLo,s
+        ORA     dvDvrHi,s
         BREQ    _DDivByZero
 
-        ; Divisor fits in one word? Try the fast path (16 iterations)
-        ; first -- but its quotient is only one word wide, so if this
-        ; particular dividend would overflow that (a real possibility
-        ; here, since UDDiv accepts a full 32-bit dividend), fall back
-        ; to the general routine instead of losing precision.
-        LDWA    udivDvrHi,d
-        BRNE    _UDDivGeneral
-        LDWA    udivDvdHi,d
-        STWA    f16DvdHi,d
-        LDWA    udivDvdLo,d
-        STWA    f16DvdLo,d
-        LDWA    udivDvrLo,d
-        STWA    f16Dvr,d
-        CALL    _UDiv32By16
-        LDWA    f16Overflow,d
-        BRNE    _UDDivGeneral
+        ; Unsigned: nothing to negate afterwards.
         LDWA    0,i
-        STWA    udivQuoHi,d
-        LDWA    f16Quo,d
-        STWA    udivQuoLo,d
-        LDWA    0,i
-        STWA    udivRemHi,d
-        LDWA    f16Rem,d
-        STWA    udivRemLo,d
-        BR      _DDivWriteBack
+        STWA    dvNegQ,s
+        STWA    dvNegR,s
+        BR      _DDivCompute
 
-_UDDivGeneral:
-        CALL    _UDiv32
-        BR      _DDivWriteBack
-
-_DDivSigned:
-        LDWA    6,s
-        STWA    udivDvdHi,d
-        LDWA    8,s
-        STWA    udivDvdLo,d
-        LDWA    2,s
-        STWA    udivDvrHi,d
-        LDWA    4,s
-        STWA    udivDvrLo,d
-
-        LDWA    udivDvrHi,d
-        ORA     udivDvrLo,d
+DDiv:
+        SUBSP   DVFRAME,i
+        LDWA    argDvdHi,s
+        STWA    dvDvdHi,s
+        LDWA    argDvdLo,s
+        STWA    dvDvdLo,s
+        LDWA    argDvrHi,s
+        STWA    dvDvrHi,s
+        LDWA    argDvrLo,s
+        STWA    dvDvrLo,s
+        ORA     dvDvrHi,s
         BREQ    _DDivByZero
 
-        CALL    _SDiv32
-
-_DDivWriteBack:
-        LDWA    udivQuoHi,d
-        STWA    6,s
-        LDWA    udivQuoLo,d
-        STWA    8,s
-        LDWA    udivRemHi,d
-        STWA    2,s
-        LDWA    udivRemLo,d
-        STWA    4,s
-
-        ; N = sign of quotient, Z = quotient is 0, V = 0, C = 0 (success)
-        LDWA    0,i
-        STWA    dflagsN,d
-        STWA    dflagsZ,d
-        LDWA    udivQuoHi,d
+        ; Signed: extract the signs, divide the magnitudes, fix up the
+        ; signs afterward. The remainder takes the dividend's sign, matching
+        ; Java/C and the existing 16-bit MODA.
+        LDWA    dvDvdHi,s
         ANDA    0x8000,i
-        BREQ    _DDivNDone
-        LDWA    1,i
-        STWA    dflagsN,d
+        STWA    dvNegR,s                ; nonzero iff dividend negative
+        LDWA    dvDvrHi,s
+        ANDA    0x8000,i
+        STWA    dvTmp,s                 ; nonzero iff divisor negative
+        XORA    dvNegR,s
+        STWA    dvNegQ,s                ; nonzero iff signs differ
+
+        LDWA    dvNegR,s
+        BREQ    _DDivDvdAbsDone
+        LDWA    dvDvdHi,s
+        LDWX    dvDvdLo,s
+        CALL    _Negate32
+        STWA    dvDvdHi,s
+        STWX    dvDvdLo,s
+_DDivDvdAbsDone:
+
+        LDWA    dvTmp,s
+        BREQ    _DDivDvrAbsDone
+        LDWA    dvDvrHi,s
+        LDWX    dvDvrLo,s
+        CALL    _Negate32
+        STWA    dvDvrHi,s
+        STWX    dvDvrLo,s
+_DDivDvrAbsDone:
+
+        ; Both entry points arrive here with magnitudes in the frame and the
+        ; two sign flags set. Divisor fits in one word? Try the fast path
+        ; (16 iterations) first -- but its quotient is only one word wide,
+        ; so if this particular dividend would overflow that (a real
+        ; possibility, since a full 32-bit dividend is accepted), fall back
+        ; to the general routine instead of losing precision.
+_DDivCompute:
+        LDWA    dvDvrHi,s
+        BRNE    _DDivGeneral
+        CALL    _UDiv32By16
+        BRNE    _DDivGeneral
+        BR      _DDivSigns
+_DDivGeneral:
+        CALL    _UDiv32
+
+_DDivSigns:
+        LDWA    dvNegQ,s
+        BREQ    _DDivQDone
+        LDWA    dvQuoHi,s
+        LDWX    dvQuoLo,s
+        CALL    _Negate32
+        STWA    dvQuoHi,s
+        STWX    dvQuoLo,s
+_DDivQDone:
+        LDWA    dvNegR,s
+        BREQ    _DDivRDone
+        LDWA    dvRemHi,s
+        LDWX    dvRemLo,s
+        CALL    _Negate32
+        STWA    dvRemHi,s
+        STWX    dvRemLo,s
+_DDivRDone:
+
+        ; Write the results back over the operands.
+        LDWA    dvQuoHi,s
+        STWA    argDvdHi,s
+        LDWA    dvQuoLo,s
+        STWA    argDvdLo,s
+        LDWA    dvRemHi,s
+        STWA    argDvrHi,s
+        LDWA    dvRemLo,s
+        STWA    argDvrLo,s
+
+        ; N = sign of quotient, Z = quotient is 0, V = 0, C = 0 (success).
+        ; Build the flag nibble in X, then move it through A.
+        LDWX    0,i
+        LDWA    dvQuoHi,s
+        BRGE    _DDivNDone
+        LDWX    8,i
 _DDivNDone:
-        LDWA    udivQuoHi,d
-        ORA     udivQuoLo,d
+        LDWA    dvQuoHi,s
+        ORA     dvQuoLo,s
         BRNE    _DDivZDone
-        LDWA    1,i
-        STWA    dflagsZ,d
+        ORX     4,i
 _DDivZDone:
-        LDWA    0,i
-        STWA    dflagsNibble,d
-        LDWA    dflagsN,d
-        BREQ    _DDivBuildZ
-        LDWA    dflagsNibble,d
-        ORA     8,i
-        STWA    dflagsNibble,d
-_DDivBuildZ:
-        LDWA    dflagsZ,d
-        BREQ    _DDivBuildDone
-        LDWA    dflagsNibble,d
-        ORA     4,i
-        STWA    dflagsNibble,d
-_DDivBuildDone:
-        LDWA    dflagsNibble,d
+        SWAPAX
+        ADDSP   DVFRAME,i
         MOVAFLG
         RET
 
 _DDivByZero:
         LDWA    0,i
-        STWA    2,s
-        STWA    4,s
-        STWA    6,s
-        STWA    8,s
+        STWA    argDvrHi,s
+        STWA    argDvrLo,s
+        STWA    argDvdHi,s
+        STWA    argDvdLo,s
+        ADDSP   DVFRAME,i
         LDWA    7,i             ; N=0,Z=1,V=1,C=1 -> 0111
         MOVAFLG
         RET
 
-DDiv:
-        BR      _DDivSigned
-
-dflagsN:      .BLOCK 2
-dflagsZ:      .BLOCK 2
-dflagsNibble: .BLOCK 2
 ;=======================================================================
 ; _UDiv32By16: unsigned 32-bit dividend / 16-bit divisor, the genuine
 ; fast path (16 iterations, not 32), with an early-exit overflow check
 ; that skips the loop entirely when the quotient wouldn't fit anyway.
 ;
-; This is the piece that was discussed but never actually implemented:
-; UDDiv/DDiv currently always run the general 32-iteration _UDiv32
-; even when the divisor fits in one word.
-;
-; Precondition: f16DvdHi:f16DvdLo = dividend (32-bit).
-;               f16Dvr = divisor (16-bit, nonzero).
-; Postcondition: f16Overflow = 1 if the quotient doesn't fit in 16 bits
-;                (f16Quo/f16Rem are NOT meaningful in that case), else 0.
-;                f16Quo = quotient, f16Rem = remainder (both 16-bit).
-;                f16DvdLo is destroyed (used as scratch).
+; Works on the caller's frame, entered with the return address on top of it.
+; Precondition: hDvdHi:hDvdLo = dividend (32-bit).
+;               hDvrLo = divisor (16-bit, nonzero; hDvrHi must be 0).
+; Out: A = 1 if the quotient doesn't fit in 16 bits (nothing in the frame
+;      is changed then), else A = 0 with N=0, Z=1, and
+;      hQuoHi:hQuoLo = quotient, hRemHi:hRemLo = remainder (high words 0).
+;      hDvdLo is destroyed (used as scratch), as are hRemLo/hCnt.
 ;=======================================================================
 _UDiv32By16:
         ; Early-exit overflow check: quotient fits in 16 bits iff
         ; dividendHi < divisor (unsigned). No iterations needed either way
         ; to know this.
-        LDWA    f16DvdHi,d
-        STWA    udivCmpX,d
-        LDWA    f16Dvr,d
-        STWA    udivCmpY,d
+        LDWA    hDvdHi,s
+        LDWX    hDvrLo,s
         CALL    _UCmp16
         BRLT    _UDiv32By16NoOverflow
         LDWA    1,i
-        STWA    f16Overflow,d
         RET
 _UDiv32By16NoOverflow:
         LDWA    0,i
-        STWA    f16Overflow,d
-        STWA    f16Quo,d
-        LDWA    f16DvdHi,d
-        STWA    f16Rem,d        ; remainder starts as dividendHi, already < divisor
+        STWA    hQuoHi,s
+        STWA    hQuoLo,s
+        STWA    hRemHi,s
+        LDWA    hDvdHi,s
+        STWA    hRemLo,s        ; remainder starts as dividendHi, already < divisor
         LDWA    16,i
-        STWA    f16Cnt,d
+        STWA    hCnt,s
 
 _UDiv32By16Loop:
-        LDWA    f16Cnt,d
+        LDWA    hCnt,s
         BREQ    _UDiv32By16Done
 
         ; shift dividendLo left 1; the bit shifted out (next bit of the
         ; original dividend) lands in Carry.
-        LDWA    f16DvdLo,d
+        LDWA    hDvdLo,s
         ASLA
-        STWA    f16DvdLo,d
+        STWA    hDvdLo,s
 
         ; shift that dividend bit into the remainder. The bit shifted
         ; OUT of the remainder (its own old top bit) means the true
         ; (unmasked) remainder is 65536 higher than the stored value,
         ; which is unconditionally >= any 16-bit divisor -- so a carry
         ; here means "definitely subtract," skipping the compare.
-        LDWA    f16Rem,d
+        LDWA    hRemLo,s
         ROLA
-        STWA    f16Rem,d
+        STWA    hRemLo,s
         BRC     _UDiv32By16DoSub
 
-        LDWA    f16Rem,d
-        STWA    udivCmpX,d
-        LDWA    f16Dvr,d
-        STWA    udivCmpY,d
+        LDWA    hRemLo,s
+        LDWX    hDvrLo,s
         CALL    _UCmp16
         BRLT    _UDiv32By16NoSub
 
 _UDiv32By16DoSub:
-        LDWA    f16Rem,d
-        SUBA    f16Dvr,d
-        STWA    f16Rem,d
+        LDWA    hRemLo,s
+        SUBA    hDvrLo,s
+        STWA    hRemLo,s
         ; shift the quotient left 1, with a fresh 0 (independent of the
         ; dividend/remainder carry chain above), then upgrade to 1.
-        LDWA    f16Quo,d
+        LDWA    hQuoLo,s
         ASLA
         ORA     1,i
-        STWA    f16Quo,d
+        STWA    hQuoLo,s
         BR      _UDiv32By16NextIter
 
 _UDiv32By16NoSub:
-        LDWA    f16Quo,d
+        LDWA    hQuoLo,s
         ASLA
-        STWA    f16Quo,d
+        STWA    hQuoLo,s
 
 _UDiv32By16NextIter:
-        LDWA    f16Cnt,d
+        LDWA    hCnt,s
         SUBA    1,i
-        STWA    f16Cnt,d
+        STWA    hCnt,s
         BR      _UDiv32By16Loop
 
 _UDiv32By16Done:
+        LDWA    0,i
         RET
-
-f16DvdHi:   .BLOCK 2
-f16DvdLo:   .BLOCK 2
-f16Dvr:     .BLOCK 2
-f16Quo:     .BLOCK 2
-f16Rem:     .BLOCK 2
-f16Cnt:     .BLOCK 2
-f16Overflow: .BLOCK 2
 
 ;======================================================================
 ; ---- from ddprint.pep ----
@@ -713,15 +641,25 @@ f16Overflow: .BLOCK 2
 ; DPRINTD:  signed decimal print; prints a leading '-' for negative
 ;           values, then the magnitude via UDPRINTD.
 ;
-; NOTE (concurrency caveat, same as ddiv32.pep): the digit buffer and
-; working variables below are statically allocated, not stack-based.
-; See the separate design note on this; not safe to call from code
-; that might be interrupted mid-routine once context switching exists.
+; REENTRANT: the digit buffer and working variables live in a stack frame
+; (UDPRINTD) or are not needed at all (DPRINTD), so several threads may
+; print at once. Their characters still interleave on the console, because
+; each thread's output goes to the same charOut device.
 ;=======================================================================
 
+; UDPRINTD frame (SP-relative right after SUBSP 16):
+;   0..9 digit buffer (least significant digit first), 10 digit count,
+;   12 current value high, 14 current value low
+udpDigits: .EQUATE 0
+udpCount:  .EQUATE 10
+udpCurHi:  .EQUATE 12
+udpCurLo:  .EQUATE 14
+udpFrame:  .EQUATE 16
 
 udpValHi: .EQUATE 2      ; offset from SP at UDPRINTD entry: value hi word
 udpValLo: .EQUATE 4      ; value lo word
+udpArgHi: .EQUATE 18     ; the same operands once the frame is allocated
+udpArgLo: .EQUATE 20
 
 UDPRINTD:
         LDWA    udpValHi,s
@@ -732,79 +670,73 @@ UDPRINTD:
         RET
 
 udpNonzero:
-        LDWA    udpValHi,s
-        STWA    udpCurHi,d
-        LDWA    udpValLo,s
-        STWA    udpCurLo,d
+        SUBSP   udpFrame,i
+        LDWA    udpArgHi,s
+        STWA    udpCurHi,s
+        LDWA    udpArgLo,s
+        STWA    udpCurLo,s
         LDWX    0,i
-        STWX    udpCount,d
+        STWX    udpCount,s
 
 udpLoop:
-        LDWA    udpCurHi,d
-        ORA     udpCurLo,d
+        LDWA    udpCurHi,s
+        ORA     udpCurLo,s
         BREQ    udpPrint
 
-        ; push current value (low, high) and divisor 10 (low, high)
-        LDWA    udpCurLo,d
+        ; push current value (low, high) and divisor 10 (low, high).
+        ; Each PUSHA moves SP down 2, so the frame fields are read at the
+        ; offsets they have at that moment (curLo at 14, curHi then at 14).
+        LDWA    udpCurLo,s
         PUSHA
-        LDWA    udpCurHi,d
+        LDWA    14,s            ; udpCurHi, 2 bytes further from SP now
         PUSHA
         LDWA    10,i
         PUSHA
         LDWA    0,i
         PUSHA
         CALL    UDDiv,i
-        ; stack top-to-bottom after RET: remHi, remLo, quoHi, quoLo
-        POPA
-        STWA    udpRemHi,d
-        POPA
-        STWA    udpRemLo,d
-        POPA
-        STWA    udpCurHi,d
-        POPA
-        STWA    udpCurLo,d
-
-        LDWX    udpCount,d
-        LDWA    udpRemLo,d
+        ; the 8 bytes pushed above are still on the stack, results in place:
+        ; 0 remHi, 2 remLo, 4 quoHi, 6 quoLo.  The frame is 8 bytes further.
+        LDWA    4,s
+        STWA    20,s            ; udpCurHi + 8
+        LDWA    6,s
+        STWA    22,s            ; udpCurLo + 8
+        LDWA    2,s             ; remainder, always below 10
         ADDA    '0',i
-        STBA    udpDigits,x
+        LDWX    18,s            ; udpCount + 8
+        STBA    8,sx            ; udpDigits + 8, indexed by the count
         ADDX    1,i
-        STWX    udpCount,d
+        STWX    18,s
+        ADDSP   8,i
 
         BR      udpLoop
 
 udpPrint:
-        LDWX    udpCount,d
+        LDWX    udpCount,s
         SUBX    1,i
 udpPrintLoop:
         BRLT    udpDone
-        LDBA    udpDigits,x
+        LDBA    udpDigits,sx
         STBA    charOut,d
         SUBX    1,i
         BR      udpPrintLoop
 udpDone:
+        ADDSP   udpFrame,i
         RET
 
 dpValHi: .EQUATE 2
 dpValLo: .EQUATE 4
 
 DPRINTD:
-        ; Cache the operand into statics BEFORE any PUSHA below, since
-        ; ",s" offsets are relative to the CURRENT SP: once we start
-        ; pushing, dpValHi/dpValLo (offsets measured at entry) no
-        ; longer point at the right place.
+        ; No cached copy of the operand is needed: each PUSHA moves SP, so
+        ; the operand is re-read at its adjusted offset every time.
         LDWA    dpValHi,s
-        STWA    dpSaveHi,d
-        LDWA    dpValLo,s
-        STWA    dpSaveLo,d
-
-        LDWA    dpSaveHi,d
         BRLT    dpNegative
-        ; non-negative: pass the cached operand straight to UDPRINTD
+        ; non-negative: pass the operand straight to UDPRINTD
         ; (push low, then high, matching its calling convention)
-        LDWA    dpSaveLo,d
+        LDWA    dpValLo,s
         PUSHA
-        LDWA    dpSaveHi,d
+        LDWA    4,s             ; dpValHi, 2 bytes further from SP now
         PUSHA
         CALL    UDPRINTD,i
         ADDSP   4,i
@@ -818,12 +750,11 @@ dpNegative:
         ; 0x80000000 wraps back to 0x80000000, i.e. 2147483648
         ; unsigned, which is exactly the right magnitude to print.
         LDWA    0,i
+        PUSHA                   ; a low
+        PUSHA                   ; a high
+        LDWA    8,s             ; dpValLo, 4 bytes further from SP now
         PUSHA
-        LDWA    0,i
-        PUSHA
-        LDWA    dpSaveLo,d
-        PUSHA
-        LDWA    dpSaveHi,d
+        LDWA    8,s             ; dpValHi, 6 bytes further from SP now
         PUSHA
         CALL    DSUB,i
         ADDSP   4,i
@@ -832,16 +763,6 @@ dpNegative:
         CALL    UDPRINTD,i
         ADDSP   4,i
         RET
-
-; ---- static scratch (see concurrency caveat above) ----
-udpCurHi:  .BLOCK 2
-udpCurLo:  .BLOCK 2
-udpRemHi:  .BLOCK 2
-udpRemLo:  .BLOCK 2
-udpCount:  .BLOCK 2
-udpDigits: .BLOCK 10
-dpSaveHi:  .BLOCK 2
-dpSaveLo:  .BLOCK 2
 
 ;======================================================================
 ; ---- from ddread.pep ----
@@ -857,23 +778,30 @@ dpSaveLo:  .BLOCK 2
 ; not a number reads as 0. Values outside the 32-bit range wrap
 ; silently, the same as LONGINT arithmetic.
 ;
-; DREAD takes no stack arguments. It leaves the result in the static
-; words rdlHi (high word) and rdlLo (low word); the caller copies them
-; where they belong.
+; DREAD takes no stack arguments. It returns the result in registers:
+; A = high word, X = low word. (It used to leave it in static words; the
+; registers keep the routine reentrant.)
 ;
 ; The multiply and add use DMul and DADD, and the negation uses DSUB,
-; so daddsub.pep and dmul.pep must also be included (the Declan
-; compiler does this itself, so they are not included here).
+; so the double-word routines above must be in the same program (they are,
+; because they are all in this file).
 ;
-; NOTE (same concurrency caveat as ddprint.pep): the working variables
-; are statically allocated, not stack-based.
+; REENTRANT: the working variables are in a stack frame.
 ;=======================================================================
 
+; DREAD frame (SP-relative right after SUBSP 8):
+rdlNeg:   .EQUATE 0
+rdlDigit: .EQUATE 2
+rdlHi:    .EQUATE 4
+rdlLo:    .EQUATE 6
+rdlFrame: .EQUATE 8
+
 DREAD:
+        SUBSP   rdlFrame,i
         LDWA    0,i
-        STWA    rdlHi,d
-        STWA    rdlLo,d
-        STWA    rdlNeg,d
+        STWA    rdlHi,s
+        STWA    rdlLo,s
+        STWA    rdlNeg,s
 rdlSkip:
         LDBA    charIn,d
         CPWA    ' ',i
@@ -887,7 +815,7 @@ rdlSkip:
         CPWA    '-',i
         BRNE    rdlPlus
         LDWA    1,i
-        STWA    rdlNeg,d
+        STWA    rdlNeg,s
         BR      rdlNext
 rdlPlus:
         CPWA    '+',i
@@ -899,53 +827,51 @@ rdlTest:
         BRLT    rdlFinish
         CPWA    9,i
         BRGT    rdlFinish
-        STWA    rdlDigit,d
+        STWA    rdlDigit,s
 
-        ; value = value * 10 + digit
-        LDWA    rdlLo,d
+        ; value = value * 10 + digit.  Offsets below are the frame offsets
+        ; plus the bytes pushed so far.
+        LDWA    rdlLo,s
         PUSHA
-        LDWA    rdlHi,d
+        LDWA    6,s             ; rdlHi + 2
         PUSHA
         LDWA    10,i
         PUSHA
         LDWA    0,i
         PUSHA
         CALL    DMul,i
-        ADDSP   4,i
-        LDWA    rdlDigit,d
+        ADDSP   4,i             ; the product (low, high) stays on the stack
+        LDWA    6,s             ; rdlDigit + 4
         PUSHA
         LDWA    0,i
         PUSHA
         CALL    DADD,i
         ADDSP   4,i
         POPA
-        STWA    rdlHi,d
+        STWA    6,s             ; rdlHi + 2 (the low word is still pushed)
         POPA
-        STWA    rdlLo,d
+        STWA    rdlLo,s
         BR      rdlNext
 
 rdlFinish:
-        LDWA    rdlNeg,d
+        LDWA    rdlNeg,s
         BREQ    rdlDone
         ; value = 0 - value
         LDWA    0,i
+        PUSHA                   ; a low
+        PUSHA                   ; a high
+        LDWA    10,s            ; rdlLo + 4
         PUSHA
-        LDWA    0,i
-        PUSHA
-        LDWA    rdlLo,d
-        PUSHA
-        LDWA    rdlHi,d
+        LDWA    10,s            ; rdlHi + 6
         PUSHA
         CALL    DSUB,i
         ADDSP   4,i
         POPA
-        STWA    rdlHi,d
+        STWA    6,s             ; rdlHi + 2
         POPA
-        STWA    rdlLo,d
+        STWA    rdlLo,s
 rdlDone:
+        LDWA    rdlHi,s
+        LDWX    rdlLo,s
+        ADDSP   rdlFrame,i
         RET
-
-rdlHi:    .BLOCK 2
-rdlLo:    .BLOCK 2
-rdlNeg:   .BLOCK 2
-rdlDigit: .BLOCK 2
