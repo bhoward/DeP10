@@ -8,8 +8,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.text.Document;
 
-@SuppressWarnings("serial")
 class OutputPanel extends JPanel implements TabPanel {
+    private static final long serialVersionUID = -5841553375172274949L;
+    
     private final String name;
     private final JTextPane text;
 

@@ -39,8 +39,9 @@ import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.fife.ui.rtextarea.SearchResult;
 
-@SuppressWarnings("serial")
 public class SourcePanel extends JPanel implements SearchListener {
+    private static final long serialVersionUID = -209897295836797500L;
+
     private static final String DEFAULT_FILENAME = "Untitled.pep";
 
     public static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);

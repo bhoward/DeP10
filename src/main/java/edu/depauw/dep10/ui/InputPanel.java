@@ -8,8 +8,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 
-@SuppressWarnings("serial")
 public class InputPanel extends JPanel implements TabPanel {
+    private static final long serialVersionUID = 6846573450653256646L;
+    
     private final String name;
     private final JTextPane text;
     private final JCheckBox use;

@@ -9,8 +9,9 @@ import javax.swing.JPanel;
 
 import com.hermant.terminal.JTerminal;
 
-@SuppressWarnings("serial")
 public class TerminalPanel extends JPanel implements TabPanel {
+    private static final long serialVersionUID = 811675443354754711L;
+    
     private final String name;
     private JTerminal terminal;
 

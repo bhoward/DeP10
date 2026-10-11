@@ -37,8 +37,9 @@ import com.formdev.flatlaf.util.SystemInfo;
 
 import edu.depauw.dep10.simulator.Controller;
 
-@SuppressWarnings("serial")
 public class MainFrame extends JFrame {
+    private static final long serialVersionUID = 7189716789380272250L;
+
     static final String APP_TITLE = "DeP10 IDE";
 
     SourcePanel source;
