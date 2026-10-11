@@ -15,22 +15,24 @@ import static edu.depauw.dep10.resources.PepHarness.mem;
  * The trap handler dispatches on the SCALL operand (read from the saved
  * instruction at 10,s): 0 = YIELD, 1 = EXIT, anything else stops the machine
  * with 0x0BAD in Mem[F004]. Processes live in a ring of PCBs linked by a next
- * field. A PCB is 14 bytes:
+ * field. A PCB is 16 bytes:
  *
  *   0 state (0 free, 1 ready, 2 running, 3 done)   2 saved SP (frame address)
  *   4 next PCB                                      6 pid
  *   8 top of user stack   10 top of system stack   12 rounds to run
+ *   14 saved H (the hidden register is not part of the SCALL frame)
  *
  * The create routine (A = entry point, X = PCB) builds a fake SCALL frame at
  * the top of the new process's system stack and marks it ready. The scheduler
  * (pick) walks the ring from the current PCB looking for a ready one, skips
- * free and done slots, and stops the machine when none is left. Registers live
- * only in the saved frames; there is no copy in the PCB.
+ * free and done slots, and stops the machine when none is left. A, X, PC, SP and
+ * NZVC live only in the saved frames; H is not pushed by SCALL, so the handler
+ * swaps it into the PCB (SWAPHA) on the way out and back on the way in.
  *
  * All three processes run the same worker code, keeping their pid and their
  * remaining rounds in locals on their own user stacks. Each round the worker
- * logs its pid at log[logIdx], sets A and X from its pid, yields, and checks
- * that A, X and the stack local came back intact; any mismatch adds one to the
+ * logs its pid at log[logIdx], sets A, X and H from its pid, yields, and checks
+ * that A, X, H and the stack local came back intact; any mismatch adds one to the
  * error count at Mem[F000]. Mem[F002] counts calls to the handler.
  *
  * Note: a process only ever traps from user code, so its single frame always
@@ -61,6 +63,7 @@ class SchedulerTest {
             .WORD   user0T
             .WORD   sys0T
             .WORD   3
+            .WORD   0
     pcb1:   .WORD   0
             .WORD   0
             .WORD   pcb2
@@ -68,6 +71,7 @@ class SchedulerTest {
             .WORD   user1T
             .WORD   sys1T
             .WORD   2
+            .WORD   0
     pcb2:   .WORD   0
             .WORD   0
             .WORD   pcb3
@@ -75,10 +79,12 @@ class SchedulerTest {
             .WORD   user2T
             .WORD   sys2T
             .WORD   1
+            .WORD   0
     pcb3:   .WORD   0               ; a slot that is never created
             .WORD   0
             .WORD   pcb0
             .WORD   3
+            .WORD   0
             .WORD   0
             .WORD   0
             .WORD   0
@@ -112,6 +118,8 @@ class SchedulerTest {
     yield:  MOVSPA
             LDWX    cur,d
             STWA    2,x             ; save the frame address
+            SWAPHA                  ; H is not in the frame
+            STWA    14,x
             LDWA    READY,i
             STWA    0,x
             BR      pick
@@ -132,6 +140,8 @@ class SchedulerTest {
     run:    STWX    cur,d
             LDWA    RUNNING,i
             STWA    0,x
+            LDWA    14,x
+            SWAPHA                  ; restore H
             LDWA    2,x
             MOVASP
             SRET
@@ -187,6 +197,9 @@ class SchedulerTest {
             ADDA    2,i
             STWA    logIdx,d
             LDWA    2,s
+            ADDA    0x3000,i
+            SWAPHA                  ; H = pid + 0x3000
+            LDWA    2,s
             ADDA    0x1000,i
             LDWX    2,s
             SCALL   0,i
@@ -194,6 +207,10 @@ class SchedulerTest {
             CPWA    2,s
             BRNE    wBad
             CPWX    2,s
+            BRNE    wBad
+            SWAPHA
+            SUBA    0x3000,i
+            CPWA    2,s
             BREQ    wOk
     wBad:   LDWA    errors,d
             ADDA    1,i
