@@ -51,6 +51,16 @@ public final class PepHarness {
         return state;
     }
 
+    /** Runs a program and returns everything it wrote to the console output. */
+    public static String runForOutput(String source, int stepLimit) {
+        State state = load(assemble(source), null);
+        var out = new java.io.ByteArrayOutputStream();
+        state.setOutput(out);
+        Simulator sim = new Simulator(state);
+        sim.run(new StepCountController(new PlainController(), stepLimit));
+        return out.toString(java.nio.charset.StandardCharsets.US_ASCII);
+    }
+
     /** Preprocesses and assembles a source string, failing the test on any error. Returns the object file text. */
     public static String assemble(String source) {
         var log = new ErrorLog();
