@@ -19,13 +19,14 @@ public class RegisterField extends JComponent {
         this("", 2);
     }
     
-    public RegisterField(String label, int bytes) {
-        txt = new JTextField(bytes);
+    public RegisterField(String label, int nybbles) {
+        txt = new JTextField(nybbles);
         
         txt.setEditable(false);
         txt.setHorizontalAlignment(SwingConstants.CENTER);
         setBorder(new TitledBorder(new BevelBorder(BevelBorder.LOWERED), label));
         setLayout(new FlowLayout());
+        setText("0".repeat(nybbles));
         add(txt);
     }
     
@@ -52,5 +53,6 @@ public class RegisterField extends JComponent {
     
     public void setText(String text) {
         txt.setText(text);
+        txt.setToolTipText(Integer.valueOf(text, 16).toString());
     }
 }
