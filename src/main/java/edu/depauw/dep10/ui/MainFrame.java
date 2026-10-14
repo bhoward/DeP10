@@ -245,6 +245,7 @@ public class MainFrame extends JFrame {
                 for (var tab : tabs.getComponents()) {
                     ((TabPanel) tab).setPanelFont(source.getPanelFont());
                 }
+                statePanel.setPanelFont(source.getPanelFont());
                 SwingUtilities.updateComponentTreeUI(MainFrame.this);
             }
         };
@@ -263,6 +264,7 @@ public class MainFrame extends JFrame {
                 for (var tab : tabs.getComponents()) {
                     ((TabPanel) tab).setPanelFont(source.getPanelFont());
                 }
+                statePanel.setPanelFont(source.getPanelFont());
                 SwingUtilities.updateComponentTreeUI(MainFrame.this);
             }
         };
