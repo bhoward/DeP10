@@ -1,12 +1,27 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Debugging view: breakpoints? option to skip system code? highlight current line?
+* Debugging view: breakpoints? option to skip system code? skip CALL/SCALL? highlight current line?
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
 * Tests!
 
+Breakpoints
+-------
+For each line in source window (Pep/10 or DeCLan), have map to _first_ address generated
+* Main Pep/10 source: just take next address when line added to Result (need to resolve after packing sections)
+* Included files (always hidden?): only record next address when inclusion starts
+* DeCLan: generate a .LINE directive for each statement, and record those line numbers in the map
+* Selecting a line in the source for a breakpoint adds that first address to the list of bp addresses
+
+Also would like to have map from PC address back to line in listing; need to put listing in a source pane (RTextArea)?
+* If listing is in its own source pane, could show all the included/generated code and use that
+to display currently executed line, and also allow setting finer breakpoints (for DeCLan and includes)
+* Setting a breakpoint in the original source should also set the corresponding one in the listing
+* Unsetting a breakpoint in the listing should clear any corresponding one in the source
+
 Controls:
+-------
 [not assembled] build -> [assembled] (et seq)
 Build xRun xDebug xStep xBack
 

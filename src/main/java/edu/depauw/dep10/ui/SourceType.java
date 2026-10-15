@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 
 import edu.depauw.declan.Reporter;
 import edu.depauw.dep10.assemble.Assembler;
@@ -25,7 +28,7 @@ import edu.depauw.dep10.util.Word;
 public interface SourceType {
     int DEFAULT_STEP_LIMIT = 100000000; // TODO make this a setting
 
-    default boolean build(String source, OutputPanel listing, OutputPanel object) {
+    default boolean build(String source, OutputPanel listing, OutputPanel object, TextEditorPane resTextArea) {
         var log = new ErrorLog();
         Sources sources = new Sources();
 
@@ -39,10 +42,11 @@ public interface SourceType {
         if (log.noErrors()) {
             var lines = preprocessor.preprocess(sources);
             var assembler = new Assembler(log);
-            result = assembler.assemble(lines);
+            result = assembler.assemble(lines); // TODO include map from line numbers to addresses (what about DeCLan?)
 
             listing.setDocument(result.getListingDocument());
             object.setContent(result.toObjectFile());
+            resTextArea.setText(result.getResultText());
 
             return !result.hasErrors();
         } else {
@@ -90,7 +94,9 @@ public interface SourceType {
     }
 
     // TODO avoid duplication from run()
-    default void debug(MainFrame frame) {
+    default void debug(MainFrame frame, List<Integer> breakpoints) {
+        System.err.println(breakpoints);
+        
         var source = frame.source;
         var object = frame.object;
         var terminal = frame.terminal;
@@ -275,7 +281,7 @@ public interface SourceType {
         }
 
         @Override
-        public boolean build(String source, OutputPanel listing, OutputPanel object) {
+        public boolean build(String source, OutputPanel listing, OutputPanel object, TextEditorPane resTextArea) {
             var err = new ByteArrayOutputStream();
             var reporter = new Reporter(new PrintStream(err, true));
 
@@ -284,7 +290,7 @@ public interface SourceType {
                 pepSource = err.toString(); // this is a cheat...
             }
 
-            return SourceType.super.build(pepSource, listing, object);
+            return SourceType.super.build(pepSource, listing, object, resTextArea);
         }
 
         @Override

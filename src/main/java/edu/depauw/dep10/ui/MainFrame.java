@@ -112,7 +112,8 @@ public class MainFrame extends JFrame {
         pack();
         setLocationRelativeTo(null);
         vsplit.setDividerLocation(0.5);
-        hsplit.setDividerLocation(0.5);
+        hsplit.setResizeWeight(1.0);
+        hsplit.setDividerLocation(0.6);
     }
 
     public JMenuBar createMenuBar(JToolBar tools) {

@@ -7,13 +7,18 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -34,6 +39,7 @@ import org.fife.ui.rsyntaxtextarea.FileLocation;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import org.fife.ui.rtextarea.Gutter;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -52,7 +58,10 @@ public class SourcePanel extends JPanel implements SearchListener {
     private ReplaceDialog replaceDialog;
     private FindToolBar findToolBar;
     private ReplaceToolBar replaceToolBar;
-    private TextEditorPane textArea;
+    private TextEditorPane srcTextArea;
+    private Gutter srcGutter;
+    private TextEditorPane resTextArea;
+    private Gutter resGutter;
     private StatusBar statusBar;
     private CollapsibleSectionPanel csp;
 
@@ -99,60 +108,102 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         this.setLayout(new BorderLayout());
         csp = new CollapsibleSectionPanel();
-        this.add(csp);
 
         var file = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
         try {
-            textArea = new TextEditorPane(TextEditorPane.INSERT_MODE, false, FileLocation.create(file));
+            srcTextArea = new TextEditorPane(TextEditorPane.INSERT_MODE, false, FileLocation.create(file));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        textArea.setRows(25);
-        textArea.setColumns(120);
-        textArea.setFont(DEFAULT_FONT);
-        textArea.setPaintTabLines(true);
-        textArea.setMarkOccurrences(true);
-        
-        AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory)TokenMakerFactory.getDefaultInstance();
+        srcTextArea.setRows(25);
+        srcTextArea.setColumns(120);
+        srcTextArea.setFont(DEFAULT_FONT);
+        srcTextArea.setPaintTabLines(true);
+        srcTextArea.setMarkOccurrences(true);
+
+        AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
         atmf.putMapping("text/pep10", "edu.depauw.dep10.ui.Pep10TokenMaker");
         atmf.putMapping("text/declan", "edu.depauw.dep10.ui.DeCLanTokenMaker");
-        textArea.setSyntaxEditingStyle("text/pep10");
-        
-        RTextScrollPane sp = new RTextScrollPane(textArea);
+        srcTextArea.setSyntaxEditingStyle("text/pep10");
+        RTextScrollPane sp = new RTextScrollPane(srcTextArea);
         csp.add(sp);
+        
+        ErrorStrip errorStrip = new ErrorStrip(srcTextArea);
+        csp.add(errorStrip, BorderLayout.LINE_END);
+        
+        resTextArea = new TextEditorPane(TextEditorPane.INSERT_MODE, false);
+        resTextArea.setRows(25);
+        resTextArea.setColumns(120);
+        resTextArea.setFont(DEFAULT_FONT);
+        resTextArea.setPaintTabLines(true);
+        resTextArea.setMarkOccurrences(true);
+        resTextArea.setSyntaxEditingStyle("text/pep10");
+        resTextArea.setText("This\nis\na\ntest.");
+        resTextArea.setEditable(false);
+        RTextScrollPane rp = new RTextScrollPane(resTextArea);
+
+        var tp = new JTabbedPane(JTabbedPane.RIGHT);
+        tp.add("Source", csp);
+        tp.add("Result", rp);
+        this.add(tp);
+
+        srcGutter = sp.getGutter();
+        resGutter = rp.getGutter();
+        
+        URL imgURL = getClass().getResource("/images/breakpoint.png");
+        if (imgURL != null) {
+            var breakIcon = new ImageIcon(imgURL);
+            srcGutter.setBookmarkIcon(breakIcon);
+            resGutter.setBookmarkIcon(breakIcon);
+            srcGutter.setBookmarkingEnabled(true);
+            resGutter.setBookmarkingEnabled(true);
+        }
 
         updateTitle();
 
-        textArea.addPropertyChangeListener(TextEditorPane.DIRTY_PROPERTY, evt -> {
+        srcTextArea.addPropertyChangeListener(TextEditorPane.DIRTY_PROPERTY, evt -> {
             updateTitle();
         });
 
-        textArea.addPropertyChangeListener(TextEditorPane.FULL_PATH_PROPERTY, evt -> {
+        srcTextArea.addPropertyChangeListener(TextEditorPane.FULL_PATH_PROPERTY, evt -> {
             updateTitle();
         });
-
-        ErrorStrip errorStrip = new ErrorStrip(textArea);
-        this.add(errorStrip, BorderLayout.LINE_END);
 
         statusBar = new StatusBar();
         this.add(statusBar, BorderLayout.SOUTH);
     }
 
     private void updateTitle() {
-        var title = (textArea.isDirty() ? "*" : "") + textArea.getFileName();
+        var title = (srcTextArea.isDirty() ? "*" : "") + srcTextArea.getFileName();
         parent.updateTitle(title);
 
-        if (textArea.getFileName().equals(DEFAULT_FILENAME) || !textArea.isDirty()) {
+        if (srcTextArea.getFileName().equals(DEFAULT_FILENAME) || !srcTextArea.isDirty()) {
             getSaveAction().setEnabled(false);
         } else {
             getSaveAction().setEnabled(true);
         }
     }
 
+    private List<Integer> getBreakpoints() {
+        var icons = srcGutter.getBookmarks();
+        List<Integer> result = new ArrayList<>();
+
+        try {
+            for (int i = 0; i < icons.length; i++) {
+                var info = icons[i];
+                result.add(srcTextArea.getLineOfOffset(info.getMarkedOffset()));
+            }
+        } catch (BadLocationException e) {
+            // Ignore this
+        }
+        
+        return result;
+    }
+
     private static class StatusBar extends JPanel {
         private static final long serialVersionUID = -8132584109632782731L;
-        
+
         private JLabel label;
 
         public StatusBar() {
@@ -175,25 +226,25 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         switch (type) {
         case MARK_ALL:
-            result = SearchEngine.markAll(textArea, context);
+            result = SearchEngine.markAll(srcTextArea, context);
             break;
 
         case FIND:
-            result = SearchEngine.find(textArea, context);
+            result = SearchEngine.find(srcTextArea, context);
             if (!result.wasFound() || result.isWrapped()) {
-                UIManager.getLookAndFeel().provideErrorFeedback(textArea);
+                UIManager.getLookAndFeel().provideErrorFeedback(srcTextArea);
             }
             break;
 
         case REPLACE:
-            result = SearchEngine.replace(textArea, context);
+            result = SearchEngine.replace(srcTextArea, context);
             if (!result.wasFound() || result.isWrapped()) {
-                UIManager.getLookAndFeel().provideErrorFeedback(textArea);
+                UIManager.getLookAndFeel().provideErrorFeedback(srcTextArea);
             }
             break;
 
         case REPLACE_ALL:
-            result = SearchEngine.replaceAll(textArea, context);
+            result = SearchEngine.replaceAll(srcTextArea, context);
             JOptionPane.showMessageDialog(null, result.getCount() +
                     " occurrences replaced.");
             break;
@@ -218,7 +269,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
     @Override
     public String getSelectedText() {
-        return textArea.getSelectedText();
+        return srcTextArea.getSelectedText();
     }
 
     public Action getShowFindBarAction() {
@@ -342,14 +393,14 @@ public class SourcePanel extends JPanel implements SearchListener {
                 replaceDialog.setVisible(false);
             }
             GoToDialog dialog = new GoToDialog(parent);
-            dialog.setMaxLineNumberAllowed(textArea.getLineCount());
+            dialog.setMaxLineNumberAllowed(srcTextArea.getLineCount());
             dialog.setVisible(true);
             int line = dialog.getLineNumber();
             if (line > 0) {
                 try {
-                    textArea.setCaretPosition(textArea.getLineStartOffset(line - 1));
+                    srcTextArea.setCaretPosition(srcTextArea.getLineStartOffset(line - 1));
                 } catch (BadLocationException ble) { // Never happens
-                    UIManager.getLookAndFeel().provideErrorFeedback(textArea);
+                    UIManager.getLookAndFeel().provideErrorFeedback(srcTextArea);
                     ble.printStackTrace();
                 }
             }
@@ -366,7 +417,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
     private class BuildAction extends AbstractAction {
         private static final long serialVersionUID = 7293647898019218237L;
-        
+
         private OutputPanel listing;
         private OutputPanel object;
 
@@ -378,7 +429,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (parent.getSourceType().build(textArea.getText(), listing, object)) {
+            if (parent.getSourceType().build(srcTextArea.getText(), listing, object, resTextArea)) {
                 setStopped();
                 parent.selectListingTab();
             } else {
@@ -405,17 +456,17 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            
+
             if (control == null) {
                 setRunning();
                 parent.getSourceType().run(parent);
                 parent.selectTerminalTab();
-    
+
                 // TODO errors, ...
             } else {
                 control.end();
                 setStopped();
-                
+
                 parent.setController(null);
             }
         }
@@ -439,15 +490,15 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            
+
             if (control == null) {
                 setDebugging();
-                parent.getSourceType().debug(parent);
+                parent.getSourceType().debug(parent, getBreakpoints());
                 parent.selectStateTab();
             } else {
                 if (control.isPaused()) {
                     setDebugging();
-                    control.resume(parent);
+                    control.resume(parent); // TODO , getBreakpoints()
                 } else {
                     control.pause();
                     setPaused();
@@ -463,48 +514,48 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         return debugAction;
     }
-    
+
     private class StepAction extends AbstractAction {
         private static final long serialVersionUID = 8039510471073829841L;
 
         public StepAction() {
             super("Step");
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
             control.forward(parent);
         }
     }
-    
+
     public Action getStepAction() {
         if (stepAction == null) {
             stepAction = new StepAction();
         }
-        
+
         return stepAction;
     }
-    
+
     private class BackAction extends AbstractAction {
         private static final long serialVersionUID = 2222542354555992822L;
 
         public BackAction() {
             super("Back");
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
             control.backward(parent);
         }
     }
-    
+
     public Action getBackAction() {
         if (backAction == null) {
             backAction = new BackAction();
         }
-        
+
         return backAction;
     }
 
@@ -519,13 +570,13 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (textArea.isDirty()) {
+            if (srcTextArea.isDirty()) {
                 var result = JOptionPane.showConfirmDialog(parent, "Save current file?");
                 if (result == JOptionPane.CANCEL_OPTION) {
                     return;
                 } else if (result == JOptionPane.YES_OPTION) {
                     try {
-                        textArea.save();
+                        srcTextArea.save();
                     } catch (IOException e1) {
                         // TODO display error message?
                         return;
@@ -535,7 +586,8 @@ public class SourcePanel extends JPanel implements SearchListener {
 
             try {
                 var newFile = new File(chooser.getCurrentDirectory(), DEFAULT_FILENAME);
-                textArea.load(FileLocation.create(newFile));
+                srcTextArea.load(FileLocation.create(newFile));
+                srcGutter.removeAllTrackingIcons();
                 setBuildNeeded();
             } catch (IOException e1) {
                 // TODO display error message?
@@ -563,16 +615,17 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             if (chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
                 try {
-                    textArea.load(FileLocation.create(chooser.getSelectedFile()));
-                    
+                    srcTextArea.load(FileLocation.create(chooser.getSelectedFile()));
+                    srcGutter.removeAllTrackingIcons();
+
                     if (chooser.getSelectedFile().getName().endsWith(".dcl")) {
-                        textArea.setSyntaxEditingStyle("text/declan"); // TODO use constants
+                        srcTextArea.setSyntaxEditingStyle("text/declan"); // TODO use constants
                         parent.setSourceType(SourceType.DeCLan);
                     } else {
-                        textArea.setSyntaxEditingStyle("text/pep10");
-                        
+                        srcTextArea.setSyntaxEditingStyle("text/pep10");
+
                         // Attempt to guess SourceType from content
-                        String content = textArea.getText();
+                        String content = srcTextArea.getText();
                         if (content.contains(".SECTION")) {
                             parent.setSourceType(SourceType.Pep10System);
                         } else if (content.contains("@DECO") || content.contains("@STRO")) {
@@ -581,7 +634,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                             parent.setSourceType(SourceType.Pep10UserBare);
                         }
                     }
-                    
+
                     setBuildNeeded();
                 } catch (IOException e1) {
                     // TODO Auto-generated catch block
@@ -611,7 +664,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                textArea.save();
+                srcTextArea.save();
             } catch (IOException e1) {
                 // TODO
                 e1.printStackTrace();
@@ -638,7 +691,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         public void actionPerformed(ActionEvent e) {
             if (chooser.showSaveDialog(parent) == JFileChooser.APPROVE_OPTION) {
                 try {
-                    textArea.saveAs(FileLocation.create(chooser.getSelectedFile()));
+                    srcTextArea.saveAs(FileLocation.create(chooser.getSelectedFile()));
                 } catch (IOException e1) {
                     // TODO
                     e1.printStackTrace();
@@ -656,13 +709,13 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     public boolean canQuit() {
-        if (textArea.isDirty()) {
+        if (srcTextArea.isDirty()) {
             var result = JOptionPane.showConfirmDialog(parent, "Save before quit?");
             if (result == JOptionPane.CANCEL_OPTION) {
                 return false;
             } else if (result == JOptionPane.YES_OPTION) {
                 try {
-                    textArea.save();
+                    srcTextArea.save();
                 } catch (IOException e) {
                     // TODO display error message?
                     return false;
@@ -674,23 +727,25 @@ public class SourcePanel extends JPanel implements SearchListener {
     }
 
     public Font getPanelFont() {
-        return textArea.getFont();
+        return srcTextArea.getFont();
     }
 
     public void setPanelFont(Font font) {
         if (font != null) {
-            SyntaxScheme ss = textArea.getSyntaxScheme();
+            SyntaxScheme ss = srcTextArea.getSyntaxScheme();
             ss = (SyntaxScheme) ss.clone();
             for (int i = 0; i < ss.getStyleCount(); i++) {
                 if (ss.getStyle(i) != null) {
                     ss.getStyle(i).font = font;
                 }
             }
-            textArea.setSyntaxScheme(ss);
-            textArea.setFont(font);
+            srcTextArea.setSyntaxScheme(ss);
+            srcTextArea.setFont(font);
+            resTextArea.setSyntaxScheme(ss);
+            resTextArea.setFont(font);
         }
     }
-    
+
     public void setBuildNeeded() {
         runAction.putValue(Action.NAME, "Run");
         runAction.setEnabled(false);
@@ -708,7 +763,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         stepAction.setEnabled(false);
         backAction.setEnabled(false);
     }
-    
+
     public void setDebugging() {
         runAction.putValue(Action.NAME, "End");
         runAction.setEnabled(true);
@@ -717,7 +772,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         stepAction.setEnabled(false);
         backAction.setEnabled(false);
     }
-    
+
     public void setStopped() {
         runAction.putValue(Action.NAME, "Run");
         runAction.setEnabled(true);
@@ -726,7 +781,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         stepAction.setEnabled(false);
         backAction.setEnabled(false);
     }
-    
+
     public void setPaused() {
         runAction.putValue(Action.NAME, "End");
         runAction.setEnabled(true);

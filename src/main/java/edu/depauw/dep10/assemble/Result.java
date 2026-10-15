@@ -173,4 +173,14 @@ public class Result {
         
         return false;
     }
+
+    public String getResultText() {
+        var writer = new StringWriter();
+        PrintWriter out = new PrintWriter(writer);
+        for (var section : sections) {
+            section.printListing(out);
+        }
+        out.close();
+        return writer.toString();
+    }
 }
