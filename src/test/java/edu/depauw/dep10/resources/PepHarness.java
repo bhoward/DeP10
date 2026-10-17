@@ -11,7 +11,6 @@ import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepCountController;
 import edu.depauw.dep10.util.Word;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**

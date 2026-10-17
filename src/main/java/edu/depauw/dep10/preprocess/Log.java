@@ -198,4 +198,12 @@ public class Log {
 
         return builder.toString();
     }
+
+    public String getSource() {
+        return source;
+    }
+    
+    public int getLineNumber() {
+        return lineNumber;
+    }
 }

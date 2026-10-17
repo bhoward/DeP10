@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.text.StyledDocument;
 
@@ -175,5 +176,19 @@ public class Section {
         }
         
         return false;
+    }
+
+    public int fillAddressMap(Map<Integer, Integer> addressMap, int lineNumber) {
+        int address = origin;
+        
+        for (var line : lines) {
+            if (line.isVisible()) {
+                addressMap.put(lineNumber, address);
+                lineNumber++;
+            }
+            address += line.getBytes().size();
+        }
+        
+        return lineNumber;
     }
 }

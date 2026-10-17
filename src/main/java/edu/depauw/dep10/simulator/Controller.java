@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator;
 
+import java.util.List;
+
 import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
@@ -15,7 +17,7 @@ public interface Controller {
     
     boolean isPaused();
 
-    void resume(MainFrame frame);
+    void resume(MainFrame frame, List<Integer> breakpoints);
 
     void forward(MainFrame frame);
     

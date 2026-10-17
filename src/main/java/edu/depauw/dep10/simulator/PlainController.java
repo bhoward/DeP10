@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator;
 
+import java.util.List;
+
 import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
@@ -49,8 +51,8 @@ public class PlainController implements Controller {
     }
 
     @Override
-    public void resume(MainFrame frame) {
-        frame.getSourceType().resume(frame, saved);
+    public void resume(MainFrame frame, List<Integer> breakpoints) {
+        frame.getSourceType().resume(frame, saved, breakpoints);
     }
     
     @Override

@@ -3,6 +3,7 @@ package edu.depauw.dep10.simulator;
 import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
@@ -103,8 +104,8 @@ public class TracingController implements Controller {
     }
 
     @Override
-    public void resume(MainFrame frame) {
-        parent.resume(frame);
+    public void resume(MainFrame frame, List<Integer> breakpoints) {
+        parent.resume(frame, breakpoints);
     }
 
     @Override

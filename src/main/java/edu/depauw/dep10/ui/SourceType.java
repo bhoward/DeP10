@@ -23,12 +23,11 @@ import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.SingleStepController;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.TracingController;
-import edu.depauw.dep10.util.Word;
 
 public interface SourceType {
     int DEFAULT_STEP_LIMIT = 100000000; // TODO make this a setting
 
-    default boolean build(String source, OutputPanel listing, OutputPanel object, TextEditorPane resTextArea) {
+    default Result build(String source, OutputPanel symbols, OutputPanel object, TextEditorPane resTextArea) {
         var log = new ErrorLog();
         Sources sources = new Sources();
 
@@ -44,13 +43,13 @@ public interface SourceType {
             var assembler = new Assembler(log);
             result = assembler.assemble(lines); // TODO include map from line numbers to addresses (what about DeCLan?)
 
-            listing.setDocument(result.getListingDocument());
+            symbols.setContent(result.getSymbols());
             object.setContent(result.toObjectFile());
             resTextArea.setText(result.getResultText());
 
-            return !result.hasErrors();
+            return result;
         } else {
-            return false;
+            return Result.errors(log);
         }
 
         // TODO deal with errors; don't run on UI thread!
@@ -95,8 +94,6 @@ public interface SourceType {
 
     // TODO avoid duplication from run()
     default void debug(MainFrame frame, List<Integer> breakpoints) {
-        System.err.println(breakpoints);
-        
         var source = frame.source;
         var object = frame.object;
         var terminal = frame.terminal;
@@ -122,7 +119,7 @@ public interface SourceType {
 
         // initially just run to PC == 0
         TracingController control = new TracingController(
-                new BreakpointController(new PlainController(), s -> s.getPC().equals(Word.of(0))));
+                new BreakpointController(new PlainController(), s -> breakpoints.contains(s.getPC().value())));
         frame.setController(control);
 
         var t = new Thread(() -> {
@@ -142,7 +139,7 @@ public interface SourceType {
         t.start();
     }
 
-    default void resume(MainFrame frame, State state) {
+    default void resume(MainFrame frame, State state, List<Integer> breakpoints) {
         var source = frame.source;
         var sp = frame.statePanel;
         var trace = frame.tracePanel;
@@ -150,7 +147,9 @@ public interface SourceType {
         Simulator sim = new Simulator(state, false);
         state.resume();
 
-        TracingController control = new TracingController(new PlainController(), frame.getController());
+        TracingController control = new TracingController(
+                new BreakpointController(new PlainController(), s -> breakpoints.contains(s.getPC().value())),
+                frame.getController());
         frame.setController(control);
 
         var t = new Thread(() -> {
@@ -281,7 +280,7 @@ public interface SourceType {
         }
 
         @Override
-        public boolean build(String source, OutputPanel listing, OutputPanel object, TextEditorPane resTextArea) {
+        public Result build(String source, OutputPanel listing, OutputPanel object, TextEditorPane resTextArea) {
             var err = new ByteArrayOutputStream();
             var reporter = new Reporter(new PrintStream(err, true));
 

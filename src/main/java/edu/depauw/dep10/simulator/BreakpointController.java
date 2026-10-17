@@ -1,5 +1,6 @@
 package edu.depauw.dep10.simulator;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import edu.depauw.dep10.op.Operation;
@@ -45,8 +46,8 @@ public class BreakpointController implements Controller {
     }
 
     @Override
-    public void resume(MainFrame frame) {
-        parent.resume(frame);
+    public void resume(MainFrame frame, List<Integer> breakpoints) {
+        parent.resume(frame, breakpoints);
     }
 
     @Override

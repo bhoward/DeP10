@@ -60,4 +60,12 @@ public record Line(String label, String command, List<Value> args, String commen
     public void appendListing(StyledDocument document, int address) {
         log.appendListing(document, this, address);
     }
+
+    public String getSource() {
+        return log.getSource();
+    }
+    
+    public int getLineNumber() {
+        return log.getLineNumber();
+    }
 }

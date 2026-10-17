@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator;
 
+import java.util.List;
+
 import edu.depauw.dep10.op.Operation;
 import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
@@ -47,8 +49,8 @@ public class StepCountController implements Controller {
     }
 
     @Override
-    public void resume(MainFrame frame) {
-        parent.resume(frame);
+    public void resume(MainFrame frame, List<Integer> breakpoints) {
+        parent.resume(frame, breakpoints);
     }
 
     @Override

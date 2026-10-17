@@ -43,7 +43,8 @@ public class MainFrame extends JFrame {
     static final String APP_TITLE = "DeP10 IDE";
 
     SourcePanel source;
-    OutputPanel listing;
+//    OutputPanel listing;
+    OutputPanel symbols;
     OutputPanel object;
     TerminalPanel terminal;
     InputPanel batch;
@@ -65,8 +66,11 @@ public class MainFrame extends JFrame {
 
         tabs = new JTabbedPane(JTabbedPane.TOP);
 
-        listing = new OutputPanel("listing");
-        tabs.add(listing.getTitle(), listing);
+//        listing = new OutputPanel("listing");
+//        tabs.add(listing.getTitle(), listing);
+        
+        symbols = new OutputPanel("symbols");
+        tabs.add(symbols.getTitle(), symbols);
 
         object = new OutputPanel("object");
         tabs.add(object.getTitle(), object);
@@ -160,7 +164,7 @@ public class MainFrame extends JFrame {
         // Simulator Menu
         var simulatorMenu = new JMenu("Simulator");
 
-        var build = source.getBuildAction(listing, object);
+        var build = source.getBuildAction(symbols, object);
         simulatorMenu.add(createMenuItem(build));
         tools.add(new JButton(build));
 
@@ -301,8 +305,12 @@ public class MainFrame extends JFrame {
         return item;
     }
 
-    public void selectListingTab() {
-        tabs.setSelectedComponent(listing);
+//    public void selectListingTab() {
+//        tabs.setSelectedComponent(listing);
+//    }
+
+    public void selectSymbolsTab() {
+        tabs.setSelectedComponent(symbols);
     }
 
     public void selectTerminalTab() {

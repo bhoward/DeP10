@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -45,6 +46,8 @@ import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
 import org.fife.ui.rtextarea.SearchResult;
 
+import edu.depauw.dep10.assemble.Result;
+
 public class SourcePanel extends JPanel implements SearchListener {
     private static final long serialVersionUID = -209897295836797500L;
 
@@ -64,6 +67,7 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Gutter resGutter;
     private StatusBar statusBar;
     private CollapsibleSectionPanel csp;
+    private JTabbedPane tabs;
 
     private JFileChooser chooser;
 
@@ -82,6 +86,10 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Action openDialogAction;
     private Action saveAction;
     private Action saveAsDialogAction;
+
+    private RTextScrollPane resultPane;
+
+    private Map<Integer, Integer> addressMap;
 
     public SourcePanel(MainFrame parent, String name) {
         this.parent = parent;
@@ -141,15 +149,15 @@ public class SourcePanel extends JPanel implements SearchListener {
         resTextArea.setSyntaxEditingStyle("text/pep10");
         resTextArea.setText("This\nis\na\ntest.");
         resTextArea.setEditable(false);
-        RTextScrollPane rp = new RTextScrollPane(resTextArea);
+        resultPane = new RTextScrollPane(resTextArea);
 
-        var tp = new JTabbedPane(JTabbedPane.RIGHT);
-        tp.add("Source", csp);
-        tp.add("Result", rp);
-        this.add(tp);
+        tabs = new JTabbedPane(JTabbedPane.RIGHT);
+        tabs.add("Source", csp);
+        tabs.add("Result", resultPane);
+        this.add(tabs);
 
         srcGutter = sp.getGutter();
-        resGutter = rp.getGutter();
+        resGutter = resultPane.getGutter();
         
         URL imgURL = getClass().getResource("/images/breakpoint.png");
         if (imgURL != null) {
@@ -185,7 +193,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
     }
 
-    private List<Integer> getBreakpoints() {
+    private List<Integer> getSrcBreakpoints() {
         var icons = srcGutter.getBookmarks();
         List<Integer> result = new ArrayList<>();
 
@@ -199,6 +207,43 @@ public class SourcePanel extends JPanel implements SearchListener {
         }
         
         return result;
+    }
+
+    private List<Integer> getResBreakpoints() {
+        var icons = resGutter.getBookmarks();
+        List<Integer> result = new ArrayList<>();
+
+        try {
+            for (int i = 0; i < icons.length; i++) {
+                var info = icons[i];
+                var lineNumber = resTextArea.getLineOfOffset(info.getMarkedOffset());
+                result.add(addressMap.get(lineNumber));
+            }
+        } catch (BadLocationException e) {
+            // Ignore this
+        }
+        
+        return result;
+    }
+
+    private void synchronizeBreakpoints(Result result) {
+        resGutter.removeAllTrackingIcons();
+        
+        var breakpoints = getSrcBreakpoints();
+        var lineMap = result.getSourceMap("<string>"); // TODO change this for DeCLan source...
+        for (var bp : breakpoints) {
+            if (lineMap.containsKey(bp + 1)) {
+                var line = lineMap.get(bp + 1);
+                try {
+                    resGutter.toggleBookmark(line);
+                } catch (BadLocationException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        this.addressMap = result.getAddressMap();
     }
 
     private static class StatusBar extends JPanel {
@@ -418,20 +463,23 @@ public class SourcePanel extends JPanel implements SearchListener {
     private class BuildAction extends AbstractAction {
         private static final long serialVersionUID = 7293647898019218237L;
 
-        private OutputPanel listing;
+        private OutputPanel symbols;
         private OutputPanel object;
 
-        public BuildAction(OutputPanel listing, OutputPanel object) {
+        public BuildAction(OutputPanel symbols, OutputPanel object) {
             super("Build");
-            this.listing = listing;
+            this.symbols = symbols;
             this.object = object;
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (parent.getSourceType().build(srcTextArea.getText(), listing, object, resTextArea)) {
+            var result = parent.getSourceType().build(srcTextArea.getText(), symbols, object, resTextArea);
+            if (!result.hasErrors()) {
                 setStopped();
-                parent.selectListingTab();
+                parent.selectSymbolsTab();
+                synchronizeBreakpoints(result);
+                tabs.setSelectedComponent(resultPane);
             } else {
                 setBuildNeeded();
             }
@@ -493,12 +541,12 @@ public class SourcePanel extends JPanel implements SearchListener {
 
             if (control == null) {
                 setDebugging();
-                parent.getSourceType().debug(parent, getBreakpoints());
+                parent.getSourceType().debug(parent, getResBreakpoints());
                 parent.selectStateTab();
             } else {
                 if (control.isPaused()) {
                     setDebugging();
-                    control.resume(parent); // TODO , getBreakpoints()
+                    control.resume(parent, getResBreakpoints());
                 } else {
                     control.pause();
                     setPaused();
