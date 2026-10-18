@@ -38,6 +38,7 @@ public class Environment {
             } else {
                 switch (info.type.kind()) {
                 case INTEGER:
+                case LONGINT:
                     value = 0;
                     break;
                 case REAL:
@@ -45,6 +46,9 @@ public class Environment {
                     break;
                 case BOOLEAN:
                     value = false;
+                    break;
+                case ARRAY:
+                    // Arrays are not supported by the interpreter
                     break;
                 }
             }

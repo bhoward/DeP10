@@ -642,8 +642,33 @@ public class Pep10 {
     }
 
     private int toF16(double value) {
-        // TODO Auto-generated method stub
-        return 0;
+        long bits = Double.doubleToLongBits(value);
+        int sign = (bits < 0) ? 0x8000 : 0;
+        long magnitude = bits & 0x7FFF_FFFF_FFFF_FFFFL;
+        int exponent = (int) (magnitude >> 52) - 1023;
+        long mantissa = magnitude & 0x000F_FFFF_FFFF_FFFFL;
+        
+        if (exponent == 1024) {
+            // Infinity or NaN
+            return sign | 0x7C00 | (int) (mantissa >> 42);
+        } else if (exponent == -1023) {
+            // Subnormal; treat as zero
+            return sign;
+        } else {
+            // Normal
+            if (exponent > 15) {
+                // treat large numbers as Infinity
+                return sign | 0x7C00;
+            } else if (exponent < -24) {
+                // treat very small numbers as zero
+                return sign;
+            } else if (exponent < -14) {
+                // treat somewhat small numbers as subnormal
+                return sign | (int) ((mantissa | 0x0010_0000_0000_0000L) >> (42 + (-14 - exponent)));
+            } else {
+                return sign | ((exponent + 15) << 10) | (int) (mantissa >> 42);
+            }
+        }
     }
 
     void translate(UnaryString us) {
