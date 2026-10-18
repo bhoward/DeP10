@@ -343,7 +343,7 @@ _fd8:  STWA 4,s
 
 ; FPrint: Print float to console
 ; Before call
-;   SP+0: N (multiplier)
+;   SP+0: N (argument)
 ; During call
 ;   SP-15: pointer into string buffer
 ;   SP-13: string buffer (5 bytes)

@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.depauw.declan.ir.Instruction;
-import edu.depauw.declan.ir.Label;
 import edu.depauw.declan.ir.Instruction.BinaryString;
 import edu.depauw.declan.ir.Instruction.Nullary;
+import edu.depauw.declan.ir.Instruction.UnaryFloat;
 import edu.depauw.declan.ir.Instruction.UnaryInteger;
 import edu.depauw.declan.ir.Instruction.UnaryString;
+import edu.depauw.declan.ir.Label;
 
 public class Pep10 {
     private List<String> result;
@@ -20,6 +21,7 @@ public class Pep10 {
     private boolean usesReadLong;
     private boolean usesStackMacros;
     private boolean usesRangeCheck;
+    private boolean usesFloats;
 
     public Pep10() {
         this.result = new ArrayList<>();
@@ -34,6 +36,8 @@ public class Pep10 {
                 translate(n);
             } else if (instr instanceof Instruction.UnaryInteger ui) {
                 translate(ui);
+            } else if (instr instanceof Instruction.UnaryFloat uf) {
+                translate(uf);
             } else if (instr instanceof Instruction.UnaryString us) {
                 translate(us);
             } else if (instr instanceof Instruction.BinaryString bs) {
@@ -48,6 +52,9 @@ public class Pep10 {
         // The whole 32-bit library goes in as one blob, after the code that ends in RET
         if (usesDoubleword || usesMultiply || usesDivide || usesPrintLong || usesReadLong) {
             out(".INCLUDELIB \"int32\"");
+        }
+        if (usesFloats) {
+            out(".INCLUDELIB \"float16\"");
         }
         // Macros must be defined before they are used, so this goes first
         if (usesStackMacros) {
@@ -106,6 +113,26 @@ public class Pep10 {
         out("       STWA 2,sfx");
         out("       RET");
     }
+    
+    void writeWriteReal() {
+        if (!usesFloats) {
+            return;
+        }
+        out("WriteReal: LDBA ' ',i");
+        out("       STBA charOut,d");
+        out("       LDWA 2,s");
+        out("       PUSHA");
+        out("       CALL FPrint,i");
+        out("       ADDSP 2,i");
+        out("       RET");
+    }
+    
+    void writeReadReal() {
+        if (!usesFloats) {
+            return;
+        }
+        // TODO
+    }
 
     void writeRuntime() {
         out("ReadInt: @DECI 2,sf");
@@ -120,6 +147,8 @@ public class Pep10 {
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
+        writeWriteReal();
+        writeReadReal();
     }
 
     // Compare the two 32-bit values on top of the stack (A below B, each with
@@ -246,7 +275,8 @@ public class Pep10 {
             out("ADDSP 2,i");
             out("STWA 0,s");
             break;
-        case IEQ: {
+        case IEQ:
+        case FEQ: {
             String l1 = newLabel();
             String l2 = newLabel();
             out("LDWA 2,s");
@@ -259,7 +289,8 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         }
-        case ILT: {
+        case ILT:
+        case FLT: {
             String l1 = newLabel();
             String l2 = newLabel();
             out("LDWA 2,s");
@@ -416,28 +447,36 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         case FADD:
-            System.err.println("Unsupported instruction: " + n);
+            usesFloats = true;
+            out("CALL FAdd,i");
+            out("ADDSP 2,i");
             break;
         case FDIV:
-            System.err.println("Unsupported instruction: " + n);
-            break;
-        case FEQ:
-            System.err.println("Unsupported instruction: " + n);
+            usesFloats = true;
+            out("CALL FDiv,i");
+            out("ADDSP 2,i");
             break;
         case FLOAT:
-            System.err.println("Unsupported instruction: " + n);
-            break;
-        case FLT:
-            System.err.println("Unsupported instruction: " + n);
+            usesFloats = true;
+            out("CALL IToF,i");
             break;
         case FMUL:
-            System.err.println("Unsupported instruction: " + n);
+            usesFloats = true;
+            out("CALL FMul,i");
+            out("ADDSP 2,i");
             break;
         case FNEG:
-            System.err.println("Unsupported instruction: " + n);
+            out("LDWA 0,s");
+            out("XOR 0x8000,i");
+            out("STWA 0,s");
             break;
         case FSUB:
-            System.err.println("Unsupported instruction: " + n);
+            usesFloats = true;
+            out("LDWA 0,s");
+            out("XOR 0x8000,i");
+            out("STWA 0,s");
+            out("CALL FAdd,i");
+            out("ADDSP 2,i");
             break;
         }
     }
@@ -456,16 +495,19 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         case ILD_GLOBAL:
+        case FLD_GLOBAL:
             out("LDWA _g%d,d", ui.value);
             out("SUBSP 2,i");
             out("STWA 0,s");
             break;
         case ILD_LOCAL:
+        case FLD_LOCAL:
             out("LDWA %d,x", -2 * ui.value);
             out("SUBSP 2,i");
             out("STWA 0,s");
             break;
         case ILD_VARP:
+        case FLD_VARP:
             out("LDWA %d,x", -2 * ui.value);
             out("SUBSP 2,i");
             out("STWA 0,s");
@@ -473,11 +515,13 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         case IRF_GLOBAL:
+        case FRF_GLOBAL:
             out("LDWA _g%d,i", ui.value);
             out("SUBSP 2,i");
             out("STWA 0,s");
             break;
         case IRF_LOCAL:
+        case FRF_LOCAL:
             out("SUBSP 2,i");
             out("STWX 0,s");
             out("LDWA 0,s");
@@ -485,16 +529,19 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         case IST_GLOBAL:
+        case FST_GLOBAL:
             out("LDWA 0,s");
             out("ADDSP 2,i");
             out("STWA _g%d,d", ui.value);
             break;
         case IST_LOCAL:
+        case FST_LOCAL:
             out("LDWA 0,s");
             out("ADDSP 2,i");
             out("STWA %d,x", -2 * ui.value);
             break;
         case IST_VARP:
+        case FST_VARP:
             out("LDWA %d,x", -2 * ui.value);
             out("STWA -2,s");
             out("LDWA 0,s");
@@ -578,31 +625,25 @@ public class Pep10 {
             out("STWA -2,s");
             out("LDWX -2,s");
             break;
-        case FLD_GLOBAL:
-            System.err.println("Unsupported instruction: " + ui);
+        }
+    }
+    
+    void translate(UnaryFloat uf) {
+        switch (uf.op) {
+        case FCONST:
+            out(".WORD %d", toF16(uf.value));
             break;
-        case FLD_LOCAL:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FLD_VARP:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FRF_GLOBAL:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FRF_LOCAL:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FST_GLOBAL:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FST_LOCAL:
-            System.err.println("Unsupported instruction: " + ui);
-            break;
-        case FST_VARP:
-            System.err.println("Unsupported instruction: " + ui);
+        case FLD_CONST:
+            out("LDWA %d,i", toF16(uf.value));
+            out("SUBSP 2,i");
+            out("STWA 0,s");
             break;
         }
+    }
+
+    private int toF16(double value) {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
     void translate(UnaryString us) {
@@ -629,6 +670,7 @@ public class Pep10 {
     void translate(BinaryString bs) {
         switch (bs.op) {
         case BRIEQ:
+        case BRFEQ:
             out("LDWA 2,s");
             out("CPWA 0,s");
             out("ADDSP 4,i");
@@ -636,6 +678,7 @@ public class Pep10 {
             out("BR %s,i", bs.right);
             break;
         case BRILT:
+        case BRFLT:
             out("LDWA 2,s");
             out("CPWA 0,s");
             out("ADDSP 4,i");
@@ -662,12 +705,6 @@ public class Pep10 {
             out("BR %s,i", bs.right);
             break;
         }
-        case BRFEQ:
-            System.err.println("Unsupported instruction: " + bs);
-            break;
-        case BRFLT:
-            System.err.println("Unsupported instruction: " + bs);
-            break;
         }
     }
 }
