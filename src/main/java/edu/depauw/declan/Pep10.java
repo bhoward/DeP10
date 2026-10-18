@@ -120,130 +120,6 @@ public class Pep10 {
         out("WriteLn: LDBA '\\n',i");
         out("       STBA charOut,d");
         out("       RET");
-        // _imul does 16-bit signed integer multiplication,
-        // giving a 32-bit result.
-        // It preserves the X register.
-        // Stack before call:
-        //   SP+0: B (multiplier)
-        //   SP+2: A (multiplicand)
-        // Stack during call:
-        //   SP-4: save X (frame pointer)
-        //   SP-2: temporary
-        //   SP+0: return address
-        //   SP+2: B (modified)
-        //   SP+4: A
-        // Stack after call:
-        //   SP+0: A*B (product) high word; discard if only a 16-bit result
-        //   SP+2: A*B (product) low word
-        out("_imul: STWX -4,s");
-        out("       LDWX 16,i");
-        out("       LDWA 0,i");
-        out("       STWA -2,s");
-        out("_im0:  LDWA -2,s");
-        out("       ASRA");
-        out("       STWA -2,s");
-        out("       LDWA 2,s");
-        out("       RORA");
-        out("       STWA 2,s");
-        out("       BRC _im2");
-        out("_im1:  SUBX 1,i");
-        out("       BRNE _im0");
-        out("       BR _im4");
-        out("_im2:  LDWA -2,s");
-        out("       SUBA 4,s");
-        out("       STWA -2,s");
-        out("_im3:  SUBX 1,i");
-        out("       BREQ _im4");
-        out("       LDWA -2,s");
-        out("       ASRA");
-        out("       STWA -2,s");
-        out("       LDWA 2,s");
-        out("       RORA");
-        out("       STWA 2,s");
-        out("       BRC _im3");
-        out("       LDWA -2,s");
-        out("       ADDA 4,s");
-        out("       STWA -2,s");
-        out("       BR _im1");
-        out("_im4:  LDWA -2,s");
-        out("       ASRA");
-        out("       LDWX 2,s");
-        out("       RORX");
-        out("       STWX 4,s");
-        out("       STWA 2,s");
-        out("       LDWX -4,s");
-        out("       RET");
-        // _idiv does 16-bit signed integer division,
-        // giving a 16-bit quotient and remainder.
-        // The quotient is rounded toward zero (truncating division),
-        // and the remainder has the same sign as the dividend -- these
-        // are the same as the Java / and % operators.
-        // Satisfies (A/B)*B + (A%B) = A, and |A%B| < |divisor| (if non-zero).
-        // If the divisor is zero, the quotient is arbitrary and the
-        // remainder is the dividend.
-        // Special case: -32768 / -1 = -32768.
-        // It preserves the X register.
-        // Stack before call:
-        //   SP+0: B (divisor)
-        //   SP+2: A (dividend)
-        // Stack during call:
-        //   SP-6: save X (frame pointer)
-        //   SP-4: temp
-        //   SP-2: temp
-        //   SP+0: return address
-        //   SP+2: B
-        //   SP+4: A (modified)
-        // Stack after call:
-        //   SP+0: A%B (remainder)
-        //   SP+2: A/B (quotient)
-        out("_idiv: STWX -6,s");
-        out("       LDWX 0,i");
-        out("       LDWA 4,s");
-        out("       BRGE _id5");
-        out("       NEGA");
-        out("       STWA 4,s");
-        out("       ORX 3,i");
-        out("_id5:  LDWA 2,s");
-        out("       BRGE _id6");
-        out("       NEGA");
-        out("       STWA 2,s");
-        out("       ADDX 2,i");
-        out("_id6:  STBX -3,s");
-        out("       LDWA 0,i");
-        out("       STWA -2,s");
-        out("       LDWX 16,i");
-        out("_id7:  LDWA 4,s");
-        out("       ASLA");
-        out("       STWA 4,s");
-        out("       LDWA -2,s");
-        out("       ROLA");
-        out("       BRC _id8");
-        out("       SUBA 2,s");
-        out("       BR _id9");
-        out("_id8:  ADDA 2,s");
-        out("_id9:  STWA -2,s");
-        out("       BRLT _id10");
-        out("       LDWA 4,s");
-        out("       ORA 1,i");
-        out("       STWA 4,s");
-        out("_id10: SUBX 1,i");
-        out("       BRNE _id7");
-        out("       LDWA -2,s");
-        out("       BRGE _id11");
-        out("       ADDA 2,s");
-        out("_id11: LDBX -3,s");
-        out("       ANDX 1,i");
-        out("       BREQ _id12");
-        out("       NEGA");
-        out("_id12: STWA 2,s");
-        out("       LDBX -3,s");
-        out("       ANDX 2,i");
-        out("       BREQ _id13");
-        out("       LDWA 4,s");
-        out("       NEGA");
-        out("       STWA 4,s");
-        out("_id13: LDWX -6,s");
-        out("       RET");
     }
 
     // Compare the two 32-bit values on top of the stack (A below B, each with
@@ -353,8 +229,22 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         case IDIV:
-            out("CALL _idiv,i");
+            out("LDWA 2,s");
+            out("DIVA 0,s");
             out("ADDSP 2,i");
+            out("STWA 0,s");
+            break;
+        case IMOD:
+            out("LDWA 2,s");
+            out("MODA 0,s");
+            out("ADDSP 2,i");
+            out("STWA 0,s");
+            break;
+        case IMUL:
+            out("LDWA 2,s");
+            out("MULA 0,s");
+            out("ADDSP 2,i");
+            out("STWA 0,s");
             break;
         case IEQ: {
             String l1 = newLabel();
@@ -382,16 +272,6 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         }
-        case IMOD:
-            out("CALL _idiv,i");
-            out("LDWA 0,s");
-            out("STWA 2,s");
-            out("ADDSP 2,i");
-            break;
-        case IMUL:
-            out("CALL _imul,i");
-            out("ADDSP 2,i");
-            break;
         case INEG:
             out("LDWA 0,s");
             out("NEGA");
@@ -535,8 +415,30 @@ public class Pep10 {
             out("LDWA -2,s");
             out("STWA 0,s");
             break;
-        default:
+        case FADD:
             System.err.println("Unsupported instruction: " + n);
+            break;
+        case FDIV:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FEQ:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FLOAT:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FLT:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FMUL:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FNEG:
+            System.err.println("Unsupported instruction: " + n);
+            break;
+        case FSUB:
+            System.err.println("Unsupported instruction: " + n);
+            break;
         }
     }
 
@@ -676,8 +578,30 @@ public class Pep10 {
             out("STWA -2,s");
             out("LDWX -2,s");
             break;
-        default:
+        case FLD_GLOBAL:
             System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FLD_LOCAL:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FLD_VARP:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FRF_GLOBAL:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FRF_LOCAL:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FST_GLOBAL:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FST_LOCAL:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
+        case FST_VARP:
+            System.err.println("Unsupported instruction: " + ui);
+            break;
         }
     }
 
@@ -699,8 +623,6 @@ public class Pep10 {
             }
             out("CALL %s,i", us.value);
             break;
-        default:
-            System.err.println("Unsupported instruction: " + us);
         }
     }
 
@@ -740,8 +662,12 @@ public class Pep10 {
             out("BR %s,i", bs.right);
             break;
         }
-        default:
+        case BRFEQ:
             System.err.println("Unsupported instruction: " + bs);
+            break;
+        case BRFLT:
+            System.err.println("Unsupported instruction: " + bs);
+            break;
         }
     }
 }
