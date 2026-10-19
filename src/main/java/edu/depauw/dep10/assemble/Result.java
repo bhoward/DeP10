@@ -19,6 +19,7 @@ public class Result {
     private List<String> exports;
     private Map<String, Map<Integer, Integer>> sourceMap;
     private Map<Integer, Integer> addressMap;
+    private Map<Integer, Integer> lineMap;
     private int listingLine;
 
     public Result() {
@@ -28,6 +29,7 @@ public class Result {
         this.exports = new ArrayList<>();
         this.sourceMap = new HashMap<>();
         this.addressMap = null;
+        this.lineMap = null;
         this.listingLine = 0;
 
         sections.add(current);
@@ -213,14 +215,23 @@ public class Result {
     public Map<Integer, Integer> getAddressMap() {
         if (addressMap == null) {
             addressMap = new HashMap<>();
+            lineMap = new HashMap<>();
             
             var lineNumber = 0;
             for (var section : sections) {
-                lineNumber = section.fillAddressMap(addressMap, lineNumber);
+                lineNumber = section.fillAddressMap(addressMap, lineMap, lineNumber);
             }
         }
         
         return addressMap;
+    }
+    
+    public Map<Integer, Integer> getLineMap() {
+        if (lineMap == null) {
+            getAddressMap();
+        }
+        
+        return lineMap;
     }
 
     public static Result errors(ErrorLog log) {

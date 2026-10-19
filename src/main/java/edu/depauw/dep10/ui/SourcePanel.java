@@ -1,6 +1,7 @@
 package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -90,6 +91,9 @@ public class SourcePanel extends JPanel implements SearchListener {
     private RTextScrollPane resultPane;
 
     private Map<Integer, Integer> addressMap;
+    private Map<Integer, Integer> lineMap;
+
+    private Object highlightTag;
 
     public SourcePanel(MainFrame parent, String name) {
         this.parent = parent;
@@ -136,10 +140,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         srcTextArea.setSyntaxEditingStyle("text/pep10");
         RTextScrollPane sp = new RTextScrollPane(srcTextArea);
         csp.add(sp);
-        
+
         ErrorStrip errorStrip = new ErrorStrip(srcTextArea);
         csp.add(errorStrip, BorderLayout.LINE_END);
-        
+
         resTextArea = new TextEditorPane(TextEditorPane.INSERT_MODE, false);
         resTextArea.setRows(25);
         resTextArea.setColumns(120);
@@ -158,7 +162,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
         srcGutter = sp.getGutter();
         resGutter = resultPane.getGutter();
-        
+
         URL imgURL = getClass().getResource("/images/breakpoint.png");
         if (imgURL != null) {
             var breakIcon = new ImageIcon(imgURL);
@@ -205,7 +209,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         } catch (BadLocationException e) {
             // Ignore this
         }
-        
+
         return result;
     }
 
@@ -222,13 +226,15 @@ public class SourcePanel extends JPanel implements SearchListener {
         } catch (BadLocationException e) {
             // Ignore this
         }
-        
+
         return result;
     }
 
     private void synchronizeBreakpoints(Result result) {
         resGutter.removeAllTrackingIcons();
-        
+        resTextArea.removeAllLineHighlights();
+        highlightTag = null;
+
         var breakpoints = getSrcBreakpoints();
         var lineMap = result.getSourceMap("<string>"); // TODO change this for DeCLan source...
         for (var bp : breakpoints) {
@@ -242,8 +248,9 @@ public class SourcePanel extends JPanel implements SearchListener {
                 }
             }
         }
-        
+
         this.addressMap = result.getAddressMap();
+        this.lineMap = result.getLineMap();
     }
 
     private static class StatusBar extends JPanel {
@@ -546,6 +553,10 @@ public class SourcePanel extends JPanel implements SearchListener {
             } else {
                 if (control.isPaused()) {
                     setDebugging();
+                    if (highlightTag != null) {
+                        resTextArea.removeLineHighlight(highlightTag);
+                        highlightTag = null;
+                    }
                     control.resume(parent, getResBreakpoints());
                 } else {
                     control.pause();
@@ -573,6 +584,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
+            if (highlightTag != null) {
+                resTextArea.removeLineHighlight(highlightTag);
+                highlightTag = null;
+            }
             control.forward(parent);
         }
     }
@@ -595,6 +610,10 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
+            if (highlightTag != null) {
+                resTextArea.removeLineHighlight(highlightTag);
+                highlightTag = null;
+            }
             control.backward(parent);
         }
     }
@@ -837,5 +856,17 @@ public class SourcePanel extends JPanel implements SearchListener {
         debugAction.setEnabled(true);
         stepAction.setEnabled(true);
         backAction.setEnabled(true);
+    }
+
+    public void showLine(int pc) {
+        Integer line = lineMap.get(pc);
+        if (line != null) {
+            try {
+                highlightTag = resTextArea.addLineHighlight(line, Color.GREEN);
+            } catch (BadLocationException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 }

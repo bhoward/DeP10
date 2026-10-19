@@ -127,6 +127,7 @@ public interface SourceType {
             // leave controller in place for single-step or resume
 
             source.setPaused();
+            source.showLine(state.getPC().value());
 
             sp.refresh();
 
@@ -157,6 +158,7 @@ public interface SourceType {
             // leave controller in place for single-step or resume
 
             source.setPaused();
+            source.showLine(state.getPC().value());
 
             sp.refresh();
 
@@ -186,6 +188,7 @@ public interface SourceType {
             // leave controller in place for single-step or resume
 
             source.setPaused();
+            source.showLine(state.getPC().value());
 
             sp.refresh();
 
@@ -207,6 +210,7 @@ public interface SourceType {
         if (control instanceof TracingController tc) {
             tc.goBackward(state);
             source.setPaused();
+            source.showLine(state.getPC().value());
 
             sp.refresh();
 

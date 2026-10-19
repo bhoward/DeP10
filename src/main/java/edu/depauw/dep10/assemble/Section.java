@@ -178,12 +178,13 @@ public class Section {
         return false;
     }
 
-    public int fillAddressMap(Map<Integer, Integer> addressMap, int lineNumber) {
+    public int fillAddressMap(Map<Integer, Integer> addressMap, Map<Integer, Integer> lineMap, int lineNumber) {
         int address = origin;
         
         for (var line : lines) {
             if (line.isVisible()) {
                 addressMap.put(lineNumber, address);
+                lineMap.put(address, lineNumber);
                 lineNumber++;
             }
             address += line.getBytes().size();
