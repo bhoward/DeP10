@@ -467,13 +467,13 @@ public class Pep10 {
             break;
         case FNEG:
             out("LDWA 0,s");
-            out("XOR 0x8000,i");
+            out("XORA 0x8000,i");
             out("STWA 0,s");
             break;
         case FSUB:
             usesFloats = true;
             out("LDWA 0,s");
-            out("XOR 0x8000,i");
+            out("XORA 0x8000,i");
             out("STWA 0,s");
             out("CALL FAdd,i");
             out("ADDSP 2,i");
