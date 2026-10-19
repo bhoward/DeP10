@@ -10,7 +10,7 @@
 ; s 11111 0000000000 -- INFINITY
 ; s 11111 mmmmmmmmmm -- NaN (M <> 0)
 
-; need FAdd, FMul, FDiv, convert to/from int, and read/print
+; need FAdd, FMul, FDiv, FEq, FLt, convert to/from int, and read/print
 ; (FNeg is just XOR with 0x8000; FSub is just FNeg/FAdd)
 
 ; FAdd: Floating-point add
@@ -537,4 +537,44 @@ _it1:  STWA 2,s
        LDWX -2,s
        RET
        
+; FEq: Compare floats for equality
+; Before call
+;   SP+0: N
+;   SP+2: M
+; During call
+;   SP+0: return address
+;   SP+2: N
+;   SP+4: M
+; After call
+;   SP+2: 0 if false, 1 if true
+FEq:   LDWA 2,s
+       CPWA 0x8000,i ; check for N = negative zero
+       BRNE _fe1
+       LDWA 0,i
+       STWA 2,s
+       BR _fe2
+_fe1:  ANDA 0x7FFF,i
+       CPWA 0x7C00,i ; check for N = NaN
+       BRLE _fe2
+_fe3:  LDWA 0,i
+       BR _fe6 ; return false
+_fe2:  LDWA 4,s
+       CPWA 0x8000,i ; check for M = negative zero
+       BRNE _fe4
+       LDWA 0,i
+       STWA 4,s
+       BR _fe5
+_fe4:  ANDA 0x7FFF,i
+       CPWA 0x7C00,i ; check for M = NaN
+       BRLE _fe5
+       BR _fe3 ; return false
+_fe5:  ; Ordinary comparison
+       LDWA 4,s
+       CPWA 2,s
+       BRNE _fe3
+       LDWA 1,i
+_fe6:  STWA 4,s
+       RET
+       
+; TODO: FLt
 ; TODO: Read float from console
