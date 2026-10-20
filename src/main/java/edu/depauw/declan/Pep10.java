@@ -275,8 +275,7 @@ public class Pep10 {
             out("ADDSP 2,i");
             out("STWA 0,s");
             break;
-        case IEQ:
-        case FEQ: {
+        case IEQ: {
             String l1 = newLabel();
             String l2 = newLabel();
             out("LDWA 2,s");
@@ -289,8 +288,12 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         }
-        case ILT:
-        case FLT: {
+        case FEQ:
+            usesFloats = true;
+            out("CALL FEq,i");
+            out("ADDSP 2,i");
+            break;
+        case ILT: {
             String l1 = newLabel();
             String l2 = newLabel();
             out("LDWA 2,s");
@@ -303,6 +306,11 @@ public class Pep10 {
             out("STWA 0,s");
             break;
         }
+        case FLT:
+            usesFloats = true;
+            out("CALL FLt,i");
+            out("ADDSP 2,i");
+            break;
         case INEG:
             out("LDWA 0,s");
             out("NEGA");
@@ -695,19 +703,31 @@ public class Pep10 {
     void translate(BinaryString bs) {
         switch (bs.op) {
         case BRIEQ:
-        case BRFEQ:
             out("LDWA 2,s");
             out("CPWA 0,s");
             out("ADDSP 4,i");
             out("BREQ %s,i", bs.left);
             out("BR %s,i", bs.right);
             break;
+        case BRFEQ:
+            out("CALL FEq,i");
+            out("LDWA 2,s");
+            out("ADDSP 4,i");
+            out("BRNE %s,i", bs.left);
+            out("BR %s,i", bs.right);
+            break;
         case BRILT:
-        case BRFLT:
             out("LDWA 2,s");
             out("CPWA 0,s");
             out("ADDSP 4,i");
             out("BRLT %s,i", bs.left);
+            out("BR %s,i", bs.right);
+            break;
+        case BRFLT:
+            out("CALL FLt,i");
+            out("LDWA 2,s");
+            out("ADDSP 4,i");
+            out("BRNE %s,i", bs.left);
             out("BR %s,i", bs.right);
             break;
         case BRLEQL: {

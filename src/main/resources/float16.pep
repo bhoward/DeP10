@@ -576,5 +576,5 @@ _fe5:  ; Ordinary comparison
 _fe6:  STWA 4,s
        RET
        
-; TODO: FLt
-; TODO: Read float from console
+; TODO FLt
+; TODO FRead
