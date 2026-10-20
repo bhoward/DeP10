@@ -105,6 +105,7 @@ public class MainFrame extends JFrame {
         };
         sourceType = new JComboBox<>(sourceTypes);
         sourceType.setMaximumSize(sourceType.getPreferredSize());
+        sourceType.addActionListener(source.getSourceTypeListener());
         tools.add(sourceType);
         tools.add(new JToolBar.Separator());
 

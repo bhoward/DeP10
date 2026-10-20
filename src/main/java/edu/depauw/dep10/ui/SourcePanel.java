@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -16,6 +17,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -868,5 +870,17 @@ public class SourcePanel extends JPanel implements SearchListener {
                 e.printStackTrace();
             }
         }
+    }
+
+    public ActionListener getSourceTypeListener() {
+        return e -> {
+            @SuppressWarnings("unchecked")
+            JComboBox<SourceType> b = (JComboBox<SourceType>) e.getSource();
+            if (b.getSelectedItem().equals(SourceType.DeCLan)) {
+                srcTextArea.setSyntaxEditingStyle("text/declan");
+            } else {
+                srcTextArea.setSyntaxEditingStyle("text/pep10");
+            }
+        };
     }
 }
