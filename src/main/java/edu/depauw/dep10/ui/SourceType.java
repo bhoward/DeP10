@@ -117,7 +117,11 @@ public interface SourceType {
         Simulator sim = new Simulator(state);
         sp.attach(state);
 
-        // initially just run to PC == 0
+        // if breakpoints are empty, stop initially at PC == 0
+        if (breakpoints.isEmpty()) {
+            breakpoints.add(0);
+        }
+        
         TracingController control = new TracingController(
                 new BreakpointController(new PlainController(), s -> breakpoints.contains(s.getPC().value())));
         frame.setController(control);
