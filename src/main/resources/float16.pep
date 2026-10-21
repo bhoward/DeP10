@@ -627,4 +627,78 @@ _fl8:  LDWA 1,i ; return true
 _fl6:  STWA 4,s
        RET
        
-; TODO FRead
+; FRead: Read float from console
+; Before call
+;   SP+0: empty
+; During call
+;   SP-8: temporary space for calling other functions
+;   SP-6: fractional place value
+;   SP-4: sign
+;   SP-2: save X
+;   SP+0: return address
+;   SP+2: partial result
+; After call
+;   SP+0: return value
+FRead: STWX -2,s
+       LDWA 0,i
+       STWA 2,s
+       STWA -4,s
+       LDBA charIn,d
+       CPBA '-',i
+       BRNE _fr1
+       LDWA 0x8000,i
+       STWA -4,s
+_fr2:  LDBA charIn,d
+_fr1:  CPBA '.',i
+       BREQ _fr3
+       CPBA '0',i
+       BRLT _fr4
+       CPBA '9',i
+       BRGT _fr4
+       SUBA '0',i
+       STWA -8,s
+       SUBSP 8,i
+       CALL IToF,i
+       LDWA 10,s
+       STWA -2,s
+       LDWA 0x4900,i ; = 10.0 decimal
+       STWA -4,s
+       SUBSP 4,i
+       CALL FMul,i
+       ADDSP 2,i
+       CALL FAdd,i
+       ADDSP 10,i
+       LDWA -8,s
+       STWA 2,s
+       BR _fr2
+_fr3:  LDWA 0x3C00,i ; = 1.0 decimal
+       STWA -6,s
+_fr5:  LDBX charIn,d
+       CPBX '0',i
+       BRLT _fr4
+       CPBX '9',i
+       BRGT _fr4
+       SUBX '0',i
+       LDWA 0x4900,i ; = 10.0 decimal
+       STWA -8,s
+       SUBSP 8,i
+       CALL FDiv,i
+       STWX 0,s
+       CALL IToF,i
+       LDWA 2,s
+       STWA -2,s
+       SUBSP 2,i
+       CALL FMul,i
+       LDWA 12,s
+       STWA 0,s
+       CALL FAdd,i
+       ADDSP 10,i
+       LDWA -8,s
+       STWA 2,s
+       BR _fr5
+_fr4:  LDWA 2,s
+       ORA -4,s
+       STWA 2,s
+       LDWX -2,s
+       RET
+       

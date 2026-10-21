@@ -131,7 +131,12 @@ public class Pep10 {
         if (!usesFloats) {
             return;
         }
-        // TODO
+        out("ReadReal: SUBSP 2,i");
+        out("       CALL FRead,i");
+        out("       ADDSP 2,i");
+        out("       LDWA -2,s");
+        out("       STWA 2,sf");
+        out("       RET");
     }
 
     void writeRuntime() {
