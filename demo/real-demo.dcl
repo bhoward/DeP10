@@ -1,8 +1,19 @@
 CONST pi = 3.14159265;
-VAR x: REAL;
+VAR x, y: REAL;
+  i, j: INTEGER;
 BEGIN
   x := 355;
   x := x / 113;
   WriteReal(x);
   WriteReal(pi);
-END. (* Don't forget the ending period! *)
+  WriteLn();
+
+  FOR i := -5 TO 5 DO
+    x := i;
+    FOR j := -5 TO 5 DO
+      y := j;
+      IF x < y THEN WriteInt(1) ELSE WriteInt(0) END
+    END;
+    WriteLn();
+  END
+END.

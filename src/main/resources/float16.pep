@@ -576,5 +576,55 @@ _fe5:  ; Ordinary comparison
 _fe6:  STWA 4,s
        RET
        
-; TODO FLt
+; FLt: Compare floats for M less than N
+; Before call
+;   SP+0: N
+;   SP+2: M
+; During call
+;   SP+0: return address
+;   SP+2: N
+;   SP+4: M
+; After call
+;   SP+2: 0 if false, 1 if true
+FLt:   LDWA 2,s
+       CPWA 0x8000,i ; check for N = negative zero
+       BRNE _fl1
+       LDWA 0,i
+       STWA 2,s
+       BR _fe2
+_fl1:  ANDA 0x7FFF,i
+       CPWA 0x7C00,i ; check for N = NaN
+       BRLE _fl2
+_fl3:  LDWA 0,i
+       BR _fl6 ; return false
+_fl2:  LDWA 4,s
+       CPWA 0x8000,i ; check for M = negative zero
+       BRNE _fl4
+       LDWA 0,i
+       STWA 4,s
+       BR _fl5
+_fl4:  ANDA 0x7FFF,i
+       CPWA 0x7C00,i ; check for M = NaN
+       BRLE _fl5
+       BR _fl3 ; return false
+_fl5:  ; Ordinary comparison; first check signs
+       LDWA 2,s
+       BRGE _fl7 ; N is non-negative
+       ; N is negative here
+       LDWA 4,s
+       BRGE _fl3 ; M is non-negative and N is negative; return false
+       ; M and N are both negative here
+       CPWA 2,s
+       BRLE _fl3 ; if M <= N _as ints_, then M >= N as floats; return false
+       BR _fl8 ; return true
+_fl7:  ; N is non-negative here
+       LDWA 4,s
+       BRLT _fl8 ; M is negative and N is non-negative; return true
+       ; M and N are both non-negative here
+       CPWA 2,s
+       BRGE _fl3 ; if M >= N, then return false
+_fl8:  LDWA 1,i ; return true
+_fl6:  STWA 4,s
+       RET
+       
 ; TODO FRead
