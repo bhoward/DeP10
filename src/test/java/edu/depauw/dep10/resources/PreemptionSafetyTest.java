@@ -140,8 +140,8 @@ class PreemptionSafetyTest {
 
         // thread 1: read a number, print it, then two divisions
         p.append("t1:\n");
-        p.append("        CALL    DREAD,i\n");
-        p.append(String.format("        STWA    0x%04X,d\n        STWX    0x%04X,d\n", T1, T1 + 2));
+        p.append("        SUBSP   4,i\n        CALL    DREAD,i\n");
+        p.append(String.format("        POPA\n        STWA    0x%04X,d\n        POPA\n        STWA    0x%04X,d\n", T1, T1 + 2));
         p.append(String.format("        LDWA    0x%04X,d\n        PUSHA\n        LDWA    0x%04X,d\n        PUSHA\n", T1 + 2, T1));
         p.append("        CALL    DPRINTD,i\n        ADDSP   4,i\n");
         p.append(push32(A1)).append(push32(B1)).append("        CALL    DDiv,i\n").append(storeQuotRem(T1 + 4));

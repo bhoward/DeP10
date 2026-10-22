@@ -10,9 +10,9 @@
 ; variables live in stack frames and small helpers take their operands in
 ; registers, so the routines are safe to call from several threads and
 ; from code that might be interrupted mid-routine by a context switch.
-; The one interface change this required: DREAD returns its result in
-; registers (A = high word, X = low word) instead of the old static
-; words rdlHi and rdlLo.
+; The one interface change this required: DREAD returns its result in a
+; stack slot reserved by the caller (as FRead does) instead of the old
+; static words rdlHi and rdlLo.
 
 ;======================================================================
 ; ---- from daddsub.pep ----
@@ -778,9 +778,17 @@ dpNegative:
 ; not a number reads as 0. Values outside the 32-bit range wrap
 ; silently, the same as LONGINT arithmetic.
 ;
-; DREAD takes no stack arguments. It returns the result in registers:
-; A = high word, X = low word. (It used to leave it in static words; the
-; registers keep the routine reentrant.)
+; DREAD takes no arguments. Like FRead, it returns its result in a slot on
+; the stack that the caller reserves first:
+;
+;   SUBSP 4,i        reserve the result slot
+;   CALL  DREAD,i
+;   POPA             A = high word of the value
+;   POPX             X = low word (or leave both words in place on the stack)
+;
+; Before the call SP+0 is the empty slot; after the call SP+0 is the high
+; word and SP+2 the low word, the same layout as a pushed LONGINT. (It
+; used to leave the value in the static words rdlHi and rdlLo.)
 ;
 ; The multiply and add use DMul and DADD, and the negation uses DSUB,
 ; so the double-word routines above must be in the same program (they are,
@@ -795,6 +803,8 @@ rdlDigit: .EQUATE 2
 rdlHi:    .EQUATE 4
 rdlLo:    .EQUATE 6
 rdlFrame: .EQUATE 8
+rdlOutHi: .EQUATE 10            ; result slot, high word (frame + return address)
+rdlOutLo: .EQUATE 12            ; result slot, low word
 
 DREAD:
         SUBSP   rdlFrame,i
@@ -872,6 +882,8 @@ rdlFinish:
         STWA    rdlLo,s
 rdlDone:
         LDWA    rdlHi,s
-        LDWX    rdlLo,s
+        STWA    rdlOutHi,s
+        LDWA    rdlLo,s
+        STWA    rdlOutLo,s
         ADDSP   rdlFrame,i
         RET
