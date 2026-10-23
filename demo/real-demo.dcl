@@ -7,6 +7,12 @@ BEGIN
   WriteReal(x);
   WriteReal(pi);
   WriteLn();
+  
+  Round(x, i);
+  WriteInt(i);
+  Round(32767, i);
+  WriteInt(i);
+  WriteLn();
 
   FOR i := -5 TO 5 DO
     x := i;

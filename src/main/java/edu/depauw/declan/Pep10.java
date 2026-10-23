@@ -138,6 +138,20 @@ public class Pep10 {
         out("       STWA 2,sf");
         out("       RET");
     }
+    
+    void writeRound() {
+        if (!usesFloats) {
+            return;
+        }
+        out("Round: LDWA 4,s");
+        out("       STWA -2,s");
+        out("       SUBSP 2,i");
+        out("       CALL FToI,i");
+        out("       ADDSP 2,i");
+        out("       LDWA -2,s");
+        out("       STWA 2,sf");
+        out("       RET");
+    }
 
     void writeRuntime() {
         out("ReadInt: @DECI 2,sf");
@@ -154,6 +168,7 @@ public class Pep10 {
         out("       RET");
         writeWriteReal();
         writeReadReal();
+        writeRound();
     }
 
     // Compare the two 32-bit values on top of the stack (A below B, each with
