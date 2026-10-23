@@ -103,14 +103,18 @@ public class Pep10 {
         if (!usesReadLong) {
             return;
         }
-        // ReadLong(VAR n): DREAD returns the high word in A and the low word in X
-        // (no static storage, so it is safe under preemption); the argument is
-        // the address of n's high word, with the low word 2 bytes after it.
-        out("ReadLong: CALL DREAD,i");
-        out("       STWA 2,sf");
-        out("       SWAPAX");
+        // ReadLong(VAR n): reserve a 4-byte result slot, call DREAD (which returns
+        // the value there, like FRead; no static storage, so it is safe under
+        // preemption), then store it through the argument, the address of n's
+        // high word with the low word 2 bytes after it.
+        out("ReadLong: SUBSP 4,i");
+        out("       CALL DREAD,i");
+        out("       LDWA 0,s");
+        out("       STWA 6,sf");
+        out("       LDWA 2,s");
         out("       LDWX 2,i");
-        out("       STWA 2,sfx");
+        out("       STWA 6,sfx");
+        out("       ADDSP 4,i");
         out("       RET");
     }
     
