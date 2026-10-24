@@ -10,8 +10,13 @@
 ; s 11111 0000000000 -- INFINITY
 ; s 11111 mmmmmmmmmm -- NaN (M <> 0)
 
-; need FAdd, FMul, FDiv, FEq, FLt, convert to/from int, and read/print
-; (FNeg is just XOR with 0x8000; FSub is just FNeg/FAdd)
+_f_SIGN_MASK: .EQUATE 0x7FFF
+_f_NEGATIVE:  .EQUATE 0x8000
+_f_EXPONENT:  .EQUATE 0x7C00
+_f_MANTISSA:  .EQUATE 0x03FF
+_f_HIDDEN:    .EQUATE 0x0400
+_f_INFINITY:  .EQUATE 0x7C00
+_f_NAN:       .EQUATE 0x7FFF
 
 ; FAdd: Floating-point add
 ; Before call
@@ -26,96 +31,108 @@
 ;   SP+4: M
 ; After call
 ;   SP+2: M+N (sum)
-FAdd:  STWX -2,s
-       LDWA 2,s
-       ANDA 0x7FFF,i
-       STWA -4,s
-       LDWA 4,s
-       ANDA 0x7FFF,i
-       CPWA -4,s
+
+_fa_M:     .EQUATE 4
+_fa_N:     .EQUATE 2
+_fa_SUM:   .EQUATE 4
+_fa_SAVEX: .EQUATE -2
+_fa_TEMP:  .EQUATE -4
+_fa_M_MAN: .EQUATE -4
+_fa_M_EXP: .EQUATE -6
+
+FAdd:  STWX _fa_SAVEX,s
+       LDWA _fa_N,s
+       ANDA _f_SIGN_MASK,i
+       STWA _fa_TEMP,s
+       LDWA _fa_M,s
+       ANDA _f_SIGN_MASK,i
+       CPWA _fa_TEMP,s
        BRGE _fa2
        ; N is larger in absolute value, so swap
-       LDWA 2,s
-       LDWX 4,s
-       STWA 4,s
-       STWX 2,s
+       LDWA _fa_N,s
+       LDWX _fa_M,s
+       STWA _fa_M,s
+       STWX _fa_N,s
 _fa2:  ; now |N| <= |M|
-       LDWX 4,s
-       ANDX 0x03FF,i ; M mantissa in X
-       LDWA 4,s
-       ANDA 0x7C00,i
-       STWA -6,s ; M exponent*0400
+       LDWX _fa_M,s
+       ANDX _f_MANTISSA,i ; M mantissa in X
+       LDWA _fa_M,s
+       ANDA _f_EXPONENT,i
+       STWA _fa_M_EXP,s ; M exponent*0400
        BREQ _fa3 ; check for subnormal M
-       ORX  0x0400,i ; add hidden bit if normal
-_fa3:  STWX -4,s ; M mantissa
-       CPWA 0x7C00,i
+       ORX  _f_HIDDEN,i ; add hidden bit if normal
+_fa3:  STWX _fa_M_MAN,s ; M mantissa
+       CPWA _f_INFINITY,i
        BREQ _fa4 ; check for infinity/NaN M
-       LDWX 2,s
-       ANDX 0x03FF,i ; N mantissa in X
-       LDWA 2,s
-       ANDA 0x7C00,i ; N exponent*0400 in A
+       LDWX _fa_N,s
+       ANDX _f_MANTISSA,i ; N mantissa in X
+       LDWA _fa_N,s
+       ANDA _f_EXPONENT,i ; N exponent*0400 in A
        BREQ _fa5 ; check for subnormal N
-       ORX  0x0400,i ; add hidden bit if normal
-_fa5:  CPWA 0x7C00,i
+       ORX  _f_HIDDEN,i ; add hidden bit if normal
+_fa5:  CPWA _f_INFINITY,i
        BREQ _fa6 ; check for infinity/NaN N
        ; shift N until exponents match
        NEGA
-       ADDA -6,s
+       ADDA _fa_M_EXP,s
 _fa7:  BREQ _fa8
        ASRX
-       SUBA 0x0400,i
+       SUBA _f_HIDDEN,i
        BR   _fa7
 _fa8:  ; now have M mantissa in -4,s and N mantissa in X
        ; both relative to exponent*0400 in -6,s
-       LDWA 2,s
-       XORA 4,s
+       LDWA _fa_N,s
+       XORA _fa_M,s
        BRGE _fa1 ; signs differ, so subtract N from M
        NEGX
-_fa1:  ADDX -4,s
-       LDWA -6,s
+_fa1:  ADDX _fa_M_MAN,s
+       LDWA _fa_M_EXP,s
        ; normalize result as needed (A = exponent*0400, X = mantissa)
        CPWX 0x0800,i
        BRLT _fa9
        ASRX ; mantissa carried into next place
-       ADDA 0x0400,i
-_fa9:  CPWX 0x0400,i
+       ADDA _f_HIDDEN,i
+       CPWA _f_INFINITY,i ; check for infinite sum
+       BRLT _fa9
+       LDWX _f_HIDDEN,i ; sum is infinite, so clear mantissa
+_fa9:  CPWX _f_HIDDEN,i
        BRGE _fa10 ; normalized
        ASLX
-       SUBA 0x0400,i
+       SUBA _f_HIDDEN,i
        BRNE _fa9
-_fa10: ANDX 0x03FF,i ; remove hidden bit, if any
-       STWX -4,s
-       ADDA -4,s
-       LDWX 4,s
+_fa10: ANDX _f_MANTISSA,i ; remove hidden bit, if any
+       STWX _fa_M_MAN,s
+       ADDA _fa_M_MAN,s
+       LDWX _fa_M,s
        BRGE _fa11
-       ADDA 0x8000,i ; negative if M negative
-_fa11: STWA 4,s
-       LDWX -2,s
+       ADDA _f_NEGATIVE,i ; negative if M negative
+_fa11: STWA _fa_SUM,s
+       LDWX _fa_SAVEX,s
        RET
 _fa4:  ; M infinite or NaN
        ; if N finite, return M
        ; if both are infinity with same sign, return M
        ; else return NaN
-       LDWA 4,s
-       LDWX 2,s
-       ANDX 0x7C00,i
-       CPWX 0x7C00,i
+       LDWA _fa_M,s
+       LDWX _fa_N,s
+       ANDX _f_EXPONENT,i
+       CPWX _f_INFINITY,i
        BRNE _fa11 ; N is finite
-       CPWA 2,s
+       CPWA _fa_N,s
        BRNE _fa12 ; M and N differ
-       ANDA 0x7FFF,i
-       CPWA 0x7C00,i
+       ANDA _f_SIGN_MASK,i
+       CPWA _f_INFINITY,i
        BRNE _fa12 ; M is NaN
-       LDWA 4,s
+       LDWA _fa_M,s
        BR   _fa11 ; M and N are same infinity
-_fa12: LDWA 0x7FFF,i ; NaN
-       LDWX 4,s
+_fa12: LDWA _f_NAN,i ; NaN
+       LDWX _fa_M,s
        BRGE _fa11
-       ADDA 0x8000,i ; -NaN if M negative
+       ADDA _f_NEGATIVE,i ; -NaN if M negative
        BR   _fa11
 _fa6:  ; M finite and N infinite or NaN
        ; return N
-       LDWA 2,s
+       LDWA _fa_N,s
        BR   _fa11
 
 ; FMul: Floating-point multiply
