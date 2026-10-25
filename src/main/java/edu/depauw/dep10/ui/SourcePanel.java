@@ -95,8 +95,6 @@ public class SourcePanel extends JPanel implements SearchListener {
     private Map<Integer, Integer> addressMap;
     private Map<Integer, Integer> lineMap;
 
-    private Object highlightTag;
-
     public SourcePanel(MainFrame parent, String name) {
         this.parent = parent;
 
@@ -234,8 +232,6 @@ public class SourcePanel extends JPanel implements SearchListener {
 
     private void synchronizeBreakpoints(Result result) {
         resGutter.removeAllTrackingIcons();
-        resTextArea.removeAllLineHighlights();
-        highlightTag = null;
 
         var breakpoints = getSrcBreakpoints();
         var lineMap = result.getSourceMap("<string>"); // TODO change this for DeCLan source...
@@ -555,10 +551,6 @@ public class SourcePanel extends JPanel implements SearchListener {
             } else {
                 if (control.isPaused()) {
                     setDebugging();
-                    if (highlightTag != null) {
-                        resTextArea.removeLineHighlight(highlightTag);
-                        highlightTag = null;
-                    }
                     control.resume(parent, getResBreakpoints());
                 } else {
                     control.pause();
@@ -586,10 +578,6 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            if (highlightTag != null) {
-                resTextArea.removeLineHighlight(highlightTag);
-                highlightTag = null;
-            }
             control.forward(parent);
         }
     }
@@ -612,10 +600,6 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            if (highlightTag != null) {
-                resTextArea.removeLineHighlight(highlightTag);
-                highlightTag = null;
-            }
             control.backward(parent);
         }
     }
@@ -864,7 +848,8 @@ public class SourcePanel extends JPanel implements SearchListener {
         Integer line = lineMap.get(pc);
         if (line != null) {
             try {
-                highlightTag = resTextArea.addLineHighlight(line, Color.GREEN);
+                var offset = resTextArea.getLineStartOffset(line);
+                resTextArea.setCaretPosition(offset);
             } catch (BadLocationException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
