@@ -383,10 +383,16 @@ _fp1:  ANDA 0x7FFF,i
        CPWA 0x7C00,i
        BRLT _fp3
        BREQ _fp2
-       @STRO _NaN,d
-       BR   _fp0
-_fp2:  @STRO _Inf,d
-       BR   _fp0
+       ; @STRO _NaN,d
+       LDWX _NaN,i
+_fp11: LDBA 0,x
+       BREQ _fp0
+       STBA charOut,d
+       ADDX 1,i
+       BR   _fp11
+_fp2:  ; @STRO _Inf,d
+       LDWX _Inf,i
+       BR   _fp11
 _fp3:  ANDA 0x3FF,i
        LDWX 2,s
        ANDX 0x7C00,i
@@ -427,8 +433,13 @@ _fp7:  SWAPHA
        STWA -7,s
        CPWA 0,i
        BRNE _fp7
-       @STRO -15,sf
-       BR   _fp9
+       ; @STRO -15,sf
+       LDWX 0,i
+_fp12: LDBA -15,sfx
+       BREQ _fp9
+       STBA charOut,d
+       ADDX 1,i
+       BR   _fp12
 _fp8:  @CHARO '0',i
 _fp9:  LDWA -4,s ; prepare to print the decimal part
        ORA  -6,s
