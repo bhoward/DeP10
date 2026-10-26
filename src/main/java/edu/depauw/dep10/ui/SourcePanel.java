@@ -1,7 +1,6 @@
 package edu.depauw.dep10.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -484,6 +483,7 @@ public class SourcePanel extends JPanel implements SearchListener {
                 setStopped();
                 parent.selectSymbolsTab();
                 synchronizeBreakpoints(result);
+                resTextArea.setCaretPosition(0);
                 tabs.setSelectedComponent(resultPane);
             } else {
                 setBuildNeeded();
