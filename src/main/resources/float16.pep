@@ -77,7 +77,7 @@ _fa5:  CPWA _f_INFINITY,i
        ADDA _fa_M_EXP,s
 _fa7:  BREQ _fa8
        ASRX
-       SUBA _f_HIDDEN,i
+       SUBA 0x0400,i
        BR   _fa7
 _fa8:  ; now have M mantissa in -4,s and N mantissa in X
        ; both relative to exponent*0400 in -6,s
@@ -89,19 +89,21 @@ _fa1:  ADDX _fa_M_MAN,s
        LDWA _fa_M_EXP,s
        ; normalize result as needed (A = exponent*0400, X = mantissa)
        CPWX 0x0800,i
-       BRLT _fa9
+       BRLT _fa13
        ASRX ; mantissa carried into next place
-       ADDA _f_HIDDEN,i
+       ADDA 0x0400,i
+_fa13: CPWA 0,i ; check for subnormal sum; do not normalize
+       BREQ _fa14
        CPWA _f_INFINITY,i ; check for infinite sum
        BRLT _fa9
        LDWX _f_HIDDEN,i ; sum is infinite, so clear mantissa
 _fa9:  CPWX _f_HIDDEN,i
        BRGE _fa10 ; normalized
        ASLX
-       SUBA _f_HIDDEN,i
+       SUBA 0x0400,i
        BRNE _fa9
 _fa10: ANDX _f_MANTISSA,i ; remove hidden bit, if any
-       STWX _fa_M_MAN,s
+_fa14: STWX _fa_M_MAN,s
        ADDA _fa_M_MAN,s
        LDWX _fa_M,s
        BRGE _fa11

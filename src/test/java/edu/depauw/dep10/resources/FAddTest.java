@@ -54,8 +54,8 @@ class FAddTest {
             { ZERO, NEG_NAN, NEG_NAN },
             { ZERO, BIG, BIG },
             { ZERO, SMALL, SMALL },
-//            { ZERO, NEG_SMALLER, NEG_SMALLER },
-//            { ZERO, TINY, TINY },
+            { ZERO, NEG_SMALLER, NEG_SMALLER },
+            { ZERO, TINY, TINY },
             { NEG_ZERO, ONE, ONE },
             { HALF, HALF, ONE },
             { HALF, NEG_HALF, ZERO },
@@ -68,7 +68,8 @@ class FAddTest {
             { BIG, NEG_BIG, ZERO },
             { BIG, BIG, INFINITY },
             { SMALLER, ONE, ONE },
-//            { NEG_SMALLER, NEG_SMALLER, NEG_SMALL },
+            { SMALLER, SMALLER, 0x07FE },
+            { NEG_SMALLER, NEG_SMALLER, 0x87FE },
             { TINY, NEG_TINY, ZERO },
             { INFINITY, NEG_INFINITY, NAN },
     };
@@ -78,21 +79,12 @@ class FAddTest {
     void dadd_cases() {
         for (var c : CASES) {
             State s = run(String.format("""
-                           LDBX    ' ',i
                            LDWA    0x%04X,i
                            PUSHA
-                           CALL    FPrint,i
-                           STBX    charOut,d
                            LDWA    0x%04X,i
                            PUSHA
-                           CALL    FPrint,i
-                           LDBX    ' ',i
-                           STBX    charOut,d
                            CALL    FAdd,i
                            POPA
-                           CALL    FPrint,i
-                           LDBX    '\\n',i
-                           STBX    charOut,d
                            POPA
                            STWA    0xF000,d
                            LDBA    0,i
