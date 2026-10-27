@@ -2,7 +2,7 @@
 ;
 ; Two user programs, A and B, each print a list of 32-bit numbers, one per
 ; line, with printLong. A timer interrupt switches between them every
-; "quantum" user instructions, wherever they happen to be, even in the
+; "quantum" instructions, wherever they happen to be, even in the
 ; middle of printLong. The numbers each program prints should come out
 ; whole, no matter where the switches land.
 ;
@@ -16,8 +16,9 @@
 ;
 ; How the kernel works
 ; --------------------
-; The machine counts user-mode instructions down in the word at 0xFFF5. When
-; it reaches zero it traps to the handler like a system call does, with
+; The machine counts instructions down in the word at 0xFFF5. When
+; it reaches zero (inside the OS too, but then the trap waits until the program
+; is back in user mode) it traps to the handler like a system call does, with
 ; opcode byte 0 and operand 1 in the trap frame (an invalid instruction is
 ; opcode byte = the bad opcode, operand 2). The handler saves the running
 ; thread, picks the other one, sets the timer again and SRETs into it.
@@ -58,7 +59,7 @@ stUser:   .EQUATE 8
 stSys:    .EQUATE 10
 stOut:    .EQUATE 12
 
-quantum:  .EQUATE 40            ; user instructions between timer traps (0 = no timer)
+quantum:  .EQUATE 40            ; instructions between timer traps (0 = no timer)
 
 cur:      .WORD   0             ; address of the running process's table entry
 tmpEntry: .WORD   0
@@ -155,7 +156,7 @@ resume:   LDWX    cur,d
           LDWA    stSP,x
           MOVASP                ; SP = the frame to return from
           LDWA    quantum,i
-          STWA    0xFFF5,d      ; the timer counts user-mode instructions only
+          STWA    0xFFF5,d      ; the timer counts every instruction from here on
           SRET
 
 ; halt: report what each thread wrote, then power off

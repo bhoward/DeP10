@@ -86,11 +86,11 @@ class FancyMachineTest {
             """;
 
     @Test
-    @DisplayName("Timer: counts user-mode instructions and traps with opcode 0, operand 1")
+    @DisplayName("Timer: counts every instruction and traps with opcode 0, operand 1")
     void timerTrapsAfterCountedInstructions() {
         State s = run(program("LDWA 10,i\n        STWA 0xFFF5,d\n", COUNT_LOOP), true, LIMIT, null);
         assertFalse(s.isRunning());
-        assertEquals(5, mem(s, 0xF000), "A after the 10th user instruction (LDWA, then 4 x ADDA/BR, then ADDA)");
+        assertEquals(3, mem(s, 0xF000), "10 ticks = LDWA, MOVASP, SRET in supervisor mode, then 7 user instructions: LDWA, ADDA, BR, ADDA, BR, ADDA, BR");
         assertEquals(0, mem(s, 0xF002), "opcode byte of a timer trap");
         assertEquals(1, mem(s, 0xF004), "operand of a timer trap");
         assertEquals(0, mem(s, 0xFFF5), "timer is back at 0");
@@ -98,12 +98,13 @@ class FancyMachineTest {
     }
 
     @Test
-    @DisplayName("Timer: supervisor-mode instructions do not count")
-    void supervisorDoesNotTick() {
+    @DisplayName("Timer: supervisor-mode instructions count too; a timer that expires there traps after one user instruction")
+    void supervisorTicksAndTrapIsDeferred() {
         String nops = "LDWA 3,i\n        STWA 0xFFF5,d\n" + "        NOP\n".repeat(20);
         State s = run(program(nops, COUNT_LOOP), true, LIMIT, null);
         assertFalse(s.isRunning());
-        assertEquals(1, mem(s, 0xF000), "trap after the third user instruction: LDWA, ADDA, BR");
+        assertEquals(0, mem(s, 0xF000), "the timer ran out inside the OS code, so the trap came right after the first user instruction (LDWA)");
+        assertTrue(mem(s, 0xF006) > 0, "a frame was pushed");
         assertEquals(1, mem(s, 0xF004));
     }
 

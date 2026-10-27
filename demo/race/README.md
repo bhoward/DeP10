@@ -9,7 +9,7 @@ Files for an exercise on code that is not safe to interrupt.
 - `race_solution.pep` is the instructor solution. Do not distribute it.
 
 Two threads each print five 32-bit numbers, one per line. A timer interrupt
-switches threads every `quantum` user instructions (`quantum:` near the top of
+switches threads every `quantum` instructions (`quantum:` near the top of
 the file), so a switch can land in the middle of `printLong`.
 
 This needs the fancy machine (user mode and the timer at `0xFFF5`):

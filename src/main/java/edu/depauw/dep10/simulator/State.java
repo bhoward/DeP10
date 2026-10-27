@@ -35,7 +35,8 @@ public class State {
     // Off by default, so bare-metal programs see the original machine.
     private boolean fancy = false;
     private boolean protectedMode = true; // the machine boots in the OS
-    private boolean tickEligible = false;
+    private boolean startedInUser = false;   // the current instruction began in user mode
+    private boolean timerExpired = false;    // the timer hit zero but the trap waits for user mode
 
     private UByte[] memory = new UByte[65536];
     
@@ -400,6 +401,7 @@ public class State {
     /** Turns the fancy machine (protected/user modes, timer, invalid-instruction trap) on or off. */
     public void setFancy(boolean fancy) {
         this.fancy = fancy;
+        this.timerExpired = false;
     }
 
     /** True while the OS is running (supervisor mode); false while a user program runs. Meaningful only on the fancy machine. */
@@ -452,24 +454,36 @@ public class State {
         }
     }
 
-    /** Called after each instruction that actually ran; counts the timer down while in user mode. */
+    /**
+     * Called after each instruction that actually ran. The timer counts down on every instruction,
+     * in supervisor mode too, like a device that does not care what mode the CPU is in. If it
+     * reaches zero while the OS is running, the trap waits until the program is back in user mode
+     * and has run one instruction (so the OS can always make progress), which stops a program
+     * from getting a bigger slice by making many system calls.
+     */
     public void instructionDone() {
-        if (tickEligible && !protectedMode) {
-            int t = mem2Safe(Pep10.TIMER).value();
-            if (t != 0) {
-                t--;
-                memory[Pep10.TIMER.value()] = UByte.of(t >> 8);
-                memory[Pep10.TIMER.value() + 1] = UByte.of(t & 0xFF);
-                if (t == 0) {
-                    trap(UByte.of(0), Word.of(1));
-                }
+        if (!fancy) {
+            return;
+        }
+        int t = mem2Safe(Pep10.TIMER).value();
+        if (t != 0) {
+            timerExpired = false; // the OS has set a fresh timer
+            t--;
+            memory[Pep10.TIMER.value()] = UByte.of(t >> 8);
+            memory[Pep10.TIMER.value() + 1] = UByte.of(t & 0xFF);
+            if (t == 0) {
+                timerExpired = true;
             }
+        }
+        if (timerExpired && startedInUser && !protectedMode) {
+            timerExpired = false;
+            trap(UByte.of(0), Word.of(1));
         }
     }
 
     public void doStep(Controller control, Table table) {
         var origPC = PC;
-        tickEligible = fancy && !protectedMode;
+        startedInUser = fancy && !protectedMode;
         
         PRE = UByte.of(0);
         IR1 = mem1(PC);
