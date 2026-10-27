@@ -230,8 +230,13 @@ public class State {
         Flags = UByte.of(flags.value() & 0x0F);
     }
 
+    /**
+     * NZVC in the low four bits. On the fancy machine bit 7 is P: 1 in protected (supervisor) mode,
+     * 0 in user mode. P is not stored; it follows the mode, so only a trap sets it and only SRET
+     * clears it (setFlags, used by MOVAFLG and SRET, ignores everything but NZVC).
+     */
     public UByte getFlags() {
-        return Flags;
+        return fancy && protectedMode ? UByte.of(Flags.value() | 0x80) : Flags;
     }
 
     public boolean isRunning() {
@@ -431,7 +436,7 @@ public class State {
         setMem2(t.plus(-7), PC);
         setMem2(t.plus(-9), X);
         setMem2(t.plus(-11), A);
-        setMem1(t.plus(-12), Flags);
+        setMem1(t.plus(-12), getFlags()); // the saved P tells which mode was interrupted
 
         setSP(t.plus(-12));
         setPC(mem2(Pep10.TRAP_HANDLER_POINTER));
