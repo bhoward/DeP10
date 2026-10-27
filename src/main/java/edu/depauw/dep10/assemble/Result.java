@@ -87,9 +87,39 @@ public class Result {
     public void section(String name, String flags, ErrorLog log) {
         Line line = current.removeLastLine();
 
-        current = new Section(this); // TODO use the name and flags...
+        current = new Section(this);
+        current.setNameAndFlags(name, flags);
         sections.add(current);
         current.addLine(line);
+    }
+
+    public List<Section> getSections() {
+        return List.copyOf(sections);
+    }
+
+    /**
+     * The memory protection table for the sections that have flags (a .SECTION directive), after
+     * the sections have been placed: 64 bytes, two bits per 256-byte page, the first page in the
+     * high bits of the first byte. A page that two sections touch keeps the more permissive bits.
+     * Pages that no flagged section touches stay 00 (no user access).
+     */
+    public byte[] protectionTable() {
+        byte[] table = new byte[64];
+        for (var section : sections) {
+            if (section.getFlags() == null || section.size() == 0) {
+                continue;
+            }
+            int bits = Section.protectionBits(section.getFlags());
+            int first = section.getOrigin() >> 8;
+            int last = (section.getOrigin() + section.size() - 1) >> 8;
+            for (int page = first; page <= last && page < 256; page++) {
+                int shift = 6 - 2 * (page % 4);
+                int old = (table[page / 4] >> shift) & 3;
+                int merged = old == 0 ? bits : (old == 3 || bits == 3 ? 3 : (old == bits ? old : 3));
+                table[page / 4] = (byte) ((table[page / 4] & ~(3 << shift)) | (merged << shift));
+            }
+        }
+        return table;
     }
 
     public Value lookup(String sym) {

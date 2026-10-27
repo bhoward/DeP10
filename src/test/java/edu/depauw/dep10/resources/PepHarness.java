@@ -62,6 +62,11 @@ public final class PepHarness {
 
     /** Preprocesses and assembles a source string, failing the test on any error. Returns the object file text. */
     public static String assemble(String source) {
+        return assembleResult(source).toObjectFile();
+    }
+
+    /** As assemble, but returns the whole assembler Result (sections, symbols) instead of the object text. */
+    public static Result assembleResult(String source) {
         var log = new ErrorLog();
         Sources sources = new Sources();
         sources.addResource("/pep10baremetal.peph", log);
@@ -83,7 +88,7 @@ public final class PepHarness {
             fail("Assemble errors: " + log.getMessages() + "\n" + sw);
         }
 
-        return result.toObjectFile();
+        return result;
     }
 
     /**

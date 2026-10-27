@@ -9,6 +9,10 @@ public class Pep10 {
     public static final Word SYSTEM_STACK_POINTER = Word.of(0xFFFB);
     /** Timer device (fancy machine): instructions left before a timer trap (counts in every mode; the trap waits for user mode); 0 = off. */
     public static final Word TIMER = Word.of(0xFFF5);
+    /** Memory protection (fancy machine): address of the 64-byte page table, 0 = protection off. */
+    public static final Word MMU_BASE = Word.of(0xFFF3);
+    /** Memory protection: the address that caused the last protection trap. */
+    public static final Word FAULT_ADDRESS = Word.of(0xFFF1);
     public static final Word CHARIN = Word.of(0xFFFD);
     public static final Word CHAROUT = Word.of(0xFFFE);
     public static final Word SHUTDOWN = Word.of(0xFFFF);
