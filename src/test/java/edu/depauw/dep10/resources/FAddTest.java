@@ -62,6 +62,7 @@ class FAddTest {
             { ONE, ONE, TWO },
             { ONE, TWO, THREE },
             { TWO, THREE, FIVE },
+            { THREE, TWO, FIVE },
             { TWO, NEG_THREE, NEG_ONE },
             { FIVE, NEG_TWO, THREE },
             { NEG_FIVE, INFINITY, INFINITY },

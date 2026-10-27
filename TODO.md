@@ -6,6 +6,26 @@ TODO
 * New syntax for macros
 * Tests!
 
+MMU Thoughts
+-------
+* Minimum: protect some regions (4K blocks?) as system-only, read-only, executable
+* Next: allow per-process virtual-mode maps (v-block to p-block); system (real mode) sees full 64K address space,
+but user processes might have their text/data/stack segments mapped
+* Could allow multiple processes to map shared read-only segments (text/data); have to be at same location across processes, because code and data contain absolute addresses
+* Full: blocks might be swapped out to external storage (e.g., 256 blocks in a "swap file" = 1M potential storage, which is enough
+for 16 simultaneous processes -- reasonable limit for process table?); in real mode, system can look at the blocks currently in memory slots (perhaps up to 14, if system code can fit in 8K?) -- need way for system to use MMU mapping, e.g. for accessing data passed in a system call
+* Need protection bits, plus loaded/dirty flags; stick with blocks, or allow a segment made up of multiple blocks? Hope to fit MMU table into ~16 words per process
+
+Additional Ideas
+-------
+* Have a notion of "zero page" -- access bottom (maybe top, shadowing the system's I/O page?) 256 bytes (words?) of memory as pseudo-registers with one-byte operands. Enables interesting register assignment algorithms for compilers
+* Include A, X, H, and others (PC? SP? Flags?? Constant zero??) as some of the 256 pseudo-registers?
+* Have a fairly complete set of "register-register" ops in an extension table; RISC-like?
+* Simulate a floating-point unit as one of the hardware devices
+* Real-time clock, random number generator, network adapter??
+* Simulate access to external storage, for a file system (OS might not fit in 64K anymore...)
+* Relative jump instructions, for relocatable code? How do they handle jumps from outside?
+
 Controls:
 -------
 [not assembled] build -> [assembled] (et seq)
