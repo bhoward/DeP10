@@ -60,7 +60,7 @@ public sealed interface Operation extends TableEntry {
 
         public void exec(State s) {
             var pc = s.getPC();
-            var operand = s.mem2(pc);
+            var operand = s.fetch2(pc); // operand specifier: an instruction fetch
             s.setEA(pc); // effective address in case of immediate mode
             s.setPC(pc.plus(2));
             s.setOperand(operand);

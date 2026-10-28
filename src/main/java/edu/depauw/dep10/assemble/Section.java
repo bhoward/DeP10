@@ -15,6 +15,8 @@ public class Section {
 	private static final int BYTES_PER_OBJECT_FILE_LINE = 8;
 	
 	private Result parent;
+	private String name = null;
+	private String flags = null;
     private int origin;
 	private int nextAddress;
 	private List<Line> lines;
@@ -30,6 +32,39 @@ public class Section {
 		this.lines = new ArrayList<>();
 		this.objects = new ArrayList<>();
 	}
+
+    /** Name and flags given by a .SECTION directive; null for the first section, which has no directive. */
+    public void setNameAndFlags(String name, String flags) {
+        this.name = name;
+        this.flags = flags;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getFlags() {
+        return flags;
+    }
+
+    /**
+     * The two protection bits (read, write) for the flags of a section, as the memory protection
+     * table stores them: 0 (00) no user access, 2 (10) read only, 3 (11) read and write, and
+     * 1 (01) read and execute, which is how a code page is marked. An x flag makes the section
+     * code, even with w (a page cannot be both writable and executable); r or w alone means data;
+     * no r, w or x means no user access. Other letters (such as z) do not affect protection.
+     */
+    public static int protectionBits(String flags) {
+        String f = flags == null ? "" : flags.toLowerCase();
+        if (f.indexOf('x') >= 0) {
+            return 1;
+        } else if (f.indexOf('w') >= 0) {
+            return 3;
+        } else if (f.indexOf('r') >= 0) {
+            return 2;
+        }
+        return 0;
+    }
 
     public void addLine(Line line) {
         lines.add(line);
