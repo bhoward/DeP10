@@ -484,6 +484,7 @@ public class Pep10TokenMaker extends AbstractTokenMaker {
         tokenMap.put("BRGT", Token.FUNCTION);
         tokenMap.put("BRV", Token.FUNCTION);
         tokenMap.put("BRC", Token.FUNCTION);
+        tokenMap.put("BRP", Token.FUNCTION);
         tokenMap.put("CALL", Token.FUNCTION);
         tokenMap.put("SCALL", Token.FUNCTION);
         tokenMap.put("LDWA", Token.FUNCTION);

@@ -232,8 +232,8 @@ public class State {
 
     /**
      * NZVC in the low four bits. On the fancy machine bit 7 is P: 1 in protected (supervisor) mode,
-     * 0 in user mode. P is not stored; it follows the mode, so only a trap sets it and only SRET
-     * clears it (setFlags, used by MOVAFLG and SRET, ignores everything but NZVC).
+     * 0 in user mode. A trap sets it and pushes the old value in the frame; SRET takes it back from
+     * the frame (restoreMode). MOVAFLG cannot change it (setFlags ignores everything but NZVC).
      */
     public UByte getFlags() {
         return fancy && protectedMode ? UByte.of(Flags.value() | 0x80) : Flags;
@@ -414,9 +414,15 @@ public class State {
         return protectedMode;
     }
 
-    public void leaveProtectedMode() {
+    /**
+     * Called by SRET with the flags byte it popped from the trap frame: bit 7 (P) says which mode
+     * the frame came from, and that is the mode SRET returns to. A frame pushed by a system call
+     * made from the OS therefore returns to the OS (system calls can nest), and a frame pushed
+     * from a user program returns to user mode. Does nothing on the plain machine.
+     */
+    public void restoreMode(UByte savedFlags) {
         if (fancy) {
-            protectedMode = false;
+            protectedMode = (savedFlags.value() & 0x80) != 0;
         }
     }
 

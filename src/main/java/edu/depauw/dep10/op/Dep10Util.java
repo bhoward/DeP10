@@ -109,6 +109,15 @@ public class Dep10Util {
         }
     };
 
+    /** Branch if P is set (supervisor mode on the fancy machine; never taken on the plain machine). */
+    public static final OpCore BRP = new OpCore("BRP", Modes.IX) {
+        public void exec(State s, Mode mode) {
+            if ((s.getFlags().value() & 0x80) != 0) {
+                s.setPC(mode.resolveWord(s));
+            }
+        }
+    };
+
     static {
         // unary
         table.install(1, SWAPAX);
@@ -123,5 +132,7 @@ public class Dep10Util {
         table.install(24, LEAX);
         table.install(32, SWAPA);
         table.install(40, SWAPX);
+        // branch on P, immediate or indexed, at 48 and 49
+        table.install(48, BRP);
     }
 }
