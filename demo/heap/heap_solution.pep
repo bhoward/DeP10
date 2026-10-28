@@ -176,4 +176,3 @@ main:     CALL    HInit,i
           CALL    report,i
           LDBA    0,i
           STBA    pwrOff,d
-          .END

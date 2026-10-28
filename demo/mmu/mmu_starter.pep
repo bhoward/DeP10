@@ -229,4 +229,3 @@ onFault:  LDWX    todoMsg,i      ; TODO: report the fault as described above
           BR      nextProc
 todoMsg:  .ASCII  "(fault)\n\0"
 ; ---- END STUDENT CODE
-.END

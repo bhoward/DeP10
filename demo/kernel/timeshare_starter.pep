@@ -229,4 +229,3 @@ bOk:      LDWA    0,s
           CPWA    bEnd,i
           BRLT    bLoop
           SCALL   1,i           ; EXIT
-          .END

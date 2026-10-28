@@ -268,4 +268,3 @@ cKeep:   STWX    outIdx,d
          STWA    0,s
          BRGT    cLoop
          SCALL   1,i            ; EXIT
-         .END

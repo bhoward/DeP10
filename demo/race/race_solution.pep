@@ -479,4 +479,3 @@ slNegative:
 
 
         .INCLUDELIB "int32"      ; UDDiv and DSUB
-        .END
