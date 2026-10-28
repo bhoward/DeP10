@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -56,6 +57,13 @@ public class MainFrame extends JFrame {
 
     private JComboBox<SourceType> sourceType;
     private JTabbedPane tabs;
+
+    private volatile boolean fancy = false;
+
+    /** True when the toolbar's "Fancy machine" box is ticked; applies to the next run or debug. */
+    public boolean isFancy() {
+        return fancy;
+    }
 
     public MainFrame() {
         setSize(800, 600);
@@ -188,6 +196,13 @@ public class MainFrame extends JFrame {
         back.setEnabled(false);
         simulatorMenu.add(createMenuItem(back));
         tools.add(new JButton(back));
+
+        tools.add(new JToolBar.Separator());
+        var fancyBox = new JCheckBox("Fancy machine");
+        fancyBox.setToolTipText("Supervisor/user modes, timer at 0xFFF5 and invalid-instruction trap; leave off for programs written for the plain machine. Applies to the next run or debug.");
+        fancyBox.setFocusable(false);
+        fancyBox.addActionListener(e -> fancy = fancyBox.isSelected());
+        tools.add(fancyBox);
 
         menuBar.add(simulatorMenu);
 
