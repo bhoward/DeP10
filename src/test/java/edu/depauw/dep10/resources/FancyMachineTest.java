@@ -196,4 +196,82 @@ class FancyMachineTest {
         }
         assertTrue(sawUser, "protected mode was left by SRET");
     }
+
+    @Test
+    @DisplayName("P flag: MOVFLGA shows bit 7 = 1 in protected mode and 0 in user mode")
+    void pFlagFollowsMode() {
+        State s = run(program("MOVFLGA\n        STWA 0xF010,d\n", "MOVFLGA\n        STWA 0xF012,d\n        SCALL 0,i\n"), true, LIMIT, null);
+        assertFalse(s.isRunning());
+        assertEquals(0x80, mem(s, 0xF010) & 0x80, "protected mode: P set");
+        assertEquals(0, mem(s, 0xF012) & 0x80, "user mode: P clear");
+    }
+
+    @Test
+    @DisplayName("P flag: MOVAFLG cannot set it in user mode or clear it in protected mode")
+    void pFlagCannotBeWritten() {
+        String os = "LDWA 0,i\n        MOVAFLG\n        MOVFLGA\n        STWA 0xF010,d\n";
+        String user = "LDWA 0xFF,i\n        MOVAFLG\n        MOVFLGA\n        STWA 0xF012,d\n        SCALL 0,i\n";
+        State s = run(program(os, user), true, LIMIT, null);
+        assertFalse(s.isRunning());
+        assertEquals(0x80, mem(s, 0xF010) & 0x80, "writing 0 in protected mode leaves P set");
+        assertEquals(0, mem(s, 0xF012) & 0x80, "writing 0xFF in user mode leaves P clear");
+        assertEquals(0x0F, mem(s, 0xF012) & 0xFF, "the NZVC bits do change");
+    }
+
+    @Test
+    @DisplayName("P flag: the trap frame records the interrupted mode (user: P = 0)")
+    void frameHoldsInterruptedP() {
+        State s = run(program("", "LDWA 0,i\n        SCALL 0,i\n"), true, LIMIT, null);
+        int frame = mem(s, 0xFFFB) - 12;
+        assertEquals(mem(s, 0xF006), mem(s, frame + 5), "found the frame: its saved PC matches what the handler read");
+        assertEquals(0, (mem(s, frame) >> 8) & 0x80, "flags byte of the frame pushed from user mode");
+    }
+
+    @Test
+    @DisplayName("P flag: always 0 on the plain machine")
+    void pFlagOffOnPlainMachine() {
+        State s = run(program("MOVFLGA\n        STWA 0xF010,d\n", "SCALL 0,i\n"), false, 200, null);
+        assertEquals(0, mem(s, 0xF010) & 0x80);
+    }
+
+    @Test
+    @DisplayName("SRET returns to the mode recorded in the frame: P = 1 in the frame means supervisor")
+    void sretRestoresModeFromFrame() {
+        // the OS marks the ready-made frame as coming from supervisor mode before it SRETs
+        State s = run(program("LDBA 0x80,i\n        STBA frame,d\n",
+                "MOVFLGA\n        STWA 0xF010,d\n        SCALL 0,i\n"), true, LIMIT, null);
+        assertFalse(s.isRunning());
+        assertEquals(0x80, mem(s, 0xF010) & 0x80, "still in supervisor mode after SRET");
+    }
+
+    @Test
+    @DisplayName("SRET is privileged: in user mode it traps like an invalid instruction (operand 2)")
+    void sretInUserModeTraps() {
+        State s = run(program("", "SRET\n"), true, LIMIT, null);
+        assertFalse(s.isRunning());
+        assertEquals(2, mem(s, 0xF002), "the SRET opcode is in the frame");
+        assertEquals(2, mem(s, 0xF004));
+    }
+
+    @Test
+    @DisplayName("BRP branches when P is set (supervisor) and falls through in user mode")
+    void brpFollowsP() {
+        String os = "BRP sup,i\n        LDWA 1,i\n        STWA 0xF010,d\n        BR cont\n"
+                + "sup:    LDWA 2,i\n        STWA 0xF010,d\n"
+                + "cont:   NOP\n";
+        String user = "BRP usup,i\n        LDWA 1,i\n        STWA 0xF012,d\n        SCALL 0,i\n"
+                + "usup:   LDWA 2,i\n        STWA 0xF012,d\n        SCALL 0,i\n";
+        State s = run(program(os, user), true, LIMIT, null);
+        assertFalse(s.isRunning());
+        assertEquals(2, mem(s, 0xF010), "taken in supervisor mode");
+        assertEquals(1, mem(s, 0xF012), "not taken in user mode");
+    }
+
+    @Test
+    @DisplayName("BRP is never taken on the plain machine")
+    void brpNeverTakenOnPlainMachine() {
+        State s = run(program("", "BRP usup,i\n        LDWA 1,i\n        STWA 0xF012,d\n        SCALL 0,i\n"
+                + "usup:   LDWA 2,i\n        STWA 0xF012,d\n        SCALL 0,i\n"), false, 200, null);
+        assertEquals(1, mem(s, 0xF012));
+    }
 }

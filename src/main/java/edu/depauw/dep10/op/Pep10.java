@@ -24,14 +24,21 @@ public class Pep10 {
 
     public static final Operation SRET = new Operation.Unary("SRET") {
         public void exec(State s) {
+            if (s.isFancy() && !s.isProtectedMode()) {
+                // Privileged: a user program cannot return from a trap it did not make. Treated like
+                // an invalid instruction (trap with this opcode and operand 2).
+                s.invalidInstruction();
+                return;
+            }
             var t = s.getSP();
-            s.setFlags(s.mem1(t));
+            var saved = s.mem1(t);
+            s.setFlags(saved);
             s.setA(s.mem2(t.plus(1)));
             s.setX(s.mem2(t.plus(3)));
             s.setPC(s.mem2(t.plus(5)));
             s.setSP(s.mem2(t.plus(7)));
             s.setMem2(SYSTEM_STACK_POINTER, t.plus(12));
-            s.leaveProtectedMode();
+            s.restoreMode(saved); // last, so everything above is read and written in the OS's mode
         }
     };
 

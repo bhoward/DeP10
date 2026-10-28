@@ -64,7 +64,8 @@
 					X ← Mem[T + 3]<br>
 					PC ← Mem[T + 5]<br>
 					SP ← Mem[T + 7]<br>
-					Mem[FFFB] ← T + 12</td>
+					Mem[FFFB] ← T + 12<br>
+					Fancy machine: P ← Mem[T][0]; in user mode SRET traps like an invalid instruction</td>
 			</tr>
 			<tr>
 				<td valign="top">MOVFLGA</td>
@@ -595,6 +596,12 @@
 				<td valign="top">0010 1aaa</td>
 				<td valign="top">d, n, s, sf, x, sx, sfx</td>
 				<td valign="top">X ↔ Mem[Operand] in one step<br>N ← X &lt; 0 , Z ← X = 0 (after the exchange)</td>
+			</tr>
+			<tr>
+				<td valign="top">BRP</td>
+				<td valign="top">0011 000a</td>
+				<td valign="top">i, x</td>
+				<td valign="top">Fancy machine: if P = 1 (supervisor mode) then PC ← Operand. P is bit 7 of the byte MOVFLGA reads. Never taken on the plain machine.</td>
 			</tr>
 
 		</tbody>
