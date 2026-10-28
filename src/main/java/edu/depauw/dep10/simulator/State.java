@@ -31,6 +31,13 @@ public class State {
     private boolean running;
     private Operation op;
 
+    // Fancy machine: supervisor (protected) mode, timer and invalid-instruction trap.
+    // Off by default, so bare-metal programs see the original machine.
+    private boolean fancy = false;
+    private boolean protectedMode = true; // the machine boots in the OS
+    private boolean startedInUser = false;   // the current instruction began in user mode
+    private boolean timerExpired = false;    // the timer hit zero but the trap waits for user mode
+
     private UByte[] memory = new UByte[65536];
     
     private InputStream in = System.in;
@@ -387,8 +394,96 @@ public class State {
         err = new PrintStream(os);
     }
 
+    public boolean isFancy() {
+        return fancy;
+    }
+
+    /** Turns the fancy machine (protected/user modes, timer, invalid-instruction trap) on or off. */
+    public void setFancy(boolean fancy) {
+        this.fancy = fancy;
+        this.timerExpired = false;
+    }
+
+    /** True while the OS is running (supervisor mode); false while a user program runs. Meaningful only on the fancy machine. */
+    public boolean isProtectedMode() {
+        return protectedMode;
+    }
+
+    public void leaveProtectedMode() {
+        if (fancy) {
+            protectedMode = false;
+        }
+    }
+
+    /**
+     * Pushes the 12-byte trap frame on the system stack (flags at +0, A +1, X +3, PC +5, SP +7,
+     * opcode +9, operand +10), enters protected mode and jumps to the trap handler.
+     * SCALL uses its own opcode and raw operand. The machine's own traps use opcode 0:
+     * operand 1 is the timer, operand 2 an invalid instruction (the bad opcode is then in the
+     * frame's opcode byte, so an invalid opcode 0 is told apart from the timer by its operand).
+     */
+    public void trap(UByte opcode, Word operand) {
+        var t = mem2(Pep10.SYSTEM_STACK_POINTER);
+
+        setMem2(t.plus(-2), operand);
+        setMem1(t.plus(-3), opcode);
+        setMem2(t.plus(-5), SP);
+        setMem2(t.plus(-7), PC);
+        setMem2(t.plus(-9), X);
+        setMem2(t.plus(-11), A);
+        setMem1(t.plus(-12), Flags);
+
+        setSP(t.plus(-12));
+        setPC(mem2(Pep10.TRAP_HANDLER_POINTER));
+        if (fancy) {
+            protectedMode = true;
+        }
+    }
+
+    /** Called when the current instruction is not defined. */
+    public void invalidInstruction() {
+        if (!fancy) {
+            throw new IllegalStateException("Unimplemented operation");
+        }
+        if (protectedMode) {
+            err.println(String.format("Invalid instruction 0x%02X at 0x%04X in supervisor mode; stopping",
+                    IR1.value(), PC.plus(-1).value()));
+            stop();
+        } else {
+            trap(IR1, Word.of(2));
+        }
+    }
+
+    /**
+     * Called after each instruction that actually ran. The timer counts down on every instruction,
+     * in supervisor mode too, like a device that does not care what mode the CPU is in. If it
+     * reaches zero while the OS is running, the trap waits until the program is back in user mode
+     * and has run one instruction (so the OS can always make progress), which stops a program
+     * from getting a bigger slice by making many system calls.
+     */
+    public void instructionDone() {
+        if (!fancy) {
+            return;
+        }
+        int t = mem2Safe(Pep10.TIMER).value();
+        if (t != 0) {
+            timerExpired = false; // the OS has set a fresh timer
+            t--;
+            memory[Pep10.TIMER.value()] = UByte.of(t >> 8);
+            memory[Pep10.TIMER.value() + 1] = UByte.of(t & 0xFF);
+            if (t == 0) {
+                timerExpired = true;
+            }
+        }
+        if (timerExpired && startedInUser && !protectedMode) {
+            timerExpired = false;
+            trap(UByte.of(0), Word.of(1));
+        }
+    }
+
     public void doStep(Controller control, Table table) {
         var origPC = PC;
+        startedInUser = fancy && !protectedMode;
         
         PRE = UByte.of(0);
         IR1 = mem1(PC);
