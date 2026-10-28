@@ -1,20 +1,18 @@
 TODO
 -------
 * Settings -- allow choice of version/extensions?
-* Debugging view: option to skip system code? skip CALL/SCALL?
+* Debugging view: option to skip system code? skip over CALL/SCALL?
 * Others from Pepp: watch expressions, stack trace, byte converter
 * New syntax for macros
 * Tests!
 
 MMU Thoughts
 -------
-* Minimum: protect some regions (4K blocks?) as system-only, read-only, executable
-* Next: allow per-process virtual-mode maps (v-block to p-block); system (real mode) sees full 64K address space,
-but user processes might have their text/data/stack segments mapped
+* Minimum: protect some regions (block size 256B? 4K?) as system-only, read-only, executable
+* Next: allow per-process virtual-mode maps (v-block to p-block); system (real mode) sees full 64K address space, but user processes might have their text/data/stack segments mapped
 * Could allow multiple processes to map shared read-only segments (text/data); have to be at same location across processes, because code and data contain absolute addresses
-* Full: blocks might be swapped out to external storage (e.g., 256 blocks in a "swap file" = 1M potential storage, which is enough
-for 16 simultaneous processes -- reasonable limit for process table?); in real mode, system can look at the blocks currently in memory slots (perhaps up to 14, if system code can fit in 8K?) -- need way for system to use MMU mapping, e.g. for accessing data passed in a system call
-* Need protection bits, plus loaded/dirty flags; stick with blocks, or allow a segment made up of multiple blocks? Hope to fit MMU table into ~16 words per process
+* Full: blocks might be swapped out to external storage (e.g., a 1MB "swap file" is enough for 16 simultaneous processes -- reasonable limit for process table?); in real mode, system can look at the blocks currently in memory slots (perhaps up to 56K worth, if system code can fit in 8K?) -- need way for system to use MMU mapping, e.g. for accessing data passed in a system call
+* Need protection bits, plus loaded/dirty flags; stick with blocks, or allow a segment made up of multiple blocks? Hope to fit MMU table into no more than 256 words per process
 
 Additional Ideas
 -------
