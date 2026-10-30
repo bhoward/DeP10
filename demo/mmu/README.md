@@ -13,9 +13,13 @@ The students complete `onFault` in `mmu_starter.pep` (between the `STUDENT CODE`
 kernel reports each fault, with its address, and goes on to the next program. `mmu_solution.pep` is the
 instructor version.
 
-This needs the fancy machine:
+This needs the fancy machine. The files have `.SECTION` lines and bring their own kernel, so they are
+assembled as "Pep/10 System Code" and need no operating system; they define the console addresses
+themselves. In the GUI the editor picks that source type for you when you open the file; tick the
+"Fancy machine" box and run. From a terminal:
 
-    run --fancy --bm <object file>
+    asm --sys -s mmu_solution.pep -o m.pepo
+    run m.pepo --bm --fancy
 
 The memory protection table has two bits per 256-byte page (read, write): `00` no access, `10` read only,
 `11` read and write, `01` read and execute (code). The word at `0xFFF3` points to the table (0 = off),
@@ -23,5 +27,5 @@ supervisor mode ignores it, and page `0xFF` is never open to user programs. A fa
 instruction and traps with opcode byte 0 and operand 3 (read or write) or 4 (instruction fetch); the
 address is in the word at `0xFFF1`.
 
-`MmuExerciseTest` checks the solution output, that the starter runs all three programs without a real
+`MmuExerciseTest` checks the solution output (with no OS loaded, and with the bare metal image), that the starter runs all three programs without a real
 report, and that the two files differ only inside the student block.

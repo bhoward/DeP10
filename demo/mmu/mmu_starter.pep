@@ -17,7 +17,12 @@
 ; frame is the instruction that faulted.
 ;
 ; This program needs the "fancy machine" (user mode, protection).
-; From a terminal:   run --fancy --bm <object file>
+; It has .SECTION lines, so assemble it as "Pep/10 System Code" (the editor
+; picks that type for you) and tick the "Fancy machine" box. The file defines
+; its own console addresses below and brings its own tiny kernel, so no
+; operating system is needed. From a terminal:
+;   asm --sys -s <this file> -o m.pepo
+;   run m.pepo --bm --fancy
 ;
 ; Page table entry bits (read, write): 00 no access, 10 read only,
 ; 11 read and write, 01 read and execute (a code page). The table base
@@ -47,6 +52,10 @@
 ;     Process killed: bad instruction fetch at 0x0400
 ;     A
 ;     All programs finished
+
+; ---- console addresses
+charOut:  .EQUATE 0xFFFE        ; console output port
+pwrOff:   .EQUATE 0xFFFF        ; write here to power off
 
 ; ---- user code (page 0): read and execute only
           BR      main
