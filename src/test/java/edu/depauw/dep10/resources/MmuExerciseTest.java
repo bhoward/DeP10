@@ -39,8 +39,13 @@ class MmuExerciseTest {
         return Files.readString(Path.of("demo", "mmu", name));
     }
 
-    private static String run(String src, boolean fancy) {
-        State s = PepHarness.load(PepHarness.assemble(src), null);
+    /** How the file is loaded: "gui" = System Code, no OS at all; "bm" = also load the bare metal OS image, like run --bm. */
+    private static String run(String src, boolean fancy, boolean bareMetalImage) {
+        State s = new State();
+        s.loadString(PepHarness.assembleSystem(src));
+        if (bareMetalImage) {
+            s.loadResource("/pep10baremetal.pepo");
+        }
         s.setFancy(fancy);
         var out = new ByteArrayOutputStream();
         s.setOutput(out);
@@ -49,6 +54,16 @@ class MmuExerciseTest {
         new Simulator(s).run(new StepCountController(new PlainController(), LIMIT));
         assertFalse(s.isRunning(), "machine should have powered off");
         return out.toString(StandardCharsets.US_ASCII);
+    }
+
+    private static String run(String src, boolean fancy) {
+        return run(src, fancy, false);
+    }
+
+    @Test
+    @DisplayName("Solution also runs with the bare metal OS image loaded (run --bm --fancy)")
+    void solutionRunsWithBareMetalImage() throws IOException {
+        assertEquals(EXPECTED, run(read("mmu_solution.pep"), true, true));
     }
 
     @Test
