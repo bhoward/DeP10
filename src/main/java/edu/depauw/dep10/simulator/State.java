@@ -90,7 +90,7 @@ public class State {
             }
         }
 
-        return memory[addr.value()];
+        return memory[physical(addr)];
     }
 
     /** Reads an instruction byte; in user mode the page must be executable. */
@@ -112,8 +112,28 @@ public class State {
      */
     private int protection(int page) {
         int base = mem2Safe(Pep10.MMU_BASE).value();
+        if ((base & 1) != 0) {
+            // Stage 2: a page table of one word per page; the low byte holds the protection bits
+            return memory[((base & 0xFFFE) + 2 * page + 1) & 0xFFFF].value() & 3;
+        }
         int entry = memory[(base + page / 4) & 0xFFFF].value();
         return (entry >> (6 - 2 * (page % 4))) & 3;
+    }
+
+    /**
+     * Stage 2 address translation. When the base register at 0xFFF3 is odd, its upper 15 bits address a
+     * page table of 256 words, one per virtual page: the high byte is the physical frame number and the
+     * low two bits are the protection bits. Applies in user mode only; supervisor addresses are physical.
+     */
+    private int physical(Word addr) {
+        if (isProtecting()) {
+            int base = mem2Safe(Pep10.MMU_BASE).value();
+            if ((base & 1) != 0) {
+                int frame = memory[((base & 0xFFFE) + 2 * (addr.value() >> 8)) & 0xFFFF].value();
+                return (frame << 8) | (addr.value() & 0xFF);
+            }
+        }
+        return addr.value();
     }
 
     /** True while the memory protection table is being enforced: user mode on the fancy machine with a table set. */
@@ -164,7 +184,7 @@ public class State {
     public void setMem1(Word addr, UByte n) {
         checkAccess(addr, true);
         if (fancy && !protectedMode) {
-            undoLog.add(new int[] { addr.value(), memory[addr.value()].value() });
+            undoLog.add(new int[] { physical(addr), memory[physical(addr)].value() });
         }
         if (addr.equals(Pep10.SHUTDOWN)) {
             stop();
@@ -172,7 +192,7 @@ public class State {
             out.write(n.value());
         }
 
-        memory[addr.value()] = n;
+        memory[physical(addr)] = n;
     }
 
     public void setMem2(Word addr, Word n) {
