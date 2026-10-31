@@ -69,8 +69,8 @@ fancy machine is on. The full description is in the Pep/10 reference under "Fanc
 
 ### Exercises
 
-Each folder in `demo` has a starter file for students, an instructor solution, a README and automated tests
-(run `mvn test`). Students complete the code between the `STUDENT CODE` markers.
+Each exercise folder in `demo` has a starter file for students, an instructor solution and a README, with
+automated tests in `src/test` (run `mvn test`). Students complete the code between the `STUDENT CODE` markers.
 
 | Folder | Topic |
 |---|---|
