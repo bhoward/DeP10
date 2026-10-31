@@ -8,6 +8,7 @@ import javax.swing.SpringLayout;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 
+import edu.depauw.dep10.op.Pep10;
 import edu.depauw.dep10.simulator.State;
 
 public class StatePanel extends JPanel implements TabPanel {
@@ -26,7 +27,13 @@ public class StatePanel extends JPanel implements TabPanel {
     private RegisterField regEA;
     private RegisterField regPC;
     private RegisterField regSP;
-    
+
+    // Fancy machine registers; shown only while the fancy machine is on
+    private RegisterField regMode;
+    private RegisterField regMmu;
+    private RegisterField regFault;
+    private RegisterField regTimer;
+
     private JTextField txtOperation;
 
     private MemoryField memory;
@@ -117,9 +124,37 @@ public class StatePanel extends JPanel implements TabPanel {
         springLayout.putConstraint(SpringLayout.WEST, regSP, 0, SpringLayout.WEST, regNZVC);
         add(regSP);
         
+        regMode = new RegisterField("Mode", 5);
+        regMode.setFont(font);
+        springLayout.putConstraint(SpringLayout.NORTH, regMode, 0, SpringLayout.SOUTH, regPC);
+        springLayout.putConstraint(SpringLayout.WEST, regMode, 0, SpringLayout.WEST, regPC);
+        regMode.setToolTipText("Fancy machine: super (protected) or user mode, the P flag");
+        add(regMode);
+
+        regMmu = new RegisterField("MMU", WORD_COLUMNS);
+        regMmu.setFont(font);
+        springLayout.putConstraint(SpringLayout.NORTH, regMmu, 0, SpringLayout.NORTH, regMode);
+        springLayout.putConstraint(SpringLayout.WEST, regMmu, 10, SpringLayout.EAST, regMode);
+        regMmu.setToolTipText("Word at 0xFFF3: 0 = off, even = protection table, odd = translation table + 1");
+        add(regMmu);
+
+        regFault = new RegisterField("Fault", WORD_COLUMNS);
+        regFault.setFont(font);
+        springLayout.putConstraint(SpringLayout.NORTH, regFault, 0, SpringLayout.NORTH, regMode);
+        springLayout.putConstraint(SpringLayout.WEST, regFault, 10, SpringLayout.EAST, regMmu);
+        regFault.setToolTipText("Word at 0xFFF1: the address of the last memory fault");
+        add(regFault);
+
+        regTimer = new RegisterField("Timer", WORD_COLUMNS);
+        regTimer.setFont(font);
+        springLayout.putConstraint(SpringLayout.NORTH, regTimer, 0, SpringLayout.NORTH, regMode);
+        springLayout.putConstraint(SpringLayout.WEST, regTimer, 10, SpringLayout.EAST, regFault);
+        regTimer.setToolTipText("Word at 0xFFF5: instructions left before the timer trap; 0 = off");
+        add(regTimer);
+
         memory = new MemoryField();
         memory.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, memory, 10, SpringLayout.SOUTH, regPC);
+        springLayout.putConstraint(SpringLayout.NORTH, memory, 10, SpringLayout.SOUTH, regMode);
         springLayout.putConstraint(SpringLayout.WEST, memory, 0, SpringLayout.WEST, regPC);
         add(memory);
 
@@ -159,6 +194,18 @@ public class StatePanel extends JPanel implements TabPanel {
                     (state.getC() ? "1" : "0");
             regNZVC.setText(flags);
 
+            boolean fancy = state.isFancy();
+            regMode.setVisible(fancy);
+            regMmu.setVisible(fancy);
+            regFault.setVisible(fancy);
+            regTimer.setVisible(fancy);
+            if (fancy) {
+                regMode.setPlainText(state.isProtectedMode() ? "super" : "user");
+                regMmu.setText(state.mem2Safe(Pep10.MMU_BASE).toString());
+                regFault.setText(state.mem2Safe(Pep10.FAULT_ADDRESS).toString());
+                regTimer.setText(state.mem2Safe(Pep10.TIMER).toString());
+            }
+
             memory.refresh();
             stack.refresh();
         }
@@ -172,6 +219,10 @@ public class StatePanel extends JPanel implements TabPanel {
         regNZVC.setFont(font);
         regPC.setFont(font);
         regSP.setFont(font);
+        regMode.setFont(font);
+        regMmu.setFont(font);
+        regFault.setFont(font);
+        regTimer.setFont(font);
         regPX.setFont(font);
         regIR1.setFont(font);
         regIR2.setFont(font);
