@@ -55,4 +55,10 @@ public class RegisterField extends JComponent {
         txt.setText(text);
         txt.setToolTipText(Integer.valueOf(text, 16).toString());
     }
+
+    /** Shows text that is not a hex number (the tooltip of setText is the decimal value). */
+    public void setPlainText(String text) {
+        txt.setText(text);
+        txt.setToolTipText(null);
+    }
 }

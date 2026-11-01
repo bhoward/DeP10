@@ -39,7 +39,7 @@ class MemoryProtectionTest {
     private static final int[][] STANDARD_PAGES = {
             { 0x00, CODE }, { 0x04, READ_WRITE }, { 0x05, READ }, { 0x06, NONE }, { 0x07, READ_WRITE } };
 
-    private static String program(String osBefore, String user, String extraSections) {
+    static String program(String osBefore, String user, String extraSections) {
         return """
                         BR      main
                 user:   """ + user + """

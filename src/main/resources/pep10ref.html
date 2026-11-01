@@ -35,6 +35,7 @@
 		<a href="#modes">Addressing Modes</a> |
 		<a href="#registers">Registers</a> |
 		<a href="#memory">Special Memory Locations</a> |
+		<a href="#fancy">Fancy Machine</a> |
 		<a href="#cycle">Operation Cycle</a> |
 		<a href="#directives">Directives</a>
 	</p>
@@ -867,6 +868,47 @@
 		<li>FFFF: Power off (pwrOff)</li>
 	</ul>
 	
+	<h2 id="fancy">Fancy Machine (optional)</h2>
+	<p>
+		Turn on with <samp>run --fancy</samp>, the toolbar checkbox, or <samp>State.setFancy</samp>. It adds user and
+		supervisor modes, a timer and memory protection to Pep/10. The plain machine is unchanged.
+	</p>
+	<ul>
+		<li>FFF1,FFF2: Fault address (the virtual address that caused a memory fault)</li>
+		<li>FFF3,FFF4: MMU base register. 0 = off. Even = stage 1 protection table (64 bytes, two bits per page).
+			Odd = stage 2 translation: the page table is at the value minus 1</li>
+		<li>FFF5,FFF6: Timer. Counts down once per instruction in either mode; 0 = off. At zero it traps (opcode byte 0, operand 1)</li>
+	</ul>
+	<p>
+		<b>Modes.</b> The machine boots in protected (supervisor) mode. Every trap sets the P flag (bit 7 of the flags byte
+		read by MOVFLGA) and saves the old value in the trap frame; SRET restores the mode from the frame and is privileged.
+		BRP branches if P is set. MOVAFLG cannot change P.
+	</p>
+	<p>
+		<b>Traps.</b> Opcode byte 0 in the frame means the machine itself trapped; the operand says why:
+		1 timer, 2 invalid instruction in user mode, 3 data access not allowed, 4 instruction fetch not allowed.
+	</p>
+	<p>
+		<b>Pages.</b> 256 bytes; the high byte of an address is its page number. Page FF is never open to user mode.
+		Supervisor mode is not checked or translated.
+	</p>
+	<table>
+		<tr><th>bits</th><th>meaning</th></tr>
+		<tr><td>00</td><td>no access / not present</td></tr>
+		<tr><td>10</td><td>read only</td></tr>
+		<tr><td>11</td><td>read and write</td></tr>
+		<tr><td>01</td><td>read and execute</td></tr>
+	</table>
+	<p>
+		<b>Stage 1 (protection).</b> The table has two bits per page, page 0 in the top two bits of the first byte.
+		The <samp>.SECTION</samp> flags r, rw and rx produce these bits.
+	</p>
+	<p>
+		<b>Stage 2 (translation).</b> The table has one word per page (512 bytes): the high byte is the physical frame
+		number and the low two bits are the protection bits above. A user address is split into page and offset, the
+		frame replaces the page, and a page with bits 00 faults. A fault undoes the instruction, so SRET retries it.
+	</p>
+
 	<h2 id="cycle">Operation Cycle</h2>
 <pre>
 PC ← Mem[FFF9]
