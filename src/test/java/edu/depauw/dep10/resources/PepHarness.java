@@ -65,6 +65,32 @@ public final class PepHarness {
         return assembleResult(source).toObjectFile();
     }
 
+    /**
+     * Assembles source as "Pep/10 System Code": only the standard macros are included, no OS header.
+     * This is what the GUI picks for a file with .SECTION lines. Returns the object file text.
+     */
+    public static String assembleSystem(String source) {
+        var log = new ErrorLog();
+        Sources sources = new Sources();
+        sources.addResource("/stdmacro.pep", log);
+        sources.addString(source);
+
+        var preprocessor = new Preprocessor(log);
+        var lines = preprocessor.preprocess(sources);
+        if (!log.noErrors()) {
+            fail("Preprocess errors: " + log.getMessages());
+        }
+
+        var assembler = new Assembler(log);
+        Result result = assembler.assemble(lines);
+        if (!log.noErrors() || result.hasErrors()) {
+            var sw = new java.io.StringWriter();
+            result.printErrors(new java.io.PrintWriter(sw));
+            fail("Assemble errors: " + log.getMessages() + "\n" + sw);
+        }
+        return result.toObjectFile();
+    }
+
     /** As assemble, but returns the whole assembler Result (sections, symbols) instead of the object text. */
     public static Result assembleResult(String source) {
         var log = new ErrorLog();
