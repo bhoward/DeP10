@@ -16,6 +16,7 @@ public class StatePanel extends JPanel implements TabPanel {
     
     static final int WORD_COLUMNS = 4;
     static final int BYTE_COLUMNS = 2;
+    static final int BINARY_BYTE_COLUMNS = 8;
 
     private RegisterField regA;
     private RegisterField regX;
@@ -29,7 +30,6 @@ public class StatePanel extends JPanel implements TabPanel {
     private RegisterField regSP;
 
     // Fancy machine registers; shown only while the fancy machine is on
-    private RegisterField regMode;
     private RegisterField regMmu;
     private RegisterField regFault;
     private RegisterField regTimer;
@@ -70,7 +70,7 @@ public class StatePanel extends JPanel implements TabPanel {
         springLayout.putConstraint(SpringLayout.WEST, regH, 10, SpringLayout.EAST, regX);
         add(regH);
 
-        regNZVC = new RegisterField("NZVC", WORD_COLUMNS);
+        regNZVC = new RegisterField("P...NZVC", BINARY_BYTE_COLUMNS);
         regNZVC.setFont(font);
         springLayout.putConstraint(SpringLayout.NORTH, regNZVC, 0, SpringLayout.NORTH, regA);
         springLayout.putConstraint(SpringLayout.WEST, regNZVC, 10, SpringLayout.EAST, regH);
@@ -124,37 +124,30 @@ public class StatePanel extends JPanel implements TabPanel {
         springLayout.putConstraint(SpringLayout.WEST, regSP, 0, SpringLayout.WEST, regNZVC);
         add(regSP);
         
-        regMode = new RegisterField("Mode", 5);
-        regMode.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, regMode, 0, SpringLayout.SOUTH, regPC);
-        springLayout.putConstraint(SpringLayout.WEST, regMode, 0, SpringLayout.WEST, regPC);
-        regMode.setToolTipText("Fancy machine: super (protected) or user mode, the P flag");
-        add(regMode);
+        regTimer = new RegisterField("Timer", WORD_COLUMNS);
+        regTimer.setFont(font);
+        springLayout.putConstraint(SpringLayout.NORTH, regTimer, 0, SpringLayout.NORTH, regA);
+        springLayout.putConstraint(SpringLayout.WEST, regTimer, 10, SpringLayout.EAST, regNZVC);
+        regTimer.setToolTipText("Word at 0xFFF5: instructions left before the timer trap; 0 = off");
+        add(regTimer);
 
         regMmu = new RegisterField("MMU", WORD_COLUMNS);
         regMmu.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, regMmu, 0, SpringLayout.NORTH, regMode);
-        springLayout.putConstraint(SpringLayout.WEST, regMmu, 10, SpringLayout.EAST, regMode);
+        springLayout.putConstraint(SpringLayout.NORTH, regMmu, 0, SpringLayout.NORTH, regPX);
+        springLayout.putConstraint(SpringLayout.WEST, regMmu, 0, SpringLayout.WEST, regTimer);
         regMmu.setToolTipText("Word at 0xFFF3: 0 = off, even = protection table, odd = translation table + 1");
         add(regMmu);
 
         regFault = new RegisterField("Fault", WORD_COLUMNS);
         regFault.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, regFault, 0, SpringLayout.NORTH, regMode);
-        springLayout.putConstraint(SpringLayout.WEST, regFault, 10, SpringLayout.EAST, regMmu);
+        springLayout.putConstraint(SpringLayout.NORTH, regFault, 0, SpringLayout.NORTH, regPC);
+        springLayout.putConstraint(SpringLayout.WEST, regFault, 0, SpringLayout.WEST, regMmu);
         regFault.setToolTipText("Word at 0xFFF1: the address of the last memory fault");
         add(regFault);
 
-        regTimer = new RegisterField("Timer", WORD_COLUMNS);
-        regTimer.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, regTimer, 0, SpringLayout.NORTH, regMode);
-        springLayout.putConstraint(SpringLayout.WEST, regTimer, 10, SpringLayout.EAST, regFault);
-        regTimer.setToolTipText("Word at 0xFFF5: instructions left before the timer trap; 0 = off");
-        add(regTimer);
-
         memory = new MemoryField();
         memory.setFont(font);
-        springLayout.putConstraint(SpringLayout.NORTH, memory, 10, SpringLayout.SOUTH, regMode);
+        springLayout.putConstraint(SpringLayout.NORTH, memory, 10, SpringLayout.SOUTH, regPC);
         springLayout.putConstraint(SpringLayout.WEST, memory, 0, SpringLayout.WEST, regPC);
         add(memory);
 
@@ -188,19 +181,20 @@ public class StatePanel extends JPanel implements TabPanel {
                 txtOperation.setText(state.getOp().toString());
             }
 
-            String flags = (state.getN() ? "1" : "0") +
+            String flags =
+                    (state.getP() ? "1" : "0") +
+                    "..." +
+                    (state.getN() ? "1" : "0") +
                     (state.getZ() ? "1" : "0") +
                     (state.getV() ? "1" : "0") +
                     (state.getC() ? "1" : "0");
-            regNZVC.setText(flags);
+            regNZVC.setPlainText(flags);
 
             boolean fancy = state.isFancy();
-            regMode.setVisible(fancy);
-            regMmu.setVisible(fancy);
+            regMmu.setVisible(fancy); // TODO this doesn't work...
             regFault.setVisible(fancy);
             regTimer.setVisible(fancy);
             if (fancy) {
-                regMode.setPlainText(state.isProtectedMode() ? "super" : "user");
                 regMmu.setText(state.mem2Safe(Pep10.MMU_BASE).toString());
                 regFault.setText(state.mem2Safe(Pep10.FAULT_ADDRESS).toString());
                 regTimer.setText(state.mem2Safe(Pep10.TIMER).toString());
@@ -219,7 +213,6 @@ public class StatePanel extends JPanel implements TabPanel {
         regNZVC.setFont(font);
         regPC.setFont(font);
         regSP.setFont(font);
-        regMode.setFont(font);
         regMmu.setFont(font);
         regFault.setFont(font);
         regTimer.setFont(font);
