@@ -69,6 +69,7 @@ class FAddTest {
             { BIG, NEG_BIG, ZERO },
             { BIG, BIG, INFINITY },
             { SMALLER, ONE, ONE },
+            { NEG_SMALL, ONE, ONE },
             { SMALLER, SMALLER, 0x07FE },
             { NEG_SMALLER, NEG_SMALLER, 0x87FE },
             { TINY, NEG_TINY, ZERO },

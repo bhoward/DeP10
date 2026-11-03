@@ -1,9 +1,7 @@
 package edu.depauw.dep10.resources;
 
-import edu.depauw.dep10.simulator.PlainController;
-import edu.depauw.dep10.simulator.Simulator;
-import edu.depauw.dep10.simulator.State;
-import edu.depauw.dep10.simulator.StepCountController;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,9 +12,10 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import edu.depauw.dep10.simulator.PlainController;
+import edu.depauw.dep10.simulator.Simulator;
+import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.simulator.StepCountController;
 
 /**
  * Checks the "Page Faults" files in demo/vm: a small kernel runs a user program with address

@@ -1,21 +1,21 @@
 package edu.depauw.dep10.resources;
 
+import static edu.depauw.dep10.resources.PepHarness.mem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.io.ByteArrayOutputStream;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepCountController;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import static edu.depauw.dep10.resources.PepHarness.mem;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Memory protection on the fancy machine (stage 1): a 64-byte table of two bits per 256-byte page,

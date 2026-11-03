@@ -8,6 +8,8 @@ import edu.depauw.dep10.util.Word;
  * protection trap.
  */
 public class MemoryFault extends RuntimeException {
+    private static final long serialVersionUID = -2148505132398824709L;
+    
     /** Trap operand for a read or write the table does not allow. */
     public static final int DATA = 3;
     /** Trap operand for an instruction fetch from a page that is not executable. */
