@@ -66,7 +66,7 @@ class FancyMachineTest {
                         LDWA    frame,i
                         MOVASP
                         SRET
-                user:   """ + user + "\n        .END\n";
+                user:   """ + user + "\n";
     }
 
     private static State run(String src, boolean fancy, int limit, ByteArrayOutputStream err) {
@@ -94,7 +94,7 @@ class FancyMachineTest {
         assertEquals(0, mem(s, 0xF002), "opcode byte of a timer trap");
         assertEquals(1, mem(s, 0xF004), "operand of a timer trap");
         assertEquals(0, mem(s, 0xFFF5), "timer is back at 0");
-        assertTrue(s.isProtectedMode(), "the handler runs in protected mode");
+        assertTrue(s.getP(), "the handler runs in protected mode");
     }
 
     @Test
@@ -183,13 +183,13 @@ class FancyMachineTest {
     void sretLeavesProtectedMode() {
         State s = PepHarness.load(PepHarness.assemble(program("", COUNT_LOOP)), null);
         s.setFancy(true);
-        assertTrue(s.isProtectedMode(), "the machine boots in the OS");
+        assertTrue(s.getP(), "the machine boots in the OS");
         // run until the first user instruction has executed: BR, 4 setup pairs, ... just step
-        var sim = new Simulator(s);
+        new Simulator(s);
         boolean sawUser = false;
         for (int i = 0; i < 200 && s.isRunning(); i++) {
             s.doStep(new PlainController(), Pep10.table);
-            if (!s.isProtectedMode()) {
+            if (!s.getP()) {
                 sawUser = true;
                 break;
             }

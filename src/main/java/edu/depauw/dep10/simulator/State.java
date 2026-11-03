@@ -34,7 +34,6 @@ public class State {
     // Fancy machine: supervisor (protected) mode, timer and invalid-instruction trap.
     // Off by default, so bare-metal programs see the original machine.
     private boolean fancy = false;
-    private boolean protectedMode = true; // the machine boots in the OS
     private boolean startedInUser = false;   // the current instruction began in user mode
     private boolean timerExpired = false;
     // Memory protection: what to undo if the current user-mode instruction faults.
@@ -138,7 +137,7 @@ public class State {
 
     /** True while the memory protection table is being enforced: user mode on the fancy machine with a table set. */
     public boolean isProtecting() {
-        return fancy && !protectedMode && mem2Safe(Pep10.MMU_BASE).value() != 0;
+        return fancy && !getP() && mem2Safe(Pep10.MMU_BASE).value() != 0;
     }
 
     private void checkAccess(Word addr, boolean write) {
@@ -183,7 +182,7 @@ public class State {
 
     public void setMem1(Word addr, UByte n) {
         checkAccess(addr, true);
-        if (fancy && !protectedMode) {
+        if (fancy && !getP()) {
             undoLog.add(new int[] { physical(addr), memory[physical(addr)].value() });
         }
         if (addr.equals(Pep10.SHUTDOWN)) {
@@ -281,6 +280,10 @@ public class State {
     public void setEA(Word address) {
         EA = address;
     }
+    
+    public boolean getP() {
+        return Flags.bit(7);
+    }
 
     public boolean getN() {
         return Flags.bit(3);
@@ -296,6 +299,10 @@ public class State {
 
     public boolean getC() {
         return Flags.bit(0);
+    }
+    
+    public void setP(boolean b) {
+        Flags = Flags.withBit(7, b);
     }
 
     public void setN(boolean b) {
@@ -315,16 +322,16 @@ public class State {
     }
 
     public void setFlags(UByte flags) {
-        Flags = UByte.of(flags.value() & 0x0F);
+        Flags = UByte.of(flags.value() & 0x8F);
     }
 
     /**
      * NZVC in the low four bits. On the fancy machine bit 7 is P: 1 in protected (supervisor) mode,
      * 0 in user mode. A trap sets it and pushes the old value in the frame; SRET takes it back from
-     * the frame (restoreMode). MOVAFLG cannot change it (setFlags ignores everything but NZVC).
+     * the frame. MOVAFLG cannot change it.
      */
     public UByte getFlags() {
-        return fancy && protectedMode ? UByte.of(Flags.value() | 0x80) : Flags;
+        return Flags;
     }
 
     public boolean isRunning() {
@@ -495,23 +502,7 @@ public class State {
     public void setFancy(boolean fancy) {
         this.fancy = fancy;
         this.timerExpired = false;
-    }
-
-    /** True while the OS is running (supervisor mode); false while a user program runs. Meaningful only on the fancy machine. */
-    public boolean isProtectedMode() {
-        return protectedMode;
-    }
-
-    /**
-     * Called by SRET with the flags byte it popped from the trap frame: bit 7 (P) says which mode
-     * the frame came from, and that is the mode SRET returns to. A frame pushed by a system call
-     * made from the OS therefore returns to the OS (system calls can nest), and a frame pushed
-     * from a user program returns to user mode. Does nothing on the plain machine.
-     */
-    public void restoreMode(UByte savedFlags) {
-        if (fancy) {
-            protectedMode = (savedFlags.value() & 0x80) != 0;
-        }
+        this.setP(fancy); // start in protected mode if fancy
     }
 
     /**
@@ -524,7 +515,7 @@ public class State {
     public void trap(UByte opcode, Word operand) {
         var savedFlags = getFlags(); // includes P, the mode that is being interrupted
         if (fancy) {
-            protectedMode = true; // the trap itself runs as the OS, so the protection table does not apply to it
+            setP(true); // the trap itself runs as the OS, so the protection table does not apply to it
         }
         var t = mem2(Pep10.SYSTEM_STACK_POINTER);
 
@@ -545,7 +536,7 @@ public class State {
         if (!fancy) {
             throw new IllegalStateException("Unimplemented operation");
         }
-        if (protectedMode) {
+        if (getP()) {
             err.println(String.format("Invalid instruction 0x%02X at 0x%04X in supervisor mode; stopping",
                     IR1.value(), PC.plus(-1).value()));
             stop();
@@ -575,7 +566,7 @@ public class State {
                 timerExpired = true;
             }
         }
-        if (timerExpired && startedInUser && !protectedMode) {
+        if (timerExpired && startedInUser && !getP()) {
             timerExpired = false;
             trap(UByte.of(0), Word.of(1));
         }
@@ -583,7 +574,7 @@ public class State {
 
     public void doStep(Controller control, Table table) {
         var origPC = PC;
-        startedInUser = fancy && !protectedMode;
+        startedInUser = fancy && !getP();
         if (startedInUser) {
             // Remember enough to undo this instruction if memory protection stops it
             saveA = A;

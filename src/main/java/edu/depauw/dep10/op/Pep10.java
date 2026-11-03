@@ -7,9 +7,15 @@ public class Pep10 {
     public static final Word TRAP_HANDLER_POINTER = Word.of(0xFFF7);
     public static final Word DISPATCHER_POINTER = Word.of(0xFFF9);
     public static final Word SYSTEM_STACK_POINTER = Word.of(0xFFFB);
-    /** Timer device (fancy machine): instructions left before a timer trap (counts in every mode; the trap waits for user mode); 0 = off. */
+    /**
+     * Timer device (fancy machine): instructions left before a timer trap (counts
+     * in every mode; the trap waits for user mode); 0 = off.
+     */
     public static final Word TIMER = Word.of(0xFFF5);
-    /** Memory protection (fancy machine): address of the 64-byte page table, 0 = protection off. */
+    /**
+     * Memory protection (fancy machine): address of the 64-byte page table, 0 =
+     * protection off.
+     */
     public static final Word MMU_BASE = Word.of(0xFFF3);
     /** Memory protection: the address that caused the last protection trap. */
     public static final Word FAULT_ADDRESS = Word.of(0xFFF1);
@@ -28,21 +34,20 @@ public class Pep10 {
 
     public static final Operation SRET = new Operation.Unary("SRET") {
         public void exec(State s) {
-            if (s.isFancy() && !s.isProtectedMode()) {
-                // Privileged: a user program cannot return from a trap it did not make. Treated like
-                // an invalid instruction (trap with this opcode and operand 2).
+            if (s.isFancy() && !s.getP()) {
+                // Privileged: a user program cannot return from a trap it did not make. Treated
+                // like an invalid instruction (trap with this opcode and operand 2).
                 s.invalidInstruction();
                 return;
             }
             var t = s.getSP();
             var saved = s.mem1(t);
-            s.setFlags(saved);
             s.setA(s.mem2(t.plus(1)));
             s.setX(s.mem2(t.plus(3)));
             s.setPC(s.mem2(t.plus(5)));
             s.setSP(s.mem2(t.plus(7)));
             s.setMem2(SYSTEM_STACK_POINTER, t.plus(12));
-            s.restoreMode(saved); // last, so everything above is read and written in the OS's mode
+            s.setFlags(saved); // last, so everything above is read and written in the OS's mode
         }
     };
 
@@ -54,7 +59,8 @@ public class Pep10 {
 
     public static final Operation MOVAFLG = new Operation.Unary("MOVAFLG") {
         public void exec(State s) {
-            s.setFlags(s.getA().lo());
+            // Don't allow changing the Protected bit
+            s.setFlags(s.getA().lo().withBit(7, s.getP()));
         }
     };
 
