@@ -383,7 +383,7 @@ class LongintTest {
     @Test
     @DisplayName("demo/longint-demo.dcl prints 1! to 12! and Fibonacci(45) with WriteLong")
     void demoProgram() throws Exception {
-        String src = java.nio.file.Files.readString(java.nio.file.Path.of("demo/longint-demo.dcl"));
+        String src = java.nio.file.Files.readString(java.nio.file.Path.of("demo/declan/longint-demo.dcl"));
         StringBuilder expected = new StringBuilder();
         long f = 1;
         for (int k = 1; k <= 12; k++) {

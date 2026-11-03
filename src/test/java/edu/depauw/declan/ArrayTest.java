@@ -210,7 +210,7 @@ class ArrayTest {
     @Test
     @DisplayName("The sieve of Eratosthenes demo prints the primes below 100")
     void sieveDemo() throws java.io.IOException {
-        String source = java.nio.file.Files.readString(java.nio.file.Path.of("demo/array-demo.dcl"));
+        String source = java.nio.file.Files.readString(java.nio.file.Path.of("demo/declan/array-demo.dcl"));
         StringBuilder expected = new StringBuilder();
         for (int p = 2; p < 100; p++) {
             boolean prime = true;
