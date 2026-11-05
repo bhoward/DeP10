@@ -132,6 +132,35 @@ public final class PepHarness {
         return state;
     }
 
+    /**
+     * Loads a "Pep/10 System Code" object file into a fresh machine with no operating system image at all,
+     * like the editor does for a file that brings its own kernel and .INCLUDELIB "bmos".
+     */
+    public static State loadSystem(String obj, String input) {
+        State state = new State();
+        if (input != null) {
+            state.setInput(new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.US_ASCII)));
+        }
+        state.loadString(obj);
+        return state;
+    }
+
+    /** As run, but assembles as System Code and loads no OS image. */
+    public static State runSystem(String source, int stepLimit) {
+        State state = loadSystem(assembleSystem(source), null);
+        new Simulator(state).run(new StepCountController(new PlainController(), stepLimit));
+        return state;
+    }
+
+    /** As runForOutput, but assembles as System Code and loads no OS image. */
+    public static String runSystemForOutput(String source, int stepLimit) {
+        State state = loadSystem(assembleSystem(source), null);
+        var out = new java.io.ByteArrayOutputStream();
+        state.setOutput(out);
+        new Simulator(state).run(new StepCountController(new PlainController(), stepLimit));
+        return out.toString(java.nio.charset.StandardCharsets.US_ASCII);
+    }
+
     /** Reads a 16-bit memory word, for checking a fixed scratch address the driver code wrote a result to. */
     public static int mem(State state, int addr) {
         return state.mem2(Word.of(addr)).value();

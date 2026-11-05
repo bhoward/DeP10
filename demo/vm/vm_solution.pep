@@ -16,8 +16,14 @@
 ; (instruction fetch). The faulting virtual address is in the word at 0xFFF1.
 ; Returning with SRET runs the same instruction again.
 ;
-; This program needs the "fancy machine" (user mode, translation).
-; From a terminal:   run --fancy --bm <object file>
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   REQUIRED (user mode, address translation). Tick the "Fancy machine" box.
+;   Terminal: asm --sys -s <this file> -o m.pepo
+;             run m.pepo --bm --fancy
 ;
 ; What to do
 ; ----------
@@ -98,7 +104,6 @@ pfMsg:    .ASCII  "Page fault at 0x\0"
 frMsg:    .ASCII  ", frame 0x\0"
 killMsg:  .ASCII  "Process killed: bad access at 0x\0"
 failMsg:  .ASCII  "(fault)\n\0"
-hexTab:   .ASCII  "0123456789ABCDEF"
 
 sysS:     .BLOCK  64
 frame:    .BLOCK  12             ; the trap frame lives here
@@ -171,38 +176,6 @@ other:    LDWX    otherMsg,i
           LDBA    0,i
           STBA    pwrOff,d
 
-; puts: print the zero-terminated string at X
-puts:     LDBA    0,x
-          BREQ    putsEnd
-          STBA    charOut,d
-          ADDX    1,i
-          BR      puts
-putsEnd:  RET
-
-; puthex: print the four hex digits of A
-puthex:   SUBSP   6,i            ; 0,s value  2,s digits left  4,s digit
-          STWA    0,s
-          LDWA    4,i
-          STWA    2,s
-phLoop:   LDWA    0,s
-          @ASRA4
-          @ASRA4
-          @ASRA4                 ; top nibble to the bottom (the sign bit smears, so mask)
-          ANDA    0x000F,i
-          STWA    4,s
-          LDWX    4,s
-          LDBA    hexTab,x
-          STBA    charOut,d
-          LDWA    0,s
-          @ASLA4                 ; next nibble to the top
-          STWA    0,s
-          LDWA    2,s
-          SUBA    1,i
-          STWA    2,s
-          BRNE    phLoop
-          ADDSP   6,i
-          RET
-
 ; ---- BEGIN STUDENT CODE
 onFault:  LDWA    10,s           ; 3 = data access, 4 = instruction fetch
           CPWA    3,i
@@ -244,3 +217,6 @@ kill:     LDWX    killMsg,i
           STBA    charOut,d
           BR      nextProc
 ; ---- END STUDENT CODE
+
+; ---- console ports, puts and puthex (the DeP10 bare metal library; keep this last)
+          .INCLUDELIB "bmos"

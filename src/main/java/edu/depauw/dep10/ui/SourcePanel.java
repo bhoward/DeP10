@@ -679,7 +679,7 @@ public class SourcePanel extends JPanel implements SearchListener {
 
                         // Attempt to guess SourceType from content
                         String content = srcTextArea.getText();
-                        if (content.contains(".SECTION")) {
+                        if (content.contains(".SECTION") || content.matches("(?s).*\\.INCLUDELIB\\s+\"bmos\".*")) {
                             parent.setSourceType(SourceType.Pep10System);
                         } else if (content.contains("@DECO") || content.contains("@STRO")) {
                             parent.setSourceType(SourceType.Pep10UserFull);

@@ -14,8 +14,8 @@ kernel reports each fault, with its address, and goes on to the next program. `m
 instructor version.
 
 This needs the fancy machine. The files have `.SECTION` lines and bring their own kernel, so they are
-assembled as "Pep/10 System Code" and need no operating system; they define the console addresses
-themselves. In the GUI the editor picks that source type for you when you open the file; tick the
+assembled as "Pep/10 System Code" and need no operating system; `.INCLUDELIB "bmos"` at the end of the
+file supplies the console addresses and `puts`/`puthex`. In the GUI the editor picks that source type for you when you open the file; tick the
 "Fancy machine" box and run. From a terminal:
 
     asm --sys -s mmu_solution.pep -o m.pepo

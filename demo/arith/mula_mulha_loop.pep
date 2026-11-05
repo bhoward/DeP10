@@ -1,3 +1,10 @@
+; How to run
+;   OS:      Pep/10 full operating system (the default). Assemble as "Pep/10 User
+;            Program"; the program ends with RET, which returns to the OS.
+;   Fancy:   not needed.
+;   Terminal: asm -s mula_mulha_loop.pep -o a.pepo
+;             run a.pepo
+
 BR      start
 
 ; vars to store registers

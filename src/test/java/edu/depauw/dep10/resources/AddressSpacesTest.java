@@ -30,7 +30,7 @@ class AddressSpacesTest {
     }
 
     private static State load(String src) {
-        State s = PepHarness.load(PepHarness.assemble(src), null);
+        State s = PepHarness.loadSystem(PepHarness.assembleSystem(src), null);
         s.setFancy(true);
         s.setOutput(new ByteArrayOutputStream());
         s.setError(new ByteArrayOutputStream());

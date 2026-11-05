@@ -39,7 +39,7 @@ class VmExerciseTest {
     }
 
     private static String run(String src, boolean fancy) {
-        State s = PepHarness.load(PepHarness.assemble(src), null);
+        State s = PepHarness.loadSystem(PepHarness.assembleSystem(src), null);
         s.setFancy(fancy);
         var out = new ByteArrayOutputStream();
         s.setOutput(out);
@@ -59,7 +59,7 @@ class VmExerciseTest {
     @Test
     @DisplayName("Solution: the data really lives in the new frames")
     void dataIsInFrames() throws IOException {
-        State s = PepHarness.load(PepHarness.assemble(read("vm_solution.pep")), null);
+        State s = PepHarness.loadSystem(PepHarness.assembleSystem(read("vm_solution.pep")), null);
         s.setFancy(true);
         s.setOutput(new ByteArrayOutputStream());
         new Simulator(s).run(new StepCountController(new PlainController(), LIMIT));

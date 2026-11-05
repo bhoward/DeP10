@@ -23,3 +23,6 @@ that follows it. This is not tested.
 `HeapAllocatorTest` checks both files, runs the solution's library with other
 drivers (layout, rounding, running out of memory, first fit, splitting, exact
 fit), and checks that the files differ only inside the student block.
+
+This exercise runs on the Pep/10 bare metal OS (no fancy machine): assemble it as "Pep/10 User Program (bare
+metal)" or with `asm --bm -s <file> -o h.pepo`, then `run h.pepo --bm`. The program ends by writing to `pwrOff`.

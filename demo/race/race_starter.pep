@@ -11,8 +11,14 @@
 ; both threads have finished, the kernel prints each buffer and says OK if it
 ; holds exactly what that thread should have printed, WRONG if not.
 ;
-; This program needs the "fancy machine" (supervisor/user modes and a timer).
-; From a terminal:   run --fancy --bm <object file>
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   REQUIRED (user mode and the timer). Tick the "Fancy machine" box.
+;   Terminal: asm --sys -s <this file> -o m.pepo
+;             run m.pepo --bm --fancy
 ;
 ; How the kernel works
 ; --------------------
@@ -195,14 +201,6 @@ badB:    LDWX    badmB,i
 sayB:    CALL    puts,i
           LDBA    0,i
           STBA    pwrOff,d
-
-; puts: print the zero-terminated string at the address in X. Keeps nothing.
-puts:     LDBA    0,x
-          BREQ    putsEnd
-          STBA    charOut,d
-          ADDX    1,i
-          BR      puts
-putsEnd:  RET
 
 ;----------------------------------------------------------------------
 ; create: A = entry point, X = process table entry.
@@ -484,4 +482,5 @@ slSaveLo:  .BLOCK 2
 ; ---- END STUDENT CODE
 
 
+        .INCLUDELIB "bmos"
         .INCLUDELIB "int32"      ; UDDiv and DSUB

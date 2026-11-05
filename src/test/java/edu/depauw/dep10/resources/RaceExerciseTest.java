@@ -40,15 +40,25 @@ class RaceExerciseTest {
 
     /** Runs the program on the fancy machine with the given quantum; returns the report the kernel prints at the end. */
     private static String run(String src, int quantum) {
+        return run(src, quantum, true);
+    }
+
+    /**
+     * As above. With strict = false the run may end any way at all (the broken starter can corrupt its own
+     * kernel data and stop on a bad system call or instruction); only the printed text is returned.
+     */
+    private static String run(String src, int quantum, boolean strict) {
         String text = src.replace(QUANTUM, "quantum:  .EQUATE " + quantum);
         assertFalse(text.equals(src) && quantum != 40, "the quantum edit must change the program");
-        State s = PepHarness.load(PepHarness.assemble(text), null);
+        State s = PepHarness.loadSystem(PepHarness.assembleSystem(text), null);
         s.setFancy(true);
         var out = new ByteArrayOutputStream();
         s.setOutput(out);
         new Simulator(s).run(new StepCountController(new PlainController(), LIMIT));
-        assertFalse(s.isRunning(), "machine should have powered off (quantum " + quantum + ")");
-        assertEquals(0, PepHarness.mem(s, 0xF004), "no unknown system call (quantum " + quantum + ")");
+        if (strict) {
+            assertFalse(s.isRunning(), "machine should have powered off (quantum " + quantum + ")");
+            assertEquals(0, PepHarness.mem(s, 0xF004), "no unknown system call (quantum " + quantum + ")");
+        }
         return out.toString(StandardCharsets.US_ASCII);
     }
 
@@ -80,7 +90,7 @@ class RaceExerciseTest {
         String src = read("race_starter.pep");
         int broken = 0;
         for (int q : QUANTA) {
-            if (!correct(run(src, q))) {
+            if (!correct(run(src, q, false))) {
                 broken++;
             }
         }

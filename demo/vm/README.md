@@ -22,7 +22,11 @@ instructor version, and its output is
 
 This needs the fancy machine:
 
-    run --fancy --bm <object file>
+The file has no operating system (`.INCLUDELIB "bmos"` at the end supplies the console addresses and
+`puts`). It assembles as "Pep/10 System Code"; tick "Fancy machine" in the GUI, or from a terminal:
+
+    asm --sys -s <this file> -o m.pepo
+    run m.pepo --bm --fancy
 
 ## The hardware
 

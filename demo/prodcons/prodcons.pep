@@ -26,6 +26,15 @@
 ;     4 next PCB in the ring
 ;     6 pid      8 top of user stack     10 top of system stack
 ;    12 unused  14 saved H     16 waitingOn (semaphore, if blocked)
+;
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   not needed.
+;   Terminal: asm --sys -s prodcons.pep -o m.pepo
+;             run m.pepo --bm
 
         BR      main
 
@@ -268,3 +277,6 @@ cKeep:   STWX    outIdx,d
          STWA    0,s
          BRGT    cLoop
          SCALL   1,i            ; EXIT
+
+; ---- console ports, puts and puthex (the DeP10 bare metal library; keep this last)
+          .INCLUDELIB "bmos"

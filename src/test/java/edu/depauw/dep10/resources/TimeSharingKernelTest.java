@@ -29,14 +29,14 @@ class TimeSharingKernelTest {
     @Test
     @DisplayName("Starter as given: no switching, each program runs to completion in turn")
     void starterRunsWithoutSwitching() throws IOException {
-        String out = PepHarness.runForOutput(read("timeshare_starter.pep"), LIMIT);
+        String out = PepHarness.runSystemForOutput(read("timeshare_starter.pep"), LIMIT);
         assertEquals("A1\nA2\nA3\nB1\nB2\nB3\n", out);
     }
 
     @Test
     @DisplayName("Solution: output alternates and H survives every switch")
     void solutionAlternates() throws IOException {
-        String out = PepHarness.runForOutput(read("timeshare_solution.pep"), LIMIT);
+        String out = PepHarness.runSystemForOutput(read("timeshare_solution.pep"), LIMIT);
         assertEquals("A1\nB1\nA2\nB2\nA3\nB3\n", out);
     }
 
@@ -45,7 +45,7 @@ class TimeSharingKernelTest {
     void finishedProcessIsSkipped() throws IOException {
         String src = read("timeshare_solution.pep").replace("bEnd:     .EQUATE 4", "bEnd:     .EQUATE 2");
         assertFalse(src.equals(read("timeshare_solution.pep")), "the edit must change the program");
-        String out = PepHarness.runForOutput(src, LIMIT);
+        String out = PepHarness.runSystemForOutput(src, LIMIT);
         assertEquals("A1\nB1\nA2\nA3\n", out);
     }
 
@@ -54,7 +54,7 @@ class TimeSharingKernelTest {
     void lostHIsDetected() throws IOException {
         String src = read("timeshare_solution.pep").replace("STWA    stH,x", "NOP");
         assertFalse(src.equals(read("timeshare_solution.pep")), "the edit must change the program");
-        String out = PepHarness.runForOutput(src, LIMIT);
+        String out = PepHarness.runSystemForOutput(src, LIMIT);
         assertTrue(out.contains("!"), "output was: " + out);
     }
 
@@ -62,7 +62,7 @@ class TimeSharingKernelTest {
     @DisplayName("An unknown SCALL code stops the machine with a marker")
     void unknownCallStops() throws IOException {
         String src = read("timeshare_solution.pep").replaceFirst("SCALL   0,i           ; YIELD", "SCALL   7,i");
-        State s = PepHarness.run(src, LIMIT);
+        State s = PepHarness.runSystem(src, LIMIT);
         assertEquals(0x0BAD, mem(s, 0xF004));
     }
 

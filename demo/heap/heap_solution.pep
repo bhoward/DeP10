@@ -25,6 +25,14 @@
 ;
 ; Extension: when HFree makes a block free, also merge it with the free block
 ; that follows it, so two small free neighbours can serve one large request.
+;
+; How to run
+;   OS:      Pep/10 bare metal. Assemble as "Pep/10 User Program (bare metal)": the
+;            bare metal header supplies charOut and pwrOff, and the OS image sets
+;            the stack pointer. The program ends by writing to pwrOff, never with RET.
+;   Fancy:   not needed.
+;   Terminal: asm --bm -s <this file> -o h.pepo
+;             run h.pepo --bm
 
         BR      main
 

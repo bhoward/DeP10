@@ -14,7 +14,11 @@ the file), so a switch can land in the middle of `printLong`.
 
 This needs the fancy machine (user mode and the timer at `0xFFF5`):
 
-    run --fancy --bm <object file>
+The file has no operating system (`.INCLUDELIB "bmos"` at the end supplies the console addresses and
+`puts`). It assembles as "Pep/10 System Code"; tick "Fancy machine" in the GUI, or from a terminal:
+
+    asm --sys -s <this file> -o m.pepo
+    run m.pepo --bm --fancy
 
 Each thread writes its characters into its own buffer instead of straight to
 the console, so the two threads' output cannot interleave. When both threads
