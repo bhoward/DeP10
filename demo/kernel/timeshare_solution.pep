@@ -37,6 +37,15 @@
 ;     6 next     the other process's table entry
 ;     8 top of the process's user stack
 ;    10 top of the process's system stack
+;
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   not needed.
+;   Terminal: asm --sys -s timeshare_solution.pep -o m.pepo
+;             run m.pepo --bm
 
         BR      main
 
@@ -230,3 +239,6 @@ bOk:      LDWA    0,s
           CPWA    bEnd,i
           BRLT    bLoop
           SCALL   1,i           ; EXIT
+
+; ---- console ports, puts and puthex (the DeP10 bare metal library; keep this last)
+          .INCLUDELIB "bmos"

@@ -51,8 +51,8 @@ checkbox in the GUI toolbar (it applies to the next run or debug), or with `--fa
 java -jar dep10.jar run --fancy --bm exercise.pepo
 ```
 
-Programs that bring their own operating system (the exercises below) assemble as System Code and run
-with `--bm` (bare metal), because they provide their own trap handler.
+Programs that bring their own operating system (most of the exercises below) assemble as System Code
+(`asm --sys`) and run with `--bm`, because they provide their own trap handler.
 
 What it adds:
 
@@ -66,6 +66,35 @@ What it adds:
 
 In the GUI state panel the **Mode**, **MMU**, **Fault** and **Timer** boxes show these registers while the
 fancy machine is on. The full description is in the Pep/10 reference under "Fancy Machine".
+
+### Which operating system each demo needs
+
+There are three ways to run a Pep/10 program in DeP10. The top of every file in `demo` has a "How to run"
+comment that says which one it is, and `DemoHeadersTest` checks that the comment matches the file.
+
+| Kind | Assemble as | The program ends with | Console symbols come from |
+|---|---|---|---|
+| Full OS | Pep/10 User Program (the default) | `RET` | the OS (`@STRO`, `@DECO`, `@CHARO` macros) |
+| Bare metal | Pep/10 User Program (bare metal, `--bm`) | `STBA pwrOff,d` | the bare metal header (`charIn`, `charOut`, `pwrOff`) |
+| No OS | Pep/10 System Code (`--sys`) | `STBA pwrOff,d` | the file itself, through `.INCLUDELIB "bmos"` |
+
+A "no OS" program brings its own kernel, so nothing is loaded for it (`run --bm` only loads the small bare
+metal image, which the program overwrites).
+
+`bmos` is DeP10's own bare metal library. Put `.INCLUDELIB "bmos"` at the very end of the file (execution starts
+at address 0, so a library placed first would be run instead of jumped into). It defines `charIn`, `charOut`
+and `pwrOff`, and the routines `puts` (print the string at X) and `puthex` (print the word in A as four hex
+digits). It has no trap handler: the handler is the student's job, so the program installs its own through the
+word at `0xFFF7`. The editor picks the System Code source type for a file that contains `.SECTION` or
+`.INCLUDELIB "bmos"`.
+
+| Demo | OS | Fancy machine |
+|---|---|---|
+| `arith/fp16.pep`, `arith/mula_mulha_loop.pep` | full OS | not needed |
+| `heap` | bare metal | not needed |
+| `kernel`, `prodcons` | none (`bmos`) | not needed |
+| `race`, `mmu`, `vm`, `vm2` | none (`bmos`) | required |
+| `declan/*.dcl` | DeCLan programs (compiled to Pep/10 for the full OS) | not needed |
 
 ### Exercises
 

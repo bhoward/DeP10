@@ -23,7 +23,7 @@ class ProducerConsumerTest {
     @Test
     @DisplayName("The producer never gets more than two items ahead, and the consumer sees 1 to 6 in order")
     void boundedBufferInOrder() throws IOException {
-        String out = PepHarness.runForOutput(demo(), LIMIT);
+        String out = PepHarness.runSystemForOutput(demo(), LIMIT);
         assertEquals("p1\np2\nc1\nc2\np3\np4\nc3\nc4\np5\np6\nc5\nc6\n", out);
         int made = 0, taken = 0;
         for (String line : out.split("\n")) {
@@ -43,7 +43,7 @@ class ProducerConsumerTest {
     void noSlotsDeadlocks() throws IOException {
         String stuck = demo().replace("empty:   .WORD   2", "empty:   .WORD   0");
         assertFalse(stuck.equals(demo()));
-        assertEquals("", PepHarness.runForOutput(stuck, LIMIT));
+        assertEquals("", PepHarness.runSystemForOutput(stuck, LIMIT));
     }
 
     @Test
@@ -51,7 +51,7 @@ class ProducerConsumerTest {
     void withoutEmptySemaphoreProducerRunsAhead() throws IOException {
         String racy = demo().replace(EMPTY_P, "LDWA    empty,i\n         NOP\n         NOP");
         assertFalse(racy.equals(demo()), "the edit must change the program");
-        String out = PepHarness.runForOutput(racy, LIMIT);
+        String out = PepHarness.runSystemForOutput(racy, LIMIT);
         assertTrue(out.startsWith("p1\np2\np3\np4\np5\np6\n"),
                 "all six items were made before the consumer ran: " + out.replace('\n', ' '));
         assertFalse(out.contains("c1"), "item 1 was overwritten before it could be taken");

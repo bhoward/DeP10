@@ -17,8 +17,14 @@
 ; is install the right page table: the base register at 0xFFF3 holds the table
 ; address plus one (the odd value turns translation on).
 ;
-; This program needs the "fancy machine" (user mode, translation).
-; From a terminal:   run --fancy --bm <object file>
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   REQUIRED (user mode, address translation). Tick the "Fancy machine" box.
+;   Terminal: asm --sys -s <this file> -o m.pepo
+;             run m.pepo --bm --fancy
 ;
 ; What to do
 ; ----------
@@ -189,10 +195,5 @@ other:    LDWX    otherMsg,i
           LDBA    0,i
           STBA    pwrOff,d
 
-; puts: print the zero-terminated string at X
-puts:     LDBA    0,x
-          BREQ    putsEnd
-          STBA    charOut,d
-          ADDX    1,i
-          BR      puts
-putsEnd:  RET
+; ---- console ports, puts and puthex (the DeP10 bare metal library; keep this last)
+          .INCLUDELIB "bmos"

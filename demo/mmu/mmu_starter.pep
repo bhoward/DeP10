@@ -16,13 +16,14 @@
 ; The faulting address is in the word at 0xFFF1, and the saved PC in the
 ; frame is the instruction that faulted.
 ;
-; This program needs the "fancy machine" (user mode, protection).
-; It has .SECTION lines, so assemble it as "Pep/10 System Code" (the editor
-; picks that type for you) and tick the "Fancy machine" box. The file defines
-; its own console addresses below and brings its own tiny kernel, so no
-; operating system is needed. From a terminal:
-;   asm --sys -s <this file> -o m.pepo
-;   run m.pepo --bm --fancy
+; How to run
+;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
+;            because the file ends with .INCLUDELIB "bmos", the DeP10 bare metal
+;            library that supplies charOut, pwrOff, puts and puthex). The program
+;            ends by writing to pwrOff, never with RET.
+;   Fancy:   REQUIRED (user mode, memory protection). Tick the "Fancy machine" box.
+;   Terminal: asm --sys -s <this file> -o m.pepo
+;             run m.pepo --bm --fancy
 ;
 ; Page table entry bits (read, write): 00 no access, 10 read only,
 ; 11 read and write, 01 read and execute (a code page). The table base
@@ -52,10 +53,6 @@
 ;     Process killed: bad instruction fetch at 0x0400
 ;     A
 ;     All programs finished
-
-; ---- console addresses
-charOut:  .EQUATE 0xFFFE        ; console output port
-pwrOff:   .EQUATE 0xFFFF        ; write here to power off
 
 ; ---- user code (page 0): read and execute only
           BR      main
@@ -128,7 +125,6 @@ doneMsg:  .ASCII  "All programs finished\n\0"
 otherMsg: .ASCII  "Unexpected trap, stopping\n\0"
 badData:  .ASCII  "Process killed: bad data access at 0x\0"
 badFetch: .ASCII  "Process killed: bad instruction fetch at 0x\0"
-hexTab:   .ASCII  "0123456789ABCDEF"
 
 sysS:     .BLOCK  64
 frame:    .BLOCK  12             ; the trap frame lives here
@@ -200,41 +196,12 @@ other:    LDWX    otherMsg,i
           LDBA    0,i
           STBA    pwrOff,d
 
-; puts: print the zero-terminated string at X
-puts:     LDBA    0,x
-          BREQ    putsEnd
-          STBA    charOut,d
-          ADDX    1,i
-          BR      puts
-putsEnd:  RET
-
-; puthex: print the four hex digits of A
-puthex:   SUBSP   6,i            ; 0,s value  2,s digits left  4,s digit
-          STWA    0,s
-          LDWA    4,i
-          STWA    2,s
-phLoop:   LDWA    0,s
-          @ASRA4
-          @ASRA4
-          @ASRA4                 ; top nibble to the bottom (the sign bit smears, so mask)
-          ANDA    0x000F,i
-          STWA    4,s
-          LDWX    4,s
-          LDBA    hexTab,x
-          STBA    charOut,d
-          LDWA    0,s
-          @ASLA4                 ; next nibble to the top
-          STWA    0,s
-          LDWA    2,s
-          SUBA    1,i
-          STWA    2,s
-          BRNE    phLoop
-          ADDSP   6,i
-          RET
-
 ; ---- BEGIN STUDENT CODE
 onFault:  LDWX    todoMsg,i      ; TODO: report the fault as described above
           CALL    puts,i
           BR      nextProc
 todoMsg:  .ASCII  "(fault)\n\0"
 ; ---- END STUDENT CODE
+
+; ---- console ports, puts and puthex (the DeP10 bare metal library; keep this last)
+          .INCLUDELIB "bmos"
