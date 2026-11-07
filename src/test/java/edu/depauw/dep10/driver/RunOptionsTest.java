@@ -27,7 +27,7 @@ class RunOptionsTest {
 
     private static State load(CommandRun run, ErrorLog log) {
         var state = new State();
-        Driver.loadOS(run, state, log);
+        OsLoader.loadOS(run, state, log);
         return state;
     }
 
@@ -49,7 +49,7 @@ class RunOptionsTest {
         assertFalse(Arrays.equals(FRESH, topPage(load(bm, new ErrorLog()))));
 
         var full = new State();
-        Driver.loadOS(new CommandRun(), full, new ErrorLog());
+        OsLoader.loadOS(new CommandRun(), full, new ErrorLog());
         assertFalse(Arrays.equals(FRESH, topPage(full)));
     }
 
