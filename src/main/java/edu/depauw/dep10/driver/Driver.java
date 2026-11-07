@@ -197,23 +197,7 @@ public class Driver {
             state.loadFile(param);
         }
 
-        // load object code for selected OS
-        if (run.bareMetal) {
-            if (run.osName != null) {
-                log.error("Bare metal excludes specifying OS.");
-            }
-            state.loadResource(BARE_METAL_OS_OBJECT);
-        } else if (run.osName != null) {
-            if (run.osName.equalsIgnoreCase("FULL")) {
-                state.loadResource(FULL_OS_OBJECT);
-            } else if (run.osName.equalsIgnoreCase("FORTH")) {
-                state.loadResource(FORTH_OS_OBJECT);
-            } else {
-                state.loadFile(run.osName + ".pepo");
-            }
-        } else {
-            state.loadResource(FULL_OS_OBJECT);
-        }
+        OsLoader.loadOS(run, state, log);
 
         state.setInput(run.consoleIn);
         state.setOutput(run.consoleOut);

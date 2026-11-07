@@ -26,7 +26,7 @@ The file has no operating system (`.INCLUDELIB "bmos"` at the end supplies the c
 `puts`). It assembles as "Pep/10 System Code"; tick "Fancy machine" in the GUI, or from a terminal:
 
     asm --sys -s <this file> -o m.pepo
-    run m.pepo --bm --fancy
+    run m.pepo --sys --fancy
 
 ## The hardware
 

@@ -18,7 +18,7 @@
 ;            ends by writing to pwrOff, never with RET.
 ;   Fancy:   REQUIRED (user mode and the timer). Tick the "Fancy machine" box.
 ;   Terminal: asm --sys -s <this file> -o m.pepo
-;             run m.pepo --bm --fancy
+;             run m.pepo --sys --fancy
 ;
 ; How the kernel works
 ; --------------------

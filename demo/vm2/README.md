@@ -23,7 +23,7 @@ The file has no operating system (`.INCLUDELIB "bmos"` at the end supplies the c
 `puts`). It assembles as "Pep/10 System Code"; tick "Fancy machine" in the GUI, or from a terminal:
 
     asm --sys -s <this file> -o m.pepo
-    run m.pepo --bm --fancy
+    run m.pepo --sys --fancy
 
 The kernel switches processes by pointing the stack pointer at the other process's saved trap frame and
 executing `SRET`; the frames never move. The same switch is the one in the time-sharing exercise, so this

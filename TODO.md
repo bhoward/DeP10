@@ -41,14 +41,6 @@ Build End Pause xStep xBack
 [paused] resume -> [debug], step -> [paused], back -> [paused] -- SingleStepController
 Build End Resume Step Back
 
-Document the CLI options
--------
-dep10 asm [OPTIONS] source
-dep10 run [OPTIONS] object
-
-OPTIONS allow specifying an OS other than default, and whether/where to produce
-object, listing, error, dump files
-
 .ORG affects current .SECTION
 OS sections pack to top (absent .ORG), user (default?) section starts at 0000 (no .ORG allowed?)
 make object format compatible with Pepp for user code, but extend to handle OS sections? (instead of ELF)
