@@ -190,15 +190,17 @@ public class Driver {
         }
     }
 
-    private static void doRun(CommandRun run, ErrorLog log) {
-        State state = (run.trace == null) ? new State() : new DebugState();
-
-        for (var param : run.parameters) {
-            state.loadFile(param);
-        }
-
-        // load object code for selected OS
-        if (run.bareMetal) {
+    /**
+     * Loads the object code of the OS chosen by the options: nothing for --sys, the bare metal OS for --bm,
+     * the named OS for --os, and the full OS if none of them is given.
+     */
+    static void loadOS(CommandRun run, State state, ErrorLog log) {
+        if (run.noOS) {
+            if (run.bareMetal || run.osName != null) {
+                log.error("--sys (no OS) excludes --bm and --os.");
+            }
+            // load nothing: the program brings its own kernel
+        } else if (run.bareMetal) {
             if (run.osName != null) {
                 log.error("Bare metal excludes specifying OS.");
             }
@@ -214,6 +216,16 @@ public class Driver {
         } else {
             state.loadResource(FULL_OS_OBJECT);
         }
+    }
+
+    private static void doRun(CommandRun run, ErrorLog log) {
+        State state = (run.trace == null) ? new State() : new DebugState();
+
+        for (var param : run.parameters) {
+            state.loadFile(param);
+        }
+
+        loadOS(run, state, log);
 
         state.setInput(run.consoleIn);
         state.setOutput(run.consoleOut);

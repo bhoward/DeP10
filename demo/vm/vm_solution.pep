@@ -23,7 +23,7 @@
 ;            ends by writing to pwrOff, never with RET.
 ;   Fancy:   REQUIRED (user mode, address translation). Tick the "Fancy machine" box.
 ;   Terminal: asm --sys -s <this file> -o m.pepo
-;             run m.pepo --bm --fancy
+;             run m.pepo --sys --fancy
 ;
 ; What to do
 ; ----------

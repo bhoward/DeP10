@@ -44,7 +44,7 @@
 ;            ends by writing to pwrOff, never with RET.
 ;   Fancy:   not needed.
 ;   Terminal: asm --sys -s timeshare_starter.pep -o m.pepo
-;             run m.pepo --bm
+;             run m.pepo --sys
 
         BR      main
 

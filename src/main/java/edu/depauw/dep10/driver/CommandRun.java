@@ -18,6 +18,9 @@ public class CommandRun {
 	@Parameter(names = "--bm", description = "Use bare metal OS.", order = 2)
 	public boolean bareMetal = false;
 	
+	@Parameter(names = "--sys", description = "Load no OS at all (for System Code programs that bring their own kernel).", order = 2)
+	public boolean noOS = false;
+	
 	@Parameter(names = {"-i", "--charIn"}, description = "Console input.", order = 3)
 	public String consoleIn = null;
 	
