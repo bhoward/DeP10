@@ -16,6 +16,8 @@ import edu.depauw.dep10.simulator.State;
 class RunOptionsTest {
     /** The words of the top page of memory, where the OS images put their vectors and code. */
     private static int[] topPage(State state) {
+        // Reading 0xFFFD is a read of the console input port, which would block on System.in.
+        state.setInput(new java.io.ByteArrayInputStream(new byte[0]));
         int[] words = new int[128];
         for (int i = 0; i < words.length; i++) {
             words[i] = PepHarness.mem(state, 0xFF00 + 2 * i);
