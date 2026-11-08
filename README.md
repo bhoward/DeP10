@@ -41,6 +41,45 @@ java -jar dep10.jar run test.pepo -o test.out -e test.err -d test.pepd -t test.p
 ```
 
 
+### Command line options
+
+`java -jar dep10.jar -h` lists the commands. The first three options work without a command: `-g` or `--gui` opens
+the IDE, `-v` or `--version` prints the version and `-h` or `--help` prints help. The two commands are `asm` and `run`.
+
+`asm [OPTIONS] source...` assembles a program into an object file. The source is a file name, or `-s file`, or
+standard input if there is none. The options choose the OS header that goes in front of the program, and what to
+write:
+
+| Option | Meaning |
+|---|---|
+| `--os NAME` | Header of the OS to assemble for: `FULL`, `FORTH`, or the name of a file `NAME.peph`. The default is `FULL` |
+| `--bm` | Use the bare metal header (`charIn`, `charOut` and `pwrOff`). Excludes `--os` |
+| `--sys` | Assemble System Code: no OS header, only the standard macros. The program brings its own kernel |
+| `-o FILE` | Object file (standard output if absent) |
+| `-l FILE` | Listing file |
+| `-e FILE` | Error file (standard error if absent) |
+| `-x FILE` | Export file with the macros and symbols, to use as a header |
+| `--os-listing` | Include the OS in the listing |
+
+`run [OPTIONS] object...` loads one or more object files and runs them. The options choose which OS is loaded
+first, the console files, and how long to run:
+
+| Option | Meaning |
+|---|---|
+| `--os NAME` | OS to load: `FULL`, `FORTH`, or the name of a file `NAME.pepo`. The default is `FULL` |
+| `--bm` | Load the small bare metal OS. Excludes `--os` |
+| `--sys` | Load no OS at all, for System Code programs that bring their own kernel. Excludes `--bm` and `--os` |
+| `--fancy` | Turn on the fancy machine (see below) |
+| `-i FILE` | File to read the console input (`charIn`) from |
+| `-o FILE` | File to write the console output (`charOut`) to |
+| `-e FILE` | Error file |
+| `-d FILE` | Memory dump file, written after the run |
+| `-t FILE` | Trace file |
+| `-m N` | Stop after N instructions (default 125000, 0 for no limit) |
+
+Pick the same kind of program on both commands: `asm` and `run` with no OS option for a full OS program, both with
+`--bm` for bare metal, and both with `--sys` for a program with no OS.
+
 ## The fancy machine (operating systems projects)
 
 The fancy machine is an optional mode of the simulator for operating systems courses. It is off by
@@ -48,11 +87,11 @@ default, so programs written for the textbook Pep/10 run unchanged. Turn it on w
 checkbox in the GUI toolbar (it applies to the next run or debug), or with `--fancy` on the command line:
 
 ```
-java -jar dep10.jar run --fancy --bm exercise.pepo
+java -jar dep10.jar run --fancy --sys exercise.pepo
 ```
 
 Programs that bring their own operating system (most of the exercises below) assemble as System Code
-(`asm --sys`) and run with `--bm`, because they provide their own trap handler.
+(`asm --sys`) and run with `--sys`, which loads no operating system, because they provide their own trap handler.
 
 What it adds:
 
@@ -78,8 +117,8 @@ comment that says which one it is, and `DemoHeadersTest` checks that the comment
 | Bare metal | Pep/10 User Program (bare metal, `--bm`) | `STBA pwrOff,d` | the bare metal header (`charIn`, `charOut`, `pwrOff`) |
 | No OS | Pep/10 System Code (`--sys`) | `STBA pwrOff,d` | the file itself, through `.INCLUDELIB "bmos"` |
 
-A "no OS" program brings its own kernel, so nothing is loaded for it (`run --bm` only loads the small bare
-metal image, which the program overwrites).
+A "no OS" program brings its own kernel, so nothing is loaded for it: the IDE loads no OS for System Code, and
+on the command line `run --sys` does the same.
 
 `bmos` is DeP10's own bare metal library. Put `.INCLUDELIB "bmos"` at the very end of the file (execution starts
 at address 0, so a library placed first would be run instead of jumped into). It defines `charIn`, `charOut`

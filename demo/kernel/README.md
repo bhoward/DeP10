@@ -7,7 +7,7 @@ Files for the time-sharing kernel exercise.
 - `timeshare_solution.pep` is the instructor solution. Do not distribute it.
 
 Run either file in the DeP10 simulator. They bring their own kernel, so they assemble as "Pep/10 System Code" with
-`.INCLUDELIB "bmos"` at the end (`asm --sys -s <file> -o m.pepo`, then `run m.pepo --bm`); the fancy machine is not needed. With the starter as
+`.INCLUDELIB "bmos"` at the end (`asm --sys -s <file> -o m.pepo`, then `run m.pepo --sys`); the fancy machine is not needed. With the starter as
 given the programs run one after the other (`A1 A2 A3 B1 B2 B3`); with YIELD
 completed they take turns (`A1 B1 A2 B2 A3 B3`). A `!` in the output means a
 program found its H register changed by a switch.

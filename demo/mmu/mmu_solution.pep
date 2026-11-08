@@ -23,7 +23,7 @@
 ;            ends by writing to pwrOff, never with RET.
 ;   Fancy:   REQUIRED (user mode, memory protection). Tick the "Fancy machine" box.
 ;   Terminal: asm --sys -s <this file> -o m.pepo
-;             run m.pepo --bm --fancy
+;             run m.pepo --sys --fancy
 ;
 ; Page table entry bits (read, write): 00 no access, 10 read only,
 ; 11 read and write, 01 read and execute (a code page). The table base

@@ -19,7 +19,7 @@ file supplies the console addresses and `puts`/`puthex`. In the GUI the editor p
 "Fancy machine" box and run. From a terminal:
 
     asm --sys -s mmu_solution.pep -o m.pepo
-    run m.pepo --bm --fancy
+    run m.pepo --sys --fancy
 
 The memory protection table has two bits per 256-byte page (read, write): `00` no access, `10` read only,
 `11` read and write, `01` read and execute (code). The word at `0xFFF3` points to the table (0 = off),
