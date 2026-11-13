@@ -1,9 +1,6 @@
 package edu.depauw.dep10.simulator;
 
-import java.util.List;
-
 import edu.depauw.dep10.op.Operation;
-import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public interface Controller {
@@ -17,9 +14,9 @@ public interface Controller {
     
     boolean isPaused();
 
-    void resume(MainFrame frame, List<Integer> breakpoints);
-
-    void forward(MainFrame frame);
-    
-    void backward(MainFrame frame);
+    /**
+     * The state at which this controller (or the controller it wraps) last paused or stopped, or null if
+     * it never did. A user interface uses it to resume, single-step or step back from that point.
+     */
+    State saved();
 }
