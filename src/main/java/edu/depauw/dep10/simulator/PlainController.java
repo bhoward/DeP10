@@ -1,9 +1,7 @@
 package edu.depauw.dep10.simulator;
 
-import java.util.List;
 
 import edu.depauw.dep10.op.Operation;
-import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 public class PlainController implements Controller {
@@ -51,17 +49,7 @@ public class PlainController implements Controller {
     }
 
     @Override
-    public void resume(MainFrame frame, List<Integer> breakpoints) {
-        frame.getSourceType().resume(frame, saved, breakpoints);
-    }
-    
-    @Override
-    public void forward(MainFrame frame) {
-        frame.getSourceType().forward(frame, saved);
-    }
-    
-    @Override
-    public void backward(MainFrame frame) {
-        frame.getSourceType().backward(frame, saved);
+    public State saved() {
+        return saved;
     }
 }
