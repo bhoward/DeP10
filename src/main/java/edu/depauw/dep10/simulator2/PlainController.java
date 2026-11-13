@@ -8,8 +8,7 @@ public class PlainController extends AbstractController {
 	@Override
 	protected void doCycle() {
 		while (state.isRunning()) {
-			var op = machine.fetch(state);
-			op.execute(state);
+			doStep();
 		}
 	}
 }

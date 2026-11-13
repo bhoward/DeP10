@@ -8,6 +8,10 @@ public class DebugPlainMemoryDevice extends PlainMemoryDevice {
         
     }
 
+    public DebugPlainMemoryDevice(int size) {
+		super(size);
+	}
+    
     @Override
     public void writeB(Word address, UByte value, State state) throws Fault {
         var action = new PlainMemoryWriteAction(address, value, readB(address, state));

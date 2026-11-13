@@ -5,5 +5,7 @@ public interface Machine {
 
     DebugState initDebug();
 
-    Operation fetch(State state);
+    Operation fetch(State state) throws Fault;
+
+	void handle(Fault fault, State state);
 }

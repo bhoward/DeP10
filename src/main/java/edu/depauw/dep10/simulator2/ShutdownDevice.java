@@ -5,6 +5,10 @@ import edu.depauw.dep10.util.Word;
 
 public class ShutdownDevice implements Device {
     private Word baseAddress;
+    
+    public ShutdownDevice(Word baseAddress) {
+    	this.baseAddress = baseAddress;
+    }
 
     @Override
     public boolean canFetchB(Word address) {

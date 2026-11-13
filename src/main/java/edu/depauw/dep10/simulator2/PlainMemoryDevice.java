@@ -6,8 +6,8 @@ import edu.depauw.dep10.util.Word;
 public class PlainMemoryDevice implements Device {
     private UByte[] mem;
     
-    public PlainMemoryDevice() {
-        this.mem = new UByte[65536];
+    public PlainMemoryDevice(int size) {
+        this.mem = new UByte[size];
     }
     
     @Override

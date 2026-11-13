@@ -62,4 +62,13 @@ public abstract class AbstractController implements Controller {
 	}
 
 	abstract protected void doCycle();
+
+	protected void doStep() {
+		try {
+			var op = machine.fetch(state);
+			op.execute(state);
+		} catch (Fault fault) {
+			machine.handle(fault, state);
+		}
+	}
 }
