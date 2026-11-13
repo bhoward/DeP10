@@ -58,6 +58,10 @@ public class Word {
 		return new Word(value + n.value);
 	}
 	
+    public Word minus(int i) {
+        return new Word(value - i);
+    }
+    
 	public Word minus(Word n) {
 		return new Word(value - n.value);
 	}

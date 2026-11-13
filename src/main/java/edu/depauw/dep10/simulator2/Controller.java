@@ -16,4 +16,14 @@ public interface Controller {
 	 * Resumes a previously paused execution, if any. 
 	 */
 	void resume();
+	
+	/**
+	 * @return true if there is a currently running execution
+	 */
+	boolean isRunning();
+	
+	/**
+	 * @return true if there is a current but paused execution
+	 */
+	boolean isPaused();
 }

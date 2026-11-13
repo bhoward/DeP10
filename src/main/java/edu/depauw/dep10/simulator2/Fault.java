@@ -1,5 +1,6 @@
 package edu.depauw.dep10.simulator2;
 
-public interface Fault {
+public class Fault extends Exception {
+    private static final long serialVersionUID = -8917648242053214980L;
 
 }

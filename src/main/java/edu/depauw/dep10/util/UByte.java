@@ -66,4 +66,8 @@ public class UByte {
     public String toString() {
         return Util.HEX_FORMAT.toHexDigits((byte) value);
     }
+
+    public Word with(UByte lo) {
+        return Word.of(value << 8 + lo.value);
+    }
 }

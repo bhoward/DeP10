@@ -8,7 +8,7 @@ public class PlainController extends AbstractController {
 	@Override
 	protected void doCycle() {
 		while (state.isRunning()) {
-			Operation op = machine.fetch(state);
+			var op = machine.fetch(state);
 			op.execute(state);
 		}
 	}

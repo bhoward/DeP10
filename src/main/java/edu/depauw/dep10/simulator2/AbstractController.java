@@ -17,6 +17,7 @@ public abstract class AbstractController implements Controller {
 		pause(); // stop any previous run
 
 		state = machine.init();
+		state.run();
 		startCycle();
 	}
 
@@ -39,13 +40,23 @@ public abstract class AbstractController implements Controller {
 
 	@Override
 	public void resume() {
-		if (state != null && thread == null) {
+		if (isPaused()) {
 			state.resume();
 			startCycle();
 		}
 	}
 
-	private void startCycle() {
+	@Override
+    public boolean isRunning() {
+        return state != null && thread != null;
+    }
+
+    @Override
+    public boolean isPaused() {
+        return state != null && thread == null;
+    }
+
+    protected void startCycle() {
 		thread = new Thread(() -> doCycle());
 		thread.start();
 	}
