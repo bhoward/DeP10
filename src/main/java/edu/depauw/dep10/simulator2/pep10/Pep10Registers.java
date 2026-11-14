@@ -17,13 +17,14 @@ public interface Pep10Registers extends State {
     static final ByteRegister FLAGS = new ByteRegister("Flags", 0);
     static final ByteRegister IR1 = new ByteRegister("IR1", 1);
 
-    static final int NUM_WORD_REGISTERS = 5;
+    static final int NUM_WORD_REGISTERS = 6;
 
     static final WordRegister A = new WordRegister("A", 0);
     static final WordRegister X = new WordRegister("X", 1);
     static final WordRegister PC = new WordRegister("PC", 2);
     static final WordRegister SP = new WordRegister("SP", 3);
     static final WordRegister IR2 = new WordRegister("IR2", 4);
+    static final WordRegister EA = new WordRegister("EA", 5);
 
     static final FlagRegister N = new FlagRegister("N", 0, 3);
     static final FlagRegister Z = new FlagRegister("Z", 0, 2);
@@ -53,6 +54,10 @@ public interface Pep10Registers extends State {
     default void setA(Word value) {
         put(A, value);
     }
+    
+    default void setA(UByte value) {
+        put(A, UByte.of(0).with(value));
+    }
 
     default Word getX() {
         return get(X);
@@ -60,6 +65,10 @@ public interface Pep10Registers extends State {
 
     default void setX(Word value) {
         put(X, value);
+    }
+    
+    default void setX(UByte value) {
+        put(X, UByte.of(0).with(value));
     }
 
     default Word getPC() {
@@ -84,6 +93,14 @@ public interface Pep10Registers extends State {
 
     default void setOperand(Word value) {
         put(IR2, value);
+    }
+
+    default Word getEA() {
+        return get(EA);
+    }
+
+    default void setEA(Word value) {
+        put(EA, value);
     }
 
     default boolean getN() {

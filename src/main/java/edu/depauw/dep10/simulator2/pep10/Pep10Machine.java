@@ -19,12 +19,19 @@ import edu.depauw.dep10.util.Word;
  */
 public class Pep10Machine implements Machine {
     private static final int MEMORY_SIZE = 65536;
+    
+    public static final Word TRAP_HANDLER_POINTER = Word.of(0xFFF7);
+    public static final Word INITIAL_PC = Word.of(0xFFF9);
+    public static final Word INITIAL_SP = Word.of(0xFFFB);
+    public static final Word CHARIN = Word.of(0xFFFD);
+    public static final Word CHAROUT = Word.of(0xFFFE);
+    public static final Word SHUTDOWN = Word.of(0xFFFF);
 
     private static final Table TABLE;
 
     static {
         TABLE = new Table();
-        TABLE.installPep10Base();
+        Pep10Table.installPep10Base(TABLE);
     }
 
     @Override
@@ -33,12 +40,14 @@ public class Pep10Machine implements Machine {
         var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10State(memory, registerFile);
 
-        var console = new ConsoleDevice(Word.of(0xFFFD));
-        var shutdown = new ShutdownDevice(Word.of(0xFFFF));
+        var console = new ConsoleDevice(CHARIN);
+        var shutdown = new ShutdownDevice(SHUTDOWN);
 
         state.mount(console);
         state.mount(shutdown);
-
+        
+        // TODO need to load memory contents and initialize registers
+        
         return state;
     }
 
@@ -48,12 +57,14 @@ public class Pep10Machine implements Machine {
         var registerFile = new DebugRegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10DebugState(memory, registerFile);
 
-        var console = new DebugConsoleDevice(Word.of(0xFFFD));
-        var shutdown = new ShutdownDevice(Word.of(0xFFFF));
+        var console = new DebugConsoleDevice(CHARIN);
+        var shutdown = new ShutdownDevice(SHUTDOWN);
 
         state.mount(console);
         state.mount(shutdown);
-
+        
+        // TODO need to load memory contents and initialize registers
+        
         return state;
     }
 
