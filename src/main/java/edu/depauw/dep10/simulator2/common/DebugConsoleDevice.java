@@ -1,4 +1,4 @@
-package edu.depauw.dep10.simulator2;
+package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.util.Word;
 

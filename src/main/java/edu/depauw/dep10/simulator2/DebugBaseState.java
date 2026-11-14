@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator2;
 
+import edu.depauw.dep10.simulator2.common.RegisterFile;
+
 public class DebugBaseState extends BaseState implements DebugState {
 
 	public DebugBaseState(Device memory, RegisterFile registerFile) {

@@ -1,5 +1,8 @@
-package edu.depauw.dep10.simulator2;
+package edu.depauw.dep10.simulator2.common;
 
+import edu.depauw.dep10.simulator2.Device;
+import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 

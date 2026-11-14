@@ -1,8 +1,8 @@
 package edu.depauw.dep10.simulator2;
 
-import edu.depauw.dep10.simulator2.RegisterFile.ByteRegister;
-import edu.depauw.dep10.simulator2.RegisterFile.FlagRegister;
-import edu.depauw.dep10.simulator2.RegisterFile.WordRegister;
+import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
+import edu.depauw.dep10.simulator2.common.RegisterFile.FlagRegister;
+import edu.depauw.dep10.simulator2.common.RegisterFile.WordRegister;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
