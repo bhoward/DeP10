@@ -1,13 +1,16 @@
 package edu.depauw.dep10.simulator2.pep10;
 
 import edu.depauw.dep10.simulator2.State;
-import edu.depauw.dep10.simulator2.common.RegisterFile;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.FlagRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.WordRegister;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
+/**
+ * "Mixin" interface to allow convenient access to the elements of the Pep/10
+ * register file.
+ */
 public interface Pep10Registers extends State {
     static final int NUM_BYTE_REGISTERS = 2;
 

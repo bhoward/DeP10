@@ -6,17 +6,18 @@ import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
+/**
+ * A version of the {@link RegisterFile} that will record actions for playback
+ * in debug mode.
+ */
 public class DebugRegisterFile extends RegisterFile {
     private record ByteRegisterPutAction(ByteRegister register, UByte newValue, UByte oldValue) implements Action {
-
     }
 
     private record WordRegisterPutAction(WordRegister register, Word newValue, Word oldValue) implements Action {
-
     }
 
     private record FlagRegisterPutAction(FlagRegister register, boolean newValue, boolean oldValue) implements Action {
-
     }
 
     public DebugRegisterFile(int numByteRegisters, int numWordRegisters) {

@@ -7,15 +7,23 @@ import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
+/**
+ * A version of the {@link PlainMemoryDevice} that will record actions for
+ * playback in debug mode.
+ */
 public class DebugPlainMemoryDevice extends PlainMemoryDevice {
     private record PlainMemoryWriteAction(Word address, UByte newValue, UByte oldValue) implements Action {
-        
     }
 
+    /**
+     * Construct a memory device containing the given number of bytes.
+     * 
+     * @param size
+     */
     public DebugPlainMemoryDevice(int size) {
-		super(size);
-	}
-    
+        super(size);
+    }
+
     @Override
     public void writeB(Word address, UByte value, State state) throws Fault {
         var action = new PlainMemoryWriteAction(address, value, readB(address, state));

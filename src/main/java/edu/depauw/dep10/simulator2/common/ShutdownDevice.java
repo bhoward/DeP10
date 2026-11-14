@@ -6,11 +6,20 @@ import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
+/**
+ * A single-byte memory-mapped device that will pause the machine when anything
+ * is written to it.
+ */
 public class ShutdownDevice implements Device {
     private Word baseAddress;
-    
+
+    /**
+     * Construct a ShutdownDevice to be mounted at the given base address.
+     * 
+     * @param baseAddress
+     */
     public ShutdownDevice(Word baseAddress) {
-    	this.baseAddress = baseAddress;
+        this.baseAddress = baseAddress;
     }
 
     @Override
