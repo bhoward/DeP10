@@ -3,6 +3,9 @@ package edu.depauw.dep10.simulator2;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.depauw.dep10.simulator2.RegisterFile.ByteRegister;
+import edu.depauw.dep10.simulator2.RegisterFile.FlagRegister;
+import edu.depauw.dep10.simulator2.RegisterFile.WordRegister;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 

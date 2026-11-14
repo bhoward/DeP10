@@ -4,9 +4,18 @@ import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
 public class RegisterFile {
+    public static record ByteRegister(String name, int id) {
+    }
+
+    public static record WordRegister(String name, int id) {
+    }
+
+    public static record FlagRegister(String name, int id, int position) {
+    }
+
     private UByte[] breg;
     private Word[] wreg;
-    
+
     public RegisterFile(int numByteRegisters, int numWordRegisters) {
         this.breg = new UByte[numByteRegisters];
         this.wreg = new Word[numWordRegisters];
