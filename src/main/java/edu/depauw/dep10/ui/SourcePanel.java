@@ -551,7 +551,7 @@ public class SourcePanel extends JPanel implements SearchListener {
             } else {
                 if (control.isPaused()) {
                     setDebugging();
-                    control.resume(parent, getResBreakpoints());
+                    parent.getSourceType().resume(parent, control.saved(), getResBreakpoints());
                 } else {
                     control.pause();
                     setPaused();
@@ -578,7 +578,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            control.forward(parent);
+            parent.getSourceType().forward(parent, control.saved());
         }
     }
 
@@ -600,7 +600,7 @@ public class SourcePanel extends JPanel implements SearchListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             var control = parent.getController();
-            control.backward(parent);
+            parent.getSourceType().backward(parent, control.saved());
         }
     }
 

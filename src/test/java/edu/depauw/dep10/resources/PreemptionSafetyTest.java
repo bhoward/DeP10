@@ -6,14 +6,12 @@ import edu.depauw.dep10.simulator.PlainController;
 import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepCountController;
-import edu.depauw.dep10.ui.MainFrame;
 import edu.depauw.dep10.util.Word;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -108,9 +106,7 @@ class PreemptionSafetyTest {
         @Override public void pause() { parent.pause(); }
         @Override public boolean isEnded() { return parent.isEnded(); }
         @Override public boolean isPaused() { return parent.isPaused(); }
-        @Override public void resume(MainFrame f, List<Integer> breakpoints) { parent.resume(f, breakpoints); }
-        @Override public void forward(MainFrame f) { parent.forward(f); }
-        @Override public void backward(MainFrame f) { parent.backward(f); }
+        @Override public State saved() { return parent.saved(); }
     }
 
     private static String push32(long v) {
