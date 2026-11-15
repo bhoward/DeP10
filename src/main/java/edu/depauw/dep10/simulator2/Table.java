@@ -1,25 +1,67 @@
 package edu.depauw.dep10.simulator2;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.depauw.dep10.util.Pair;
 import edu.depauw.dep10.util.UByte;
 
+/**
+ * Represents a collection of single-byte machine instructions, searchable by
+ * opcode byte and by mnemonic.
+ */
 public class Table {
     private Operation[] ops;
-    
-    public Table() {
-        ops = new Operation[256];
+    private Map<Pair<String, String>, Integer> codes;
+
+    /**
+     * Construct an opcode table initially filled with an undefined operation.
+     * 
+     * @param undefined
+     */
+    public Table(Operation undefined) {
+        this.ops = new Operation[256];
+        this.codes = new HashMap<>();
+
+        Arrays.fill(ops, undefined);
     }
 
-	public Operation getOp(UByte opCode) throws Fault {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    /**
+     * Lookup an operation given its opcode.
+     * 
+     * @param opCode
+     * @return the Operation
+     */
+    public Operation getOp(UByte opCode) {
+        return ops[opCode.value()];
+    }
 
-    public void install(int code, Operation op) {
+    /**
+     * Add the given {@link Operation} to the table at the given opcode. Multiple
+     * variations of an operation with the same mnemonic may be installed with
+     * different modes; if there is only one version, the mode should be "".
+     * 
+     * @param code
+     * @param op
+     * @param mode
+     */
+    public void install(int code, Operation op, String mode) {
         if (code == 0) {
             throw new IllegalArgumentException("Zero opcodes are not supported");
         }
         ops[code] = op;
-//        codes.put(new Pair<>(op.getMnemonic().toLowerCase(), ""), code);
+        codes.put(new Pair<>(op.getMnemonic().toLowerCase(), mode.toLowerCase()), code);
+    }
+
+    /**
+     * Lookup an opcode given the operation's mnemonic and mode (or "" if none).
+     * 
+     * @param mnemonic
+     * @param mode
+     * @return the opcode
+     */
+    public int lookup(String mnemonic, String mode) {
+        return codes.getOrDefault(new Pair<>(mnemonic.toLowerCase(), mode.toLowerCase()), -1);
     }
 }

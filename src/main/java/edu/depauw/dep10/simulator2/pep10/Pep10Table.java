@@ -5,8 +5,10 @@ import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.OpCore;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.Unary;
-import edu.depauw.dep10.util.Pair;
 
+/**
+ * Contains specifications for all of the standard Pep/10 instruction set.
+ */
 public class Pep10Table {
     public static Mode[] All = new Mode[] { Mode.I, Mode.D, Mode.N, Mode.S, Mode.SF, Mode.X, Mode.SX, Mode.SFX };
     public static Mode[] NotI = new Mode[] { Mode.D, Mode.N, Mode.S, Mode.SF, Mode.X, Mode.SX, Mode.SFX };
@@ -15,9 +17,9 @@ public class Pep10Table {
     public static final Operation UNIMPLEMENTED = new Unary("UNIMP") {
         public void exec(Pep10Registers state) throws Fault {
             throw new Fault("Invalid instruction");
-        }       
+        }
     };
-    
+
     public static final Operation RET = new Unary("RET") {
         public void exec(Pep10Registers s) throws Fault {
             s.setPC(s.readW(s.getSP()));
@@ -342,8 +344,19 @@ public class Pep10Table {
     };
 
     public static final OpCore SCALL = new OpCore("SCALL", All) {
-        public void exec(Pep10Registers s, Mode mode) {
-// TODO            s.trap(s.getOpCode(), s.getOperand()); // don't resolve the operand yet; the handler will do that
+        public void exec(Pep10Registers s, Mode mode) throws Fault {
+            var t = s.readW(Pep10Machine.INITIAL_SP);
+
+            s.writeW(t.plus(-2), s.getOperand()); // don't resolve yet; the handler will do that
+            s.writeB(t.plus(-3), s.getOpCode());
+            s.writeW(t.plus(-5), s.getSP());
+            s.writeW(t.plus(-7), s.getPC());
+            s.writeW(t.plus(-9), s.getX());
+            s.writeW(t.plus(-11), s.getA());
+            s.writeB(t.plus(-12), s.getFlags());
+
+            s.setSP(t.plus(-12));
+            s.setPC(s.readW(Pep10Machine.TRAP_HANDLER_POINTER));
         }
     };
 
@@ -714,39 +727,46 @@ public class Pep10Table {
         }
     };
 
-    public static void installNonUnary(Table table, int code, OpCore op) {
+    private static void installUnary(Table table, int code, Operation op) {
+        table.install(code, op, "");
+    }
+
+    private static void installNonUnary(Table table, int code, OpCore op) {
         for (Mode mode : op.getModes()) {
             var index = code + mode.getOffset();
             if (index == 0) {
                 throw new IllegalArgumentException("Zero opcodes are not supported");
             }
-            table.install(index, new Pep10Operation.NonUnary(op, mode));
-//            codes.put(new Pair<>(op.getMnemonic().toLowerCase(), mode.getSuffix().toLowerCase()), index);
+            table.install(index, new Pep10Operation.NonUnary(op, mode), mode.getSuffix());
         }
     }
-    
 
+    /**
+     * Load the standard Pep/10 instruction set into the table.
+     * 
+     * @param table
+     */
     public static void installPep10Base(Table table) {
-        table.install(1, RET);
-        table.install(2, SRET);
-        table.install(3, MOVFLGA);
-        table.install(4, MOVAFLG);
-        table.install(5, MOVSPA);
-        table.install(6, MOVASP);
-        table.install(7, NOP);
+        installUnary(table, 1, RET);
+        installUnary(table, 2, SRET);
+        installUnary(table, 3, MOVFLGA);
+        installUnary(table, 4, MOVAFLG);
+        installUnary(table, 5, MOVSPA);
+        installUnary(table, 6, MOVASP);
+        installUnary(table, 7, NOP);
 
-        table.install(24, NEGA);
-        table.install(25, NEGX);
-        table.install(26, ASLA);
-        table.install(27, ASLX);
-        table.install(28, ASRA);
-        table.install(29, ASRX);
-        table.install(30, NOTA);
-        table.install(31, NOTX);
-        table.install(32, ROLA);
-        table.install(33, ROLX);
-        table.install(34, RORA);
-        table.install(35, RORX);
+        installUnary(table, 24, NEGA);
+        installUnary(table, 25, NEGX);
+        installUnary(table, 26, ASLA);
+        installUnary(table, 27, ASLX);
+        installUnary(table, 28, ASRA);
+        installUnary(table, 29, ASRX);
+        installUnary(table, 30, NOTA);
+        installUnary(table, 31, NOTX);
+        installUnary(table, 32, ROLA);
+        installUnary(table, 33, ROLX);
+        installUnary(table, 34, RORA);
+        installUnary(table, 35, RORX);
 
         installNonUnary(table, 36, BR);
         installNonUnary(table, 38, BRLE);

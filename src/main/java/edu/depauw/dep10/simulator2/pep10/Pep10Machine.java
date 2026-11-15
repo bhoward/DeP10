@@ -30,7 +30,7 @@ public class Pep10Machine implements Machine {
     private static final Table TABLE;
 
     static {
-        TABLE = new Table();
+        TABLE = new Table(Pep10Table.UNIMPLEMENTED);
         Pep10Table.installPep10Base(TABLE);
     }
 

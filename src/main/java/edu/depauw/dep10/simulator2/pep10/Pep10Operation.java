@@ -11,10 +11,6 @@ public interface Pep10Operation extends Operation {
 
     void exec(Pep10Registers state) throws Fault;
 
-    String getMnemonic();
-
-    boolean hasOperand();
-
     public abstract class Unary implements Pep10Operation {
         private String mnemonic;
 
