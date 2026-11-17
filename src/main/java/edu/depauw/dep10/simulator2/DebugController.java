@@ -11,8 +11,8 @@ public class DebugController extends AbstractController {
     private List<Breakpoint> breakpoints;
     private List<Step> steps;
 
-    public DebugController(Machine machine) {
-        super(machine);
+    public DebugController(Machine machine, Image image) {
+        super(machine, image);
         this.breakpoints = new ArrayList<>();
     }
 
@@ -28,8 +28,9 @@ public class DebugController extends AbstractController {
     public void run() {
         pause(); // stop any previous run
 
-        state = machine.initDebug();
+        state = machine.initDebug(image);
         steps = new ArrayList<>();
+        state.run();
         startCycle();
     }
 

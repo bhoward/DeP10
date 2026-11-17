@@ -2,12 +2,14 @@ package edu.depauw.dep10.simulator2;
 
 public abstract class AbstractController implements Controller {
 	protected Machine machine;
+	protected Image image;
 	protected State state;
 
 	private Thread thread;
 
-	public AbstractController(Machine machine) {
+	public AbstractController(Machine machine, Image image) {
 		this.machine = machine;
+		this.image = image;
 		this.state = null;
 		this.thread = null;
 	}
@@ -16,7 +18,7 @@ public abstract class AbstractController implements Controller {
 	public void run() {
 		pause(); // stop any previous run
 
-		state = machine.init();
+		state = machine.init(image);
 		state.run();
 		startCycle();
 	}

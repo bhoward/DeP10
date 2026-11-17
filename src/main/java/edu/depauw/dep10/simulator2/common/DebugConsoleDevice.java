@@ -6,6 +6,9 @@ public class DebugConsoleDevice extends ConsoleDevice {
 	public DebugConsoleDevice(Word baseAddress) {
 		super(baseAddress);
 		// TODO Auto-generated constructor stub
+		
+		// use a PushbackInputStream for charIn?
+		// what about charOut? StringBuilder?
 	}
 
 }

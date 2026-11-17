@@ -1,7 +1,7 @@
 package edu.depauw.dep10.simulator2.common;
 
-import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.MemoryDevice;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
@@ -11,7 +11,7 @@ import edu.depauw.dep10.util.Word;
  * size in its constructor, it does not do any checking that the addresses are
  * in range.
  */
-public class PlainMemoryDevice implements Device {
+public class PlainMemoryDevice implements MemoryDevice {
     private UByte[] mem;
 
     /**
@@ -50,6 +50,16 @@ public class PlainMemoryDevice implements Device {
 
     @Override
     public void writeB(Word address, UByte value, State state) throws Fault {
+        mem[address.value()] = value;
+    }
+
+    @Override
+    public int size() {
+        return mem.length;
+    }
+
+    @Override
+    public void loadB(Word address, UByte value) {
         mem[address.value()] = value;
     }
 }

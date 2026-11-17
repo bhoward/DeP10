@@ -1,8 +1,8 @@
 package edu.depauw.dep10.simulator2;
 
 public class PlainController extends AbstractController {
-	public PlainController(Machine machine) {
-		super(machine);
+	public PlainController(Machine machine, Image image) {
+		super(machine, image);
 	}
 
 	@Override

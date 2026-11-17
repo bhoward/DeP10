@@ -1,6 +1,7 @@
 package edu.depauw.dep10.simulator2.pep10;
 
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.Image;
 import edu.depauw.dep10.simulator2.Machine;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
@@ -19,7 +20,7 @@ import edu.depauw.dep10.util.Word;
  */
 public class Pep10Machine implements Machine {
     private static final int MEMORY_SIZE = 65536;
-    
+
     public static final Word TRAP_HANDLER_POINTER = Word.of(0xFFF7);
     public static final Word INITIAL_PC = Word.of(0xFFF9);
     public static final Word INITIAL_SP = Word.of(0xFFFB);
@@ -35,7 +36,7 @@ public class Pep10Machine implements Machine {
     }
 
     @Override
-    public Pep10State init() {
+    public Pep10State init(Image image) {
         var memory = new PlainMemoryDevice(MEMORY_SIZE);
         var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10State(memory, registerFile);
@@ -45,14 +46,15 @@ public class Pep10Machine implements Machine {
 
         state.mount(console);
         state.mount(shutdown);
-        
-        // TODO need to load memory contents and initialize registers
-        
+
+        image.loadInto(memory);
+        initializeRegisters(state);
+
         return state;
     }
 
     @Override
-    public Pep10DebugState initDebug() {
+    public Pep10DebugState initDebug(Image image) {
         var memory = new DebugPlainMemoryDevice(MEMORY_SIZE);
         var registerFile = new DebugRegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10DebugState(memory, registerFile);
@@ -62,10 +64,21 @@ public class Pep10Machine implements Machine {
 
         state.mount(console);
         state.mount(shutdown);
-        
-        // TODO need to load memory contents and initialize registers
-        
+
+        image.loadInto(memory);
+        initializeRegisters(state);
+
         return state;
+    }
+
+    private void initializeRegisters(Pep10Registers state) {
+        try {
+            state.setPC(state.readW(INITIAL_PC));
+            state.setSP(state.readW(INITIAL_SP));
+        } catch (Fault fault) {
+            // TODO where should this be handled?
+            System.err.println("Unable to initialize machine registers");
+        }
     }
 
     @Override
