@@ -9,7 +9,8 @@
 ; is the physical frame number and the low two bits are the protection bits:
 ;     00 not present      10 read only      11 read and write      01 read and execute
 ; The base register at 0xFFF3 holds the table's (even) address PLUS ONE; the
-; odd value turns on translation. Supervisor mode is not translated.
+; odd value turns on translation. For example, a table at 0x0800 is turned on
+; by storing 0x0801. Supervisor mode is not translated.
 ;
 ; When the program touches a page that is not present, the machine undoes the
 ; instruction and traps with opcode byte 0 and operand 3 (data access) or 4

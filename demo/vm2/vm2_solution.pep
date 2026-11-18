@@ -15,7 +15,8 @@
 ; The kernel switches by pointing the stack pointer at the other process's
 ; trap frame and executing SRET; the frames never move. What it also has to do
 ; is install the right page table: the base register at 0xFFF3 holds the table
-; address plus one (the odd value turns translation on).
+; address plus one (the odd value turns translation on). For example, a table
+; at 0x0800 is turned on by storing 0x0801.
 ;
 ; How to run
 ;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
@@ -39,6 +40,7 @@
 ;
 ;     P1
 ;     Q2
+;     All processes finished
 
 ; ---- user code (page 0)
           BR      main
