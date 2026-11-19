@@ -16,7 +16,8 @@
 ; HFree   X = address of a payload returned by HAlloc. Makes that block free.
 ;
 ; All three use A and X freely. They keep a few working words in static
-; storage, so they are not safe to interrupt (see the Two Threads exercise).
+; storage, so they are not safe to interrupt (see the Two Threads, One Printer exercise
+; in demo/race).
 ;
 ; Your job: write HFree in the block marked STUDENT CODE. Until you do, the
 ; driver at the end of the file shows memory never coming back: its fourth

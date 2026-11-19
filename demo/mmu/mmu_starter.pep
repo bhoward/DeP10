@@ -9,12 +9,13 @@
 ;   C  buggy: prints "C", then jumps into page 4, which holds data.
 ;
 ; The protection hardware stops B and C. It undoes the offending
-; instruction and traps to the kernel's handler with opcode byte 0 in the
-; frame and the operand
+; instruction and traps to the kernel's handler. The trap frame (the saved
+; registers on the kernel stack, not a page frame) holds opcode byte 0 and
+; the operand
 ;   3   a read or write the table does not allow, or
 ;   4   an instruction fetch from a page that is not code.
 ; The faulting address is in the word at 0xFFF1, and the saved PC in the
-; frame is the instruction that faulted.
+; trap frame is the instruction that faulted.
 ;
 ; How to run
 ;   OS:      none. Assemble as "Pep/10 System Code" (the editor picks that type
