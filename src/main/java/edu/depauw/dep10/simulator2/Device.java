@@ -9,6 +9,18 @@ import edu.depauw.dep10.util.Word;
  */
 public interface Device {
     /**
+     * Advance the simulation by one time step.
+     */
+    void tick();
+
+    /**
+     * Reverse the last tick(), if possible (in debug mode).
+     */
+    default void untick() {
+        // Do nothing
+    }
+
+    /**
      * @param address
      * @return true if the device has an executable byte at the given address
      */

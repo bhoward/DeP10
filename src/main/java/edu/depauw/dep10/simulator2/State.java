@@ -31,6 +31,11 @@ public interface State {
     void resume();
 
     /**
+     * Advance the simulation by one time step.
+     */
+    void tick();
+
+    /**
      * Get a single byte from the given address using "execute" permission. Throws a
      * fault if an error occurs.
      * 

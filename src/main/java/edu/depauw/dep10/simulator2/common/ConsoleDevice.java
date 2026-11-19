@@ -46,4 +46,9 @@ public class ConsoleDevice implements Device {
 		// TODO Auto-generated method stub
 
 	}
+
+    @Override
+    public void tick() {
+        // Do nothing
+    }
 }

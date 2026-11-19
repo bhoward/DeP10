@@ -52,4 +52,9 @@ public class ShutdownDevice implements Device {
         // TODO should we write-through the value to the underlying memory location?
         state.pause();
     }
+
+    @Override
+    public void tick() {
+        // Do nothing
+    }
 }

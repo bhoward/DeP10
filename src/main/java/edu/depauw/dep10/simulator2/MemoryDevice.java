@@ -5,7 +5,7 @@ import edu.depauw.dep10.util.Word;
 
 /**
  * Represents a device accepting addresses from 0 to size - 1, into which the
- * simulator is allowed to load data before running.
+ * simulator is allowed to load data before (or while) running.
  */
 public interface MemoryDevice extends Device {
     /**
@@ -14,7 +14,8 @@ public interface MemoryDevice extends Device {
     int size();
 
     /**
-     * Load the given byte at the specified address, without checking permissions.
+     * Load the given byte at the specified address, without checking permissions or
+     * recording debug actions.
      * 
      * @param address
      * @param value

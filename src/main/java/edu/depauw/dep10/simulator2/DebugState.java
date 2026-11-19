@@ -16,4 +16,9 @@ public interface DebugState extends State {
      * @param action
      */
     void record(Action action);
+
+    /**
+     * Reverse the last tick(), if possible.
+     */
+    void untick();
 }

@@ -1,6 +1,5 @@
 package edu.depauw.dep10.simulator2.common;
 
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -10,12 +9,35 @@ import edu.depauw.dep10.util.Word;
  * for uniform access.
  */
 public class RegisterFile {
+    /**
+     * Selector for a particular byte register with the given id number. The name
+     * may be used for visualization or tracing.
+     * 
+     * @param name
+     * @param id
+     */
     public static record ByteRegister(String name, int id) {
     }
 
+    /**
+     * Selector for a particular word register with the given id number. The name
+     * may be used for visualization or tracing.
+     * 
+     * @param name
+     * @param id
+     */
     public static record WordRegister(String name, int id) {
     }
 
+    /**
+     * Selector for a particular flag within a byte register with the given id
+     * number. Position 0 is the low-order bit, and position 7 is the high-order
+     * bit. The name may be used for visualization or tracing.
+     * 
+     * @param name
+     * @param id
+     * @param position
+     */
     public static record FlagRegister(String name, int id, int position) {
     }
 
@@ -46,15 +68,12 @@ public class RegisterFile {
     }
 
     /**
-     * Put a byte into the given register. When this is overridden by a debug
-     * version, any action that might need to be undone will be recorded with the
-     * given state.
+     * Put a byte into the given register.
      * 
      * @param register
      * @param value
-     * @param state
      */
-    public void put(ByteRegister register, UByte value, State state) {
+    public void put(ByteRegister register, UByte value) {
         breg[register.id()] = value;
     }
 
@@ -69,15 +88,12 @@ public class RegisterFile {
     }
 
     /**
-     * Put a word into the given register. When this is overridden by a debug
-     * version, any action that might need to be undone will be recorded with the
-     * given state.
+     * Put a word into the given register.
      * 
      * @param register
      * @param value
-     * @param state
      */
-    public void put(WordRegister register, Word value, State state) {
+    public void put(WordRegister register, Word value) {
         wreg[register.id()] = value;
     }
 
@@ -92,15 +108,19 @@ public class RegisterFile {
     }
 
     /**
-     * Put a flag bit into the given register. When this is overridden by a debug
-     * version, any action that might need to be undone will be recorded with the
-     * given state.
+     * Put a flag bit into the given register.
      * 
      * @param flag
      * @param value
-     * @param state
      */
-    public void put(FlagRegister flag, boolean value, State state) {
+    public void put(FlagRegister flag, boolean value) {
         breg[flag.id()] = breg[flag.id()].withBit(flag.position(), value);
+    }
+
+    /**
+     * Advance the simulation by one time step.
+     */
+    public void tick() {
+        // Do nothing
     }
 }

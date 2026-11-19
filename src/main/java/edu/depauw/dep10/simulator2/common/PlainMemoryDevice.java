@@ -62,4 +62,9 @@ public class PlainMemoryDevice implements MemoryDevice {
     public void loadB(Word address, UByte value) {
         mem[address.value()] = value;
     }
+
+    @Override
+    public void tick() {
+        // Do nothing
+    }
 }

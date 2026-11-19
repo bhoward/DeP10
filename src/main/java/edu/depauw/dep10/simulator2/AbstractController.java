@@ -69,6 +69,7 @@ public abstract class AbstractController implements Controller {
 		try {
 			var op = machine.fetch(state);
 			op.execute(state);
+			state.tick();
 		} catch (Fault fault) {
 			machine.handle(fault, state);
 		}
