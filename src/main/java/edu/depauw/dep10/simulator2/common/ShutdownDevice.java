@@ -1,16 +1,16 @@
 package edu.depauw.dep10.simulator2.common;
 
-import edu.depauw.dep10.simulator2.Device;
+import edu.depauw.dep10.simulator2.DebugDevice;
 import edu.depauw.dep10.simulator2.Fault;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
 /**
  * A single-byte memory-mapped device that will pause the machine when anything
- * is written to it.
+ * is written to it. It implements DebugDevice because it behaves exactly the
+ * same in debug mode; there is no need to implement a debug version of it.
  */
-public class ShutdownDevice implements Device {
+public class ShutdownDevice implements DebugDevice {
     private Word baseAddress;
 
     /**
@@ -38,19 +38,18 @@ public class ShutdownDevice implements Device {
     }
 
     @Override
-    public UByte fetchB(Word address, State state) throws Fault {
+    public UByte fetchB(Word address) throws Fault {
         return null;
     }
 
     @Override
-    public UByte readB(Word address, State state) throws Fault {
+    public UByte readB(Word address) throws Fault {
         return null;
     }
 
     @Override
-    public void writeB(Word address, UByte value, State state) throws Fault {
-        // TODO should we write-through the value to the underlying memory location?
-        state.pause();
+    public void writeB(Word address, UByte value) throws Fault {
+        throw new Fault("Shutdown");
     }
 
     @Override

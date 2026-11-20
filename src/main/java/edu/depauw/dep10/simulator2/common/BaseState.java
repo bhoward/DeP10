@@ -22,12 +22,23 @@ public class BaseState extends AbstractState implements State {
     protected List<Device> devices;
     protected RegisterFile registerFile;
 
+    /**
+     * Construct a {@link State} with the given memory and registers.
+     * 
+     * @param memory
+     * @param registerFile
+     */
     public BaseState(Device memory, RegisterFile registerFile) {
         this.memory = memory;
         this.devices = new ArrayList<Device>();
         this.registerFile = registerFile;
     }
 
+    /**
+     * Add a {@link Device} to this state.
+     * 
+     * @param device
+     */
     public void mount(Device device) {
         devices.add(device);
     }
@@ -39,67 +50,67 @@ public class BaseState extends AbstractState implements State {
     public UByte fetchB(Word address) throws Fault {
         for (var device : devices) {
             if (device.canFetchB(address)) {
-                return device.fetchB(address, this);
+                return device.fetchB(address);
             }
         }
 
-        return memory.fetchB(address, this);
+        return memory.fetchB(address);
     }
 
     @Override
     public UByte readB(Word address) throws Fault {
         for (var device : devices) {
             if (device.canReadB(address)) {
-                return device.readB(address, this);
+                return device.readB(address);
             }
         }
 
-        return memory.readB(address, this);
+        return memory.readB(address);
     }
 
     @Override
     public void writeB(Word address, UByte value) throws Fault {
         for (var device : devices) {
             if (device.canWriteB(address)) {
-                device.writeB(address, value, this);
+                device.writeB(address, value);
             }
         }
 
-        memory.writeB(address, value, this);
+        memory.writeB(address, value);
     }
 
     @Override
     public Word fetchW(Word address) throws Fault {
         for (var device : devices) {
             if (device.canFetchW(address)) {
-                return device.fetchW(address, this);
+                return device.fetchW(address);
             }
         }
 
-        return memory.fetchW(address, this);
+        return memory.fetchW(address);
     }
 
     @Override
     public Word readW(Word address) throws Fault {
         for (var device : devices) {
             if (device.canReadW(address)) {
-                return device.readW(address, this);
+                return device.readW(address);
             }
         }
 
-        return memory.readW(address, this);
+        return memory.readW(address);
     }
 
     @Override
     public void writeW(Word address, Word value) throws Fault {
         for (var device : devices) {
             if (device.canWriteW(address)) {
-                device.writeW(address, value, this);
+                device.writeW(address, value);
             }
         }
 
         // Note that writing a word across two adjacent devices will go to memory...
-        memory.writeW(address, value, this);
+        memory.writeW(address, value);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
+import edu.depauw.dep10.simulator2.DebugDevice;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.MemoryDevice;
@@ -12,7 +13,7 @@ import edu.depauw.dep10.util.Word;
  * A version of the {@link PlainMemoryDevice} that will record actions for
  * playback in debug mode.
  */
-public class DebugPlainMemoryDevice extends PlainMemoryDevice {
+public class DebugPlainMemoryDevice extends PlainMemoryDevice implements DebugDevice {
     private record PlainMemoryWriteAction(MemoryDevice parent, Word address, UByte newValue, UByte oldValue) implements Action {
         @Override
         public void undo(State state) {
@@ -32,7 +33,7 @@ public class DebugPlainMemoryDevice extends PlainMemoryDevice {
     @Override
     public void writeB(Word address, UByte value, State state) throws Fault {
         var action = new PlainMemoryWriteAction(this, address, value, readB(address, state));
-        super.writeB(address, value, state);
+        super.writeB(address, value);
         ((DebugState) state).record(action);
     }
 }
