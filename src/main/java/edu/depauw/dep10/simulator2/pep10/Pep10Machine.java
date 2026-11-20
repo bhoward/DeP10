@@ -6,8 +6,8 @@ import edu.depauw.dep10.simulator2.Machine;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.Table;
-import edu.depauw.dep10.simulator2.common.ConsoleDevice;
-import edu.depauw.dep10.simulator2.common.DebugConsoleDevice;
+import edu.depauw.dep10.simulator2.common.StreamingConsoleDevice;
+import edu.depauw.dep10.simulator2.common.BufferedConsoleDevice;
 import edu.depauw.dep10.simulator2.common.PlainMemoryDevice;
 import edu.depauw.dep10.simulator2.common.RegisterFile;
 import edu.depauw.dep10.simulator2.common.ShutdownDevice;
@@ -39,7 +39,7 @@ public class Pep10Machine implements Machine {
         var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10State(memory, registerFile);
 
-        var console = new ConsoleDevice(CHARIN);
+        var console = new StreamingConsoleDevice(CHARIN, System.in, System.out);
         var shutdown = new ShutdownDevice(SHUTDOWN);
 
         state.mount(console);
@@ -57,7 +57,7 @@ public class Pep10Machine implements Machine {
         var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10DebugState(memory, registerFile);
 
-        var console = new DebugConsoleDevice(CHARIN);
+        var console = new BufferedConsoleDevice(CHARIN);
         var shutdown = new ShutdownDevice(SHUTDOWN);
 
         state.mount(console);

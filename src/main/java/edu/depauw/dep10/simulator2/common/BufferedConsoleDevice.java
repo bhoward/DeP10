@@ -5,13 +5,20 @@ import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
-public class ConsoleDevice implements Device {
-    private Word charIn;
-    private Word charOut;
+/**
+ * An I/O device that maintains buffers of the total input and output of a run
+ * of the program, allowing single-stepping backwards and forwards.
+ */
+public class BufferedConsoleDevice implements Device {
+    private Word base;
 
-    public ConsoleDevice(Word baseAddress) {
-        this.charIn = baseAddress;
-        this.charOut = baseAddress.plus(1);
+    public BufferedConsoleDevice(Word baseAddress) {
+        this.base = baseAddress;
+    }
+
+    @Override
+    public void tick() {
+        // Do nothing
     }
 
     @Override
@@ -21,12 +28,12 @@ public class ConsoleDevice implements Device {
 
     @Override
     public boolean canReadB(Word address) {
-        return address.equals(charIn);
+        return address.equals(base);
     }
 
     @Override
     public boolean canWriteB(Word address) {
-        return address.equals(charOut);
+        return address.equals(base.plus(1));
     }
 
     @Override
@@ -44,10 +51,5 @@ public class ConsoleDevice implements Device {
     public void writeB(Word address, UByte value) throws Fault {
         // TODO Auto-generated method stub
 
-    }
-
-    @Override
-    public void tick() {
-        // Do nothing
     }
 }
