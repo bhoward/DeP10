@@ -1,6 +1,6 @@
 package edu.depauw.dep10.simulator2.common;
 
-import edu.depauw.dep10.simulator2.DebugDevice;
+import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
@@ -10,7 +10,7 @@ import edu.depauw.dep10.util.Word;
  * is written to it. It implements DebugDevice because it behaves exactly the
  * same in debug mode; there is no need to implement a debug version of it.
  */
-public class ShutdownDevice implements DebugDevice {
+public class ShutdownDevice implements Device {
     private Word baseAddress;
 
     /**

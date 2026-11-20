@@ -1,8 +1,8 @@
 package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
-import edu.depauw.dep10.simulator2.DebugDevice;
 import edu.depauw.dep10.simulator2.DebugState;
+import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
@@ -34,7 +34,7 @@ import edu.depauw.dep10.util.Word;
  * that stepping back restores them. The latch is hidden state and is cleared on
  * {@link #untick()}.
  */
-public class ClockDevice implements DebugDevice {
+public class ClockDevice implements Device {
     public static final int SIZE = 16;
     public static final int COUNTER = 0;
     public static final int COMPARE = 8;

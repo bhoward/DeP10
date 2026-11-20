@@ -1,5 +1,8 @@
 package edu.depauw.dep10.simulator2.common;
 
+import edu.depauw.dep10.simulator2.Action;
+import edu.depauw.dep10.simulator2.DebugState;
+import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -121,6 +124,81 @@ public class RegisterFile {
      * Advance the simulation by one time step.
      */
     public void tick() {
+        // Do nothing
+    }
+
+    // The following are for use in debug mode
+
+    private record ByteRegisterPutAction(RegisterFile parent, ByteRegister register, UByte newValue, UByte oldValue)
+            implements Action {
+        @Override
+        public void undo(State state) {
+            parent.put(register, oldValue);
+        }
+    }
+
+    private record WordRegisterPutAction(RegisterFile parent, WordRegister register, Word newValue, Word oldValue)
+            implements Action {
+        @Override
+        public void undo(State state) {
+            parent.put(register, oldValue);
+        }
+    }
+
+    private record FlagRegisterPutAction(RegisterFile parent, FlagRegister flag, boolean newValue, boolean oldValue)
+            implements Action {
+        @Override
+        public void undo(State state) {
+            parent.put(flag, oldValue);
+        }
+    }
+
+    /**
+     * Put a byte into the given register, and record any action that might need to
+     * be undone with the given state.
+     * 
+     * @param register
+     * @param value
+     * @param state
+     */
+    public void put(ByteRegister register, UByte value, DebugState state) {
+        var action = new ByteRegisterPutAction(this, register, value, get(register));
+        put(register, value);
+        state.record(action);
+    }
+
+    /**
+     * Put a byte into the given register, and record any action that might need to
+     * be undone with the given state.
+     * 
+     * @param register
+     * @param value
+     * @param state
+     */
+    public void put(WordRegister register, Word value, DebugState state) {
+        var action = new WordRegisterPutAction(this, register, value, get(register));
+        put(register, value);
+        state.record(action);
+    }
+
+    /**
+     * Put a flag bit into the given register, and record any action that might need
+     * to be undone with the given state.
+     * 
+     * @param register
+     * @param value
+     * @param state
+     */
+    public void put(FlagRegister flag, boolean value, DebugState state) {
+        var action = new FlagRegisterPutAction(this, flag, value, get(flag));
+        put(flag, value);
+        state.record(action);
+    }
+
+    /**
+     * Reverse the last tick(), if possible (in debug mode).
+     */
+    public void untick() {
         // Do nothing
     }
 }

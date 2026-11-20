@@ -1,7 +1,10 @@
 package edu.depauw.dep10.simulator2.common;
 
+import edu.depauw.dep10.simulator2.Action;
+import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.MemoryDevice;
+import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -65,5 +68,21 @@ public class PlainMemoryDevice implements MemoryDevice {
     @Override
     public void tick() {
         // Do nothing
+    }
+    
+    // These are for use in debug mode
+    
+    private record PlainMemoryWriteAction(MemoryDevice parent, Word address, UByte newValue, UByte oldValue) implements Action {
+        @Override
+        public void undo(State state) {
+            parent.loadB(address, oldValue);
+        }
+    }
+
+    @Override
+    public void writeB(Word address, UByte value, DebugState state) throws Fault {
+        var action = new PlainMemoryWriteAction(this, address, value, readB(address, state));
+        writeB(address, value);
+        state.record(action);
     }
 }

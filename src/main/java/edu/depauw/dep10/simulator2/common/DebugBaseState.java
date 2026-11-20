@@ -1,8 +1,8 @@
 package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
-import edu.depauw.dep10.simulator2.DebugDevice;
 import edu.depauw.dep10.simulator2.DebugState;
+import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Step;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
@@ -17,18 +17,9 @@ import edu.depauw.dep10.util.Word;
 public class DebugBaseState extends BaseState implements DebugState {
     private Step current;
 
-    public DebugBaseState(DebugDevice memory, DebugRegisterFile registerFile) {
+    public DebugBaseState(Device memory, RegisterFile registerFile) {
         super(memory, registerFile);
         this.current = new Step();
-    }
-
-    /**
-     * Add a {@link DebugDevice} to this state.
-     * 
-     * @param device
-     */
-    public void mount(DebugDevice device) {
-        super.mount(device);
     }
 
     @Override
@@ -49,90 +40,90 @@ public class DebugBaseState extends BaseState implements DebugState {
     public UByte fetchB(Word address) throws Fault {
         for (var device : devices) {
             if (device.canFetchB(address)) {
-                return ((DebugDevice) device).fetchB(address, this);
+                return device.fetchB(address, this);
             }
         }
 
-        return ((DebugDevice) memory).fetchB(address, this);
+        return memory.fetchB(address, this);
     }
 
     @Override
     public UByte readB(Word address) throws Fault {
         for (var device : devices) {
             if (device.canReadB(address)) {
-                return ((DebugDevice) device).readB(address, this);
+                return device.readB(address, this);
             }
         }
 
-        return ((DebugDevice) memory).readB(address, this);
+        return memory.readB(address, this);
     }
 
     @Override
     public void writeB(Word address, UByte value) throws Fault {
         for (var device : devices) {
             if (device.canWriteB(address)) {
-                ((DebugDevice) device).writeB(address, value, this);
+                device.writeB(address, value, this);
             }
         }
 
-        ((DebugDevice) memory).writeB(address, value, this);
+        memory.writeB(address, value, this);
     }
 
     @Override
     public Word fetchW(Word address) throws Fault {
         for (var device : devices) {
             if (device.canFetchW(address)) {
-                return ((DebugDevice) device).fetchW(address, this);
+                return device.fetchW(address, this);
             }
         }
 
-        return ((DebugDevice) memory).fetchW(address, this);
+        return memory.fetchW(address, this);
     }
 
     @Override
     public Word readW(Word address) throws Fault {
         for (var device : devices) {
             if (device.canReadW(address)) {
-                return ((DebugDevice) device).readW(address, this);
+                return device.readW(address, this);
             }
         }
 
-        return ((DebugDevice) memory).readW(address, this);
+        return memory.readW(address, this);
     }
 
     @Override
     public void writeW(Word address, Word value) throws Fault {
         for (var device : devices) {
             if (device.canWriteW(address)) {
-                ((DebugDevice) device).writeW(address, value, this);
+                device.writeW(address, value, this);
             }
         }
 
         // Note that writing a word across two adjacent devices will go to memory...
-        ((DebugDevice) memory).writeW(address, value, this);
+        memory.writeW(address, value, this);
     }
 
     @Override
     public void put(ByteRegister register, UByte value) {
-        ((DebugRegisterFile) registerFile).put(register, value, this);
+        registerFile.put(register, value, this);
     }
 
     @Override
     public void put(WordRegister register, Word value) {
-        ((DebugRegisterFile) registerFile).put(register, value, this);
+        registerFile.put(register, value, this);
     }
 
     @Override
     public void put(FlagRegister flag, boolean value) {
-        ((DebugRegisterFile) registerFile).put(flag, value, this);
+        registerFile.put(flag, value, this);
     }
 
     @Override
     public void untick() {
         for (var device : devices) {
-            ((DebugDevice) device).untick();
+            device.untick();
         }
-        ((DebugDevice) memory).untick();
-        ((DebugRegisterFile) registerFile).untick();
+        memory.untick();
+        registerFile.untick();
     }
 }

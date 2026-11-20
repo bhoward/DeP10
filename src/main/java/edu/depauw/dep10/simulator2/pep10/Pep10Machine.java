@@ -8,8 +8,6 @@ import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.common.ConsoleDevice;
 import edu.depauw.dep10.simulator2.common.DebugConsoleDevice;
-import edu.depauw.dep10.simulator2.common.DebugPlainMemoryDevice;
-import edu.depauw.dep10.simulator2.common.DebugRegisterFile;
 import edu.depauw.dep10.simulator2.common.PlainMemoryDevice;
 import edu.depauw.dep10.simulator2.common.RegisterFile;
 import edu.depauw.dep10.simulator2.common.ShutdownDevice;
@@ -55,8 +53,8 @@ public class Pep10Machine implements Machine {
 
     @Override
     public Pep10DebugState initDebug(Image image) {
-        var memory = new DebugPlainMemoryDevice(MEMORY_SIZE);
-        var registerFile = new DebugRegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
+        var memory = new PlainMemoryDevice(MEMORY_SIZE);
+        var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
         var state = new Pep10DebugState(memory, registerFile);
 
         var console = new DebugConsoleDevice(CHARIN);
