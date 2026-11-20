@@ -68,6 +68,6 @@ public class UByte {
     }
 
     public Word with(UByte lo) {
-        return Word.of(value << 8 + lo.value);
+        return Word.of((value << 8) | lo.value);
     }
 }
