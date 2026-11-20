@@ -1,8 +1,8 @@
 package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
+import edu.depauw.dep10.simulator2.DebugDevice;
 import edu.depauw.dep10.simulator2.DebugState;
-import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
@@ -34,7 +34,7 @@ import edu.depauw.dep10.util.Word;
  * that stepping back restores them. The latch is hidden state and is cleared on
  * {@link #untick()}.
  */
-public class ClockDevice implements Device {
+public class ClockDevice implements DebugDevice {
     public static final int SIZE = 16;
     public static final int COUNTER = 0;
     public static final int COMPARE = 8;
@@ -62,11 +62,11 @@ public class ClockDevice implements Device {
     }
 
     private int offset(Word address) {
-        return (address.value() - base.value()) & 0xFFFF;
+        return address.value() - base.value(); // Only use if address >= base
     }
 
     private boolean inBlock(Word address) {
-        return offset(address) < SIZE;
+        return base.value() <= address.value() && offset(address) < SIZE;
     }
 
     private boolean statusBit() {
@@ -95,22 +95,22 @@ public class ClockDevice implements Device {
     @Override
     public boolean canReadB(Word address) {
         int off = offset(address);
-        return off <= STATUS;
+        return inBlock(address) && off <= STATUS;
     }
 
     @Override
     public boolean canWriteB(Word address) {
         int off = offset(address);
-        return (off >= COMPARE && off < CONTROL + 1);
+        return inBlock(address) && (off >= COMPARE && off < CONTROL + 1);
     }
 
     @Override
-    public UByte fetchB(Word address, State state) throws Fault {
+    public UByte fetchB(Word address) throws Fault {
         throw new Fault("Cannot execute from the clock");
     }
 
     @Override
-    public UByte readB(Word address, State state) throws Fault {
+    public UByte readB(Word address) throws Fault {
         int off = offset(address);
         if (off < COMPARE) {
             if (off == COUNTER) {
@@ -139,11 +139,8 @@ public class ClockDevice implements Device {
     }
 
     @Override
-    public void writeB(Word address, UByte value, State state) throws Fault {
+    public void writeB(Word address, UByte value) throws Fault {
         int off = offset(address);
-        if (state instanceof DebugState ds) {
-            ds.record(new RestoreAction(this, compare, control));
-        }
 
         if (off >= COMPARE && off < CONTROL) {
             int shift = 8 * (3 - (off - COMPARE));
@@ -154,5 +151,11 @@ public class ClockDevice implements Device {
         } else {
             throw new Fault("Cannot write to the clock at offset " + off);
         }
+    }
+
+    @Override
+    public void writeB(Word address, UByte value, DebugState state) throws Fault {
+        state.record(new RestoreAction(this, compare, control));
+        writeB(address, value);
     }
 }

@@ -26,7 +26,7 @@ public interface DebugDevice extends Device {
      * @return the byte
      * @throws Fault
      */
-    default UByte fetchB(Word address, State state) throws Fault {
+    default UByte fetchB(Word address, DebugState state) throws Fault {
         return fetchB(address);
     }
 
@@ -40,7 +40,7 @@ public interface DebugDevice extends Device {
      * @return the byte
      * @throws Fault
      */
-    default UByte readB(Word address, State state) throws Fault {
+    default UByte readB(Word address, DebugState state) throws Fault {
         return readB(address);
     }
 
@@ -54,7 +54,7 @@ public interface DebugDevice extends Device {
      * @param state
      * @throws Fault
      */
-    default void writeB(Word address, UByte value, State state) throws Fault {
+    default void writeB(Word address, UByte value, DebugState state) throws Fault {
         writeB(address, value);
     }
 
@@ -71,7 +71,7 @@ public interface DebugDevice extends Device {
      * @return the word
      * @throws Fault
      */
-    default Word fetchW(Word address, State state) throws Fault {
+    default Word fetchW(Word address, DebugState state) throws Fault {
         var hi = fetchB(address, state);
         var lo = fetchB(address.plus(1), state);
         return hi.with(lo);
@@ -90,7 +90,7 @@ public interface DebugDevice extends Device {
      * @return the word
      * @throws Fault
      */
-    default Word readW(Word address, State state) throws Fault {
+    default Word readW(Word address, DebugState state) throws Fault {
         var hi = readB(address, state);
         var lo = readB(address.plus(1), state);
         return hi.with(lo);
@@ -109,7 +109,7 @@ public interface DebugDevice extends Device {
      * @param state
      * @throws Fault
      */
-    default void writeW(Word address, Word value, State state) throws Fault {
+    default void writeW(Word address, Word value, DebugState state) throws Fault {
         writeB(address, value.hi(), state);
         writeB(address.plus(1), value.lo(), state);
     }

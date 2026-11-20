@@ -31,9 +31,9 @@ public class DebugPlainMemoryDevice extends PlainMemoryDevice implements DebugDe
     }
 
     @Override
-    public void writeB(Word address, UByte value, State state) throws Fault {
+    public void writeB(Word address, UByte value, DebugState state) throws Fault {
         var action = new PlainMemoryWriteAction(this, address, value, readB(address, state));
         super.writeB(address, value);
-        ((DebugState) state).record(action);
+        state.record(action);
     }
 }
