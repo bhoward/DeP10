@@ -145,4 +145,11 @@ public interface State {
      * @param value
      */
     void put(FlagRegister flag, boolean value);
+
+    /**
+     * Record the operation about to be executed, for tracing.
+     * 
+     * @param op
+     */
+    void setOperation(Operation op);
 }

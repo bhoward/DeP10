@@ -1,8 +1,11 @@
 package edu.depauw.dep10.simulator2;
 
+/**
+ * Handles the "running" flag of a {@link State}.
+ */
 public abstract class AbstractState implements State {
     private boolean running;
-    
+
     public AbstractState() {
         this.running = false;
     }

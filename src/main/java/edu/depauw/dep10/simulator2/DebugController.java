@@ -65,9 +65,20 @@ public class DebugController extends AbstractController {
 
     public void stepReverse() {
         if (isPaused() && !steps.isEmpty()) {
-            ((DebugState) state).untick();
+            var debugState = (DebugState) state;
+            debugState.untick();
             var step = steps.removeLast();
-            step.undo(state);
+            step.undo(debugState);
         }
+    }
+    
+    public List<String> getTrace() {
+        List<String> result = new ArrayList<>();
+        
+        for (var step : steps) {
+            result.add(step.getTrace());
+        }
+        
+        return result;
     }
 }

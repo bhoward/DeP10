@@ -1,54 +1,58 @@
 package edu.depauw.dep10.simulator2;
 
+/**
+ * Implements the basic lifecycle activities for a simulation: running, pausing,
+ * and resuming.
+ */
 public abstract class AbstractController implements Controller {
-	protected Machine machine;
-	protected Image image;
-	protected State state;
+    protected Machine machine;
+    protected Image image;
+    protected State state;
 
-	private Thread thread;
+    private Thread thread;
 
-	public AbstractController(Machine machine, Image image) {
-		this.machine = machine;
-		this.image = image;
-		this.state = null;
-		this.thread = null;
-	}
+    public AbstractController(Machine machine, Image image) {
+        this.machine = machine;
+        this.image = image;
+        this.state = null;
+        this.thread = null;
+    }
 
-	@Override
-	public void run() {
-		pause(); // stop any previous run
+    @Override
+    public void run() {
+        pause(); // stop any previous run
 
-		state = machine.init(image);
-		state.run();
-		startCycle();
-	}
+        state = machine.init(image);
+        state.run();
+        startCycle();
+    }
 
-	@Override
-	public void pause() {
-		if (state != null) {
-			state.pause();
-		}
+    @Override
+    public void pause() {
+        if (state != null) {
+            state.pause();
+        }
 
-		if (thread != null) {
-			try {
-				thread.join();
-			} catch (InterruptedException e) {
-				// Ignore the interruption
-			}
-			
-			thread = null;
-		}
-	}
+        if (thread != null) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                // Ignore the interruption
+            }
 
-	@Override
-	public void resume() {
-		if (isPaused()) {
-			state.resume();
-			startCycle();
-		}
-	}
+            thread = null;
+        }
+    }
 
-	@Override
+    @Override
+    public void resume() {
+        if (isPaused()) {
+            state.resume();
+            startCycle();
+        }
+    }
+
+    @Override
     public boolean isRunning() {
         return state != null && thread != null;
     }
@@ -59,19 +63,20 @@ public abstract class AbstractController implements Controller {
     }
 
     protected void startCycle() {
-		thread = new Thread(() -> doCycle());
-		thread.start();
-	}
+        thread = new Thread(() -> doCycle());
+        thread.start();
+    }
 
-	abstract protected void doCycle();
+    abstract protected void doCycle();
 
-	protected void doStep() {
-		try {
-			var op = machine.fetch(state);
-			op.execute(state);
-			state.tick();
-		} catch (Fault fault) {
-			machine.handle(fault, state);
-		}
-	}
+    protected void doStep() {
+        try {
+            var op = machine.fetch(state);
+            state.setOperation(op);
+            op.execute(state);
+            state.tick();
+        } catch (Fault fault) {
+            machine.handle(fault, state);
+        }
+    }
 }

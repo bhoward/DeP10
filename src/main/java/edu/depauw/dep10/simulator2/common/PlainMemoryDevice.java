@@ -4,7 +4,6 @@ import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.MemoryDevice;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -74,8 +73,13 @@ public class PlainMemoryDevice implements MemoryDevice {
     
     private record PlainMemoryWriteAction(MemoryDevice parent, Word address, UByte newValue, UByte oldValue) implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             parent.loadB(address, oldValue);
+        }
+
+        @Override
+        public String getTrace() {
+            return "%04X:%02X->%02X".formatted(address.value(), oldValue.value(), newValue.value());
         }
     }
 

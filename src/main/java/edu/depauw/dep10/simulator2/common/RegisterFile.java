@@ -2,7 +2,6 @@ package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.DebugState;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -44,6 +43,7 @@ public class RegisterFile {
     public static record FlagRegister(String name, int id, int position) {
     }
 
+    private RegisterFileDescriptor descriptor;
     private UByte[] breg;
     private Word[] wreg;
 
@@ -55,9 +55,15 @@ public class RegisterFile {
      * @param numByteRegisters
      * @param numWordRegisters
      */
-    public RegisterFile(int numByteRegisters, int numWordRegisters) {
-        this.breg = new UByte[numByteRegisters];
-        this.wreg = new Word[numWordRegisters];
+    public RegisterFile(RegisterFileDescriptor descriptor) {
+        this.descriptor = descriptor;
+        this.breg = new UByte[descriptor.byteRegisters().length];
+        this.wreg = new Word[descriptor.wordRegisters().length];
+    }
+
+    private RegisterFile(RegisterFile registerFile) {
+        this.breg = registerFile.breg.clone();
+        this.wreg = registerFile.wreg.clone();
     }
 
     /**
@@ -132,24 +138,39 @@ public class RegisterFile {
     private record ByteRegisterPutAction(RegisterFile parent, ByteRegister register, UByte newValue, UByte oldValue)
             implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             parent.put(register, oldValue);
+        }
+
+        @Override
+        public String getTrace() {
+            return "%s: %02X->%02X".formatted(register.name, oldValue.value(), newValue.value());
         }
     }
 
     private record WordRegisterPutAction(RegisterFile parent, WordRegister register, Word newValue, Word oldValue)
             implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             parent.put(register, oldValue);
+        }
+
+        @Override
+        public String getTrace() {
+            return "%s: %04X->%04X".formatted(register.name, oldValue.value(), newValue.value());
         }
     }
 
     private record FlagRegisterPutAction(RegisterFile parent, FlagRegister flag, boolean newValue, boolean oldValue)
             implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             parent.put(flag, oldValue);
+        }
+
+        @Override
+        public String getTrace() {
+            return "%s: %b->%b".formatted(flag.name, oldValue, newValue);
         }
     }
 
@@ -200,5 +221,33 @@ public class RegisterFile {
      */
     public void untick() {
         // Do nothing
+    }
+
+    /**
+     * @return a copy (not backed by the same arrays) of this object
+     */
+    public RegisterFile copy() {
+        return new RegisterFile(this);
+    }
+
+    /**
+     * @return a string displaying the register contents, for tracing
+     */
+    public String display() {
+        var builder = new StringBuilder();
+
+        for (var register : descriptor.byteRegisters()) {
+            builder.append(" %s=%02X".formatted(register.name, get(register).value()));
+        }
+
+        for (var register : descriptor.wordRegisters()) {
+            builder.append(" %s=%04X".formatted(register.name, get(register).value()));
+        }
+
+        for (var register : descriptor.flagRegisters()) {
+            builder.append(" %s=%s".formatted(register.name, get(register) ? "T" : "F"));
+        }
+
+        return builder.toString();
     }
 }

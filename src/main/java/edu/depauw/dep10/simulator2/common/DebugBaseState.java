@@ -1,9 +1,11 @@
 package edu.depauw.dep10.simulator2.common;
 
 import edu.depauw.dep10.simulator2.Action;
+import edu.depauw.dep10.simulator2.Checkpoint;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.Step;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.FlagRegister;
@@ -15,17 +17,24 @@ import edu.depauw.dep10.util.Word;
  * A version of {@link BaseState} for use in debug mode.
  */
 public class DebugBaseState extends BaseState implements DebugState {
+    private record RegisterCheckpoint(RegisterFile registerFile) implements Checkpoint {
+        @Override
+        public String getTrace() {
+            return registerFile.display();
+        }
+    }
+
     private Step current;
 
     public DebugBaseState(Device memory, RegisterFile registerFile) {
         super(memory, registerFile);
-        this.current = new Step();
+        this.current = new Step(this);
     }
 
     @Override
     public Step getStep() {
         var result = current;
-        current = new Step();
+        current = new Step(this);
         return result;
     }
 
@@ -126,4 +135,16 @@ public class DebugBaseState extends BaseState implements DebugState {
         memory.untick();
         registerFile.untick();
     }
+
+    @Override
+    public Checkpoint getCheckpoint() {
+        return new RegisterCheckpoint(registerFile.copy());
+    }
+
+    @Override
+    public void setOperation(Operation op) {
+        current.setOperation(op);
+    }
+    
+    
 }

@@ -9,7 +9,6 @@ import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -61,12 +60,17 @@ public class StreamingConsoleDevice implements Device {
 
     private record ReadCharAction(StreamingConsoleDevice parent, UByte ch) implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             try {
                 parent.in.unread(ch.value());
             } catch (IOException e) {
                 // Silently ignore the failed attempt to unread...
             }
+        }
+
+        @Override
+        public String getTrace() {
+            return "read '" + (char) ch.value() + "'";
         }
     }
 

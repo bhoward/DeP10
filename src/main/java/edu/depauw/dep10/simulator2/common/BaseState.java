@@ -6,6 +6,7 @@ import java.util.List;
 import edu.depauw.dep10.simulator2.AbstractState;
 import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.FlagRegister;
@@ -150,5 +151,10 @@ public class BaseState extends AbstractState implements State {
         for (var device : devices) {
             device.tick();
         }
+    }
+
+    @Override
+    public void setOperation(Operation op) {
+        // Ignore when not in debug mode
     }
 }

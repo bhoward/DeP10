@@ -1,6 +1,7 @@
 package edu.depauw.dep10.simulator2.pep10;
 
 import edu.depauw.dep10.simulator2.State;
+import edu.depauw.dep10.simulator2.common.RegisterFileDescriptor;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.FlagRegister;
 import edu.depauw.dep10.simulator2.common.RegisterFile.WordRegister;
@@ -12,12 +13,10 @@ import edu.depauw.dep10.util.Word;
  * register file.
  */
 public interface Pep10Registers extends State {
-    static final int NUM_BYTE_REGISTERS = 2;
-
     static final ByteRegister FLAGS = new ByteRegister("Flags", 0);
     static final ByteRegister IR1 = new ByteRegister("IR1", 1);
 
-    static final int NUM_WORD_REGISTERS = 6;
+    static final ByteRegister[] BYTE_REGISTERS = { FLAGS, IR1 };
 
     static final WordRegister A = new WordRegister("A", 0);
     static final WordRegister X = new WordRegister("X", 1);
@@ -26,10 +25,31 @@ public interface Pep10Registers extends State {
     static final WordRegister IR2 = new WordRegister("IR2", 4);
     static final WordRegister EA = new WordRegister("EA", 5);
 
+    static final WordRegister[] WORD_REGISTERS = { A, X, PC, SP, IR2, EA };
+
     static final FlagRegister N = new FlagRegister("N", 0, 3);
     static final FlagRegister Z = new FlagRegister("Z", 0, 2);
     static final FlagRegister V = new FlagRegister("V", 0, 1);
     static final FlagRegister C = new FlagRegister("C", 0, 0);
+    
+    static final FlagRegister[] FLAG_REGISTERS = { N, Z, V, C };
+
+    static final RegisterFileDescriptor DESCRIPTOR = new RegisterFileDescriptor() {
+        @Override
+        public ByteRegister[] byteRegisters() {
+            return BYTE_REGISTERS;
+        }
+
+        @Override
+        public WordRegister[] wordRegisters() {
+            return WORD_REGISTERS;
+        }
+
+        @Override
+        public FlagRegister[] flagRegisters() {
+            return FLAG_REGISTERS;
+        }
+    };
 
     default UByte getFlags() {
         return get(FLAGS);
@@ -54,7 +74,7 @@ public interface Pep10Registers extends State {
     default void setA(Word value) {
         put(A, value);
     }
-    
+
     default void setA(UByte value) {
         put(A, UByte.of(0).with(value));
     }
@@ -66,7 +86,7 @@ public interface Pep10Registers extends State {
     default void setX(Word value) {
         put(X, value);
     }
-    
+
     default void setX(UByte value) {
         put(X, UByte.of(0).with(value));
     }

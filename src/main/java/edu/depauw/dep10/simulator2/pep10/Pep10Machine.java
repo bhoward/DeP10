@@ -36,10 +36,10 @@ public class Pep10Machine implements Machine {
     @Override
     public Pep10State init(Image image) {
         var memory = new PlainMemoryDevice(MEMORY_SIZE);
-        var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
+        var registerFile = new RegisterFile(Pep10Registers.DESCRIPTOR);
         var state = new Pep10State(memory, registerFile);
 
-        var console = new StreamingConsoleDevice(CHARIN, System.in, System.out);
+        var console = new StreamingConsoleDevice(CHARIN, System.in, System.out); // TODO pass these in?
         var shutdown = new ShutdownDevice(SHUTDOWN);
 
         state.mount(console);
@@ -54,7 +54,7 @@ public class Pep10Machine implements Machine {
     @Override
     public Pep10DebugState initDebug(Image image) {
         var memory = new PlainMemoryDevice(MEMORY_SIZE);
-        var registerFile = new RegisterFile(Pep10Registers.NUM_BYTE_REGISTERS, Pep10Registers.NUM_WORD_REGISTERS);
+        var registerFile = new RegisterFile(Pep10Registers.DESCRIPTOR);
         var state = new Pep10DebugState(memory, registerFile);
 
         var console = new BufferedConsoleDevice(CHARIN);

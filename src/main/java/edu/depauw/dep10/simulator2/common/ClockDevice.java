@@ -4,29 +4,28 @@ import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
 /**
  * A real time clock, mounted over a 16-byte block of memory. Time is simulated:
  * the clock counts calls to {@link #tick()}, so one tick is one executed
- * instruction, and {@link #untick()} takes one tick back when the debugger steps
- * backward. Every value the program can read is computed from the tick count, so
- * it is correct again after an undo.
+ * instruction, and {@link #untick()} takes one tick back when the debugger
+ * steps backward. Every value the program can read is computed from the tick
+ * count, so it is correct again after an undo.
  * <p>
  * Layout, as byte offsets from the base address:
  * <ul>
  * <li>0 to 7: counter, the 64-bit tick count, read only, high byte first.
- * Reading the byte at offset 0 copies the whole counter into a hidden latch, and
- * the other bytes are read from the latch. A program that reads the four words in
- * order gets one consistent value; reading them in another order can give a torn
- * value.</li>
+ * Reading the byte at offset 0 copies the whole counter into a hidden latch,
+ * and the other bytes are read from the latch. A program that reads the four
+ * words in order gets one consistent value; reading them in another order can
+ * give a torn value.</li>
  * <li>8 to 11: compare, a 32-bit value, high byte first.</li>
- * <li>12: control. Bit 0 enables the clock; bit 1 is the interrupt enable, which
- * is stored but not used yet (the first version is poll only).</li>
- * <li>13: status, read only. Bit 0 is set while the clock is enabled and the low
- * 32 bits of the counter are at least the compare value (unsigned). It is
+ * <li>12: control. Bit 0 enables the clock; bit 1 is the interrupt enable,
+ * which is stored but not used yet (the first version is poll only).</li>
+ * <li>13: status, read only. Bit 0 is set while the clock is enabled and the
+ * low 32 bits of the counter are at least the compare value (unsigned). It is
  * computed, not stored.</li>
  * <li>14 and 15: unused.</li>
  * </ul>
@@ -129,12 +128,28 @@ public class ClockDevice implements Device {
         }
         throw new Fault("Nothing to read in the clock at offset " + off);
     }
-
-    private record RestoreAction(ClockDevice clock, long oldCompare, int oldControl) implements Action {
+    
+    private record ChangeCompare(ClockDevice clock, long oldCompare, long newCompare) implements Action {
         @Override
-        public void undo(State state) {
+        public void undo(DebugState state) {
             clock.compare = oldCompare;
+        }
+
+        @Override
+        public String getTrace() {
+            return "clock/compare: %d->%d".formatted(oldCompare, newCompare);
+        }
+    }
+    
+    private record ChangeControl(ClockDevice clock, int oldControl, int newControl) implements Action {
+        @Override
+        public void undo(DebugState state) {
             clock.control = oldControl;
+        }
+
+        @Override
+        public String getTrace() {
+            return "clock/control: %02X->%02X".formatted(oldControl, newControl);
         }
     }
 
@@ -155,7 +170,13 @@ public class ClockDevice implements Device {
 
     @Override
     public void writeB(Word address, UByte value, DebugState state) throws Fault {
-        state.record(new RestoreAction(this, compare, control));
+        var oldCompare = compare;
+        var oldControl = control;
         writeB(address, value);
+        if (compare != oldCompare) {
+            state.record(new ChangeCompare(null, oldCompare, compare));
+        } else if (control != oldControl) {
+            state.record(new ChangeControl(null, oldControl, control));
+        }
     }
 }

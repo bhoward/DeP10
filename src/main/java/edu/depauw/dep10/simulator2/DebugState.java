@@ -21,4 +21,6 @@ public interface DebugState extends State {
      * Reverse the last tick(), if possible.
      */
     void untick();
+
+    Checkpoint getCheckpoint();
 }
