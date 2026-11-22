@@ -20,7 +20,9 @@ import edu.depauw.dep10.util.Word;
  */
 public class BaseState extends AbstractState implements State {
     protected Device memory;
-    protected List<Device> devices;
+    protected List<Device> devices; // all mounted devices, to be ticked
+    private final List<List<Device>> slices; // devices mounted in each 16-byte slice of the I/O page
+    private static final List<Device> NO_DEVICES = List.of();
     protected RegisterFile registerFile;
 
     /**
@@ -32,24 +34,58 @@ public class BaseState extends AbstractState implements State {
     public BaseState(Device memory, RegisterFile registerFile) {
         this.memory = memory;
         this.devices = new ArrayList<Device>();
+        this.slices = new ArrayList<>();
+        for (int i = 0; i < 16; i++) {
+            slices.add(new ArrayList<>());
+        }
         this.registerFile = registerFile;
     }
 
     /**
-     * Add a {@link Device} to this state.
+     * Add a {@link Device} to this state. Devices live in the I/O page, 0xFF00 to
+     * 0xFFFF, which is divided into sixteen slices of 16 bytes each. The device is
+     * mounted in the slice that contains the given address, and it is only asked
+     * about addresses in that slice; every other address goes straight to memory.
+     * Several devices may share a slice. The address does not have to be the first
+     * one in the slice.
      * 
+     * @param address an address in the slice where the device is mounted
      * @param device
+     * @throws IllegalArgumentException if the address is not in the I/O page
      */
-    public void mount(Device device) {
+    public void mount(Word address, Device device) {
+        if (!inIoPage(address)) {
+            throw new IllegalArgumentException("Devices can only be mounted in the I/O page (0xFF00 to 0xFFFF): " + address);
+        }
+
+        slices.get(sliceOf(address)).add(device);
         devices.add(device);
     }
 
-    // TODO is it worth speeding up the search through devices?
-    // E.g., by only looking for devices mounted in 16-byte blocks of 0xFF00?
+    private static boolean inIoPage(Word address) {
+        return (address.value() >> 8) == 0xFF;
+    }
+
+    private static int sliceOf(Word address) {
+        return (address.value() >> 4) & 0xF;
+    }
+
+    /**
+     * @param address
+     * @return the devices that might handle the given address: those mounted in its
+     *         slice of the I/O page, or none for any other address
+     */
+    protected List<Device> devicesAt(Word address) {
+        if (inIoPage(address)) {
+            return slices.get(sliceOf(address));
+        } else {
+            return NO_DEVICES;
+        }
+    }
 
     @Override
     public UByte fetchB(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canFetchB(address)) {
                 return device.fetchB(address);
             }
@@ -60,7 +96,7 @@ public class BaseState extends AbstractState implements State {
 
     @Override
     public UByte readB(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canReadB(address)) {
                 return device.readB(address);
             }
@@ -71,7 +107,7 @@ public class BaseState extends AbstractState implements State {
 
     @Override
     public void writeB(Word address, UByte value) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canWriteB(address)) {
                 device.writeB(address, value);
             }
@@ -82,7 +118,7 @@ public class BaseState extends AbstractState implements State {
 
     @Override
     public Word fetchW(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canFetchW(address)) {
                 return device.fetchW(address);
             }
@@ -93,7 +129,7 @@ public class BaseState extends AbstractState implements State {
 
     @Override
     public Word readW(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canReadW(address)) {
                 return device.readW(address);
             }
@@ -104,7 +140,7 @@ public class BaseState extends AbstractState implements State {
 
     @Override
     public void writeW(Word address, Word value) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canWriteW(address)) {
                 device.writeW(address, value);
             }

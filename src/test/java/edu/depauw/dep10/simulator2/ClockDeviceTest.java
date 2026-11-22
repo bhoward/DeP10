@@ -27,7 +27,7 @@ public class ClockDeviceTest {
     public void setUp() {
         state = new Pep10Machine().initDebug(ClockDeviceTest::zeroMemory);
         clock = new ClockDevice(BASE);
-        state.mount(clock);
+        state.mount(BASE, clock);
     }
 
     private static void zeroMemory(MemoryDevice memory) {

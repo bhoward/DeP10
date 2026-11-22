@@ -8,6 +8,7 @@ import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.common.StreamingConsoleDevice;
 import edu.depauw.dep10.simulator2.common.BufferedConsoleDevice;
+import edu.depauw.dep10.simulator2.common.ClockDevice;
 import edu.depauw.dep10.simulator2.common.PlainMemoryDevice;
 import edu.depauw.dep10.simulator2.common.RegisterFile;
 import edu.depauw.dep10.simulator2.common.ShutdownDevice;
@@ -26,6 +27,9 @@ public class Pep10Machine implements Machine {
     public static final Word CHAROUT = Word.of(0xFFFE);
     public static final Word SHUTDOWN = Word.of(0xFFFF);
 
+    /** The real time clock occupies the 16-byte slice 0xFF00 to 0xFF0F of the I/O page. */
+    public static final Word CLOCK = Word.of(0xFF00);
+
     private static final Table TABLE;
 
     static {
@@ -42,8 +46,9 @@ public class Pep10Machine implements Machine {
         var console = new StreamingConsoleDevice(CHARIN, System.in, System.out); // TODO pass these in?
         var shutdown = new ShutdownDevice(SHUTDOWN);
 
-        state.mount(console);
-        state.mount(shutdown);
+        state.mount(CHARIN, console);
+        state.mount(SHUTDOWN, shutdown);
+        state.mount(CLOCK, new ClockDevice(CLOCK));
 
         image.loadInto(memory);
         initializeRegisters(state);
@@ -60,8 +65,9 @@ public class Pep10Machine implements Machine {
         var console = new BufferedConsoleDevice(CHARIN);
         var shutdown = new ShutdownDevice(SHUTDOWN);
 
-        state.mount(console);
-        state.mount(shutdown);
+        state.mount(CHARIN, console);
+        state.mount(SHUTDOWN, shutdown);
+        state.mount(CLOCK, new ClockDevice(CLOCK));
 
         image.loadInto(memory);
         initializeRegisters(state);

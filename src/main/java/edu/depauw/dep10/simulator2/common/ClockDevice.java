@@ -174,9 +174,9 @@ public class ClockDevice implements Device {
         var oldControl = control;
         writeB(address, value);
         if (compare != oldCompare) {
-            state.record(new ChangeCompare(null, oldCompare, compare));
+            state.record(new ChangeCompare(this, oldCompare, compare));
         } else if (control != oldControl) {
-            state.record(new ChangeControl(null, oldControl, control));
+            state.record(new ChangeControl(this, oldControl, control));
         }
     }
 }
