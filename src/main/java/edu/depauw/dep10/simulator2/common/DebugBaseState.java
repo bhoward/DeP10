@@ -47,7 +47,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public UByte fetchB(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canFetchB(address)) {
                 return device.fetchB(address, this);
             }
@@ -58,7 +58,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public UByte readB(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canReadB(address)) {
                 return device.readB(address, this);
             }
@@ -69,7 +69,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public void writeB(Word address, UByte value) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canWriteB(address)) {
                 device.writeB(address, value, this);
             }
@@ -80,7 +80,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public Word fetchW(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canFetchW(address)) {
                 return device.fetchW(address, this);
             }
@@ -91,7 +91,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public Word readW(Word address) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canReadW(address)) {
                 return device.readW(address, this);
             }
@@ -102,7 +102,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     @Override
     public void writeW(Word address, Word value) throws Fault {
-        for (var device : devices) {
+        for (var device : devicesAt(address)) {
             if (device.canWriteW(address)) {
                 device.writeW(address, value, this);
             }
