@@ -3,6 +3,7 @@ package edu.depauw.dep10.simulator2;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.IntUnaryOperator;
 
 import edu.depauw.dep10.util.Pair;
 import edu.depauw.dep10.util.UByte;
@@ -52,6 +53,36 @@ public class Table {
         }
         ops[code] = op;
         codes.put(new Pair<>(op.getMnemonic().toLowerCase(), mode.toLowerCase()), code);
+    }
+
+    /**
+     * Add the given {@link Operation} to the table at the given opcode, without
+     * registering its mnemonic for {@link #lookup}. This is for entries that are
+     * not instructions by themselves, such as the prefix of a two-byte
+     * instruction (see {@link edu.depauw.dep10.simulator2.pep10.Pep10Table#installPrefix}).
+     * 
+     * @param code
+     * @param op
+     */
+    public void install(int code, Operation op) {
+        if (code == 0) {
+            throw new IllegalArgumentException("Zero opcodes are not supported");
+        }
+        ops[code] = op;
+    }
+
+    /**
+     * Copy the mnemonic lookup entries of another table into this one, changing
+     * each code with the given function. This lets an extension table reached
+     * through a prefix be searched by mnemonic from the main table.
+     * 
+     * @param other
+     * @param remap
+     */
+    public void installCodes(Table other, IntUnaryOperator remap) {
+        for (var entry : other.codes.entrySet()) {
+            codes.put(entry.getKey(), remap.applyAsInt(entry.getValue()));
+        }
     }
 
     /**
