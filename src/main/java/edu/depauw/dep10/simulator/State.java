@@ -394,6 +394,9 @@ public class State {
             String token = scanner.next();
             if (token.startsWith("[")) {
                 addr = Integer.parseInt(token.substring(1, 5), 16);
+                while (!token.endsWith("]")) {
+                    token = scanner.next();
+                }
                 // TODO also handle protection bits
             } else {
                 var value = Integer.parseInt(token, 16);

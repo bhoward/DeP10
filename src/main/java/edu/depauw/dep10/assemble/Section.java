@@ -141,7 +141,13 @@ public class Section {
         var format = HexFormat.of().withUpperCase();
         
         if (origin != 0) {
-            builder.append("[" + format.toHexDigits(origin, 4) + "]\n");
+            builder.append("[");
+            builder.append(format.toHexDigits(origin, 4));
+            if (flags != null) {
+                builder.append(" ");
+                builder.append(flags);
+            }
+            builder.append("]\n");
         }
         
         var col = 0;
