@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import edu.depauw.dep10.simulator2.pep10.Pep10DebugState;
+import edu.depauw.dep10.simulator2.common.ClockDevice;
 import edu.depauw.dep10.simulator2.pep10.Pep10Machine;
 import edu.depauw.dep10.simulator2.pep10.Pep10State;
 import edu.depauw.dep10.util.UByte;
@@ -151,13 +152,15 @@ public class IoPageSlicesTest {
     }
 
     @Test
-    public void clockIsMountedAtFF00InThePep10Machine() throws Fault {
+    public void clockMountedAtFF00CountsAndUnticks() throws Fault {
         Pep10DebugState debug = new Pep10Machine().initDebug(IoPageSlicesTest::zeroMemory);
+        Word clock = Word.of(0xFF00);
+        debug.mount(clock, new ClockDevice(clock));
         for (int i = 0; i < 7; i++) {
             debug.tick();
         }
-        assertEquals(7, debug.readW(Pep10Machine.CLOCK.plus(6)).value());
+        assertEquals(7, debug.readW(clock.plus(6)).value());
         debug.untick();
-        assertEquals(6, debug.readW(Pep10Machine.CLOCK.plus(6)).value());
+        assertEquals(6, debug.readW(clock.plus(6)).value());
     }
 }
