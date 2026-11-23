@@ -57,6 +57,16 @@ public class Pep10Image implements Image {
                 int address = (start + i) % memory.size();
                 memory.loadB(Word.of(address), UByte.of(contents.get(i)));
             }
+
+            // Tell the memory what may be done with this segment (it may wrap around)
+            int first = start % memory.size();
+            int remaining = contents.size();
+            while (remaining > 0) {
+                int chunk = Math.min(remaining, memory.size() - first);
+                memory.protect(Word.of(first), chunk, permissions);
+                remaining -= chunk;
+                first = 0;
+            }
         }
     }
 
