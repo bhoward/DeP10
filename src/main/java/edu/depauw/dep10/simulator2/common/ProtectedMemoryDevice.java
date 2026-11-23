@@ -45,6 +45,7 @@ public class ProtectedMemoryDevice implements MemoryDevice {
      * @param what   what is allowed in the range
      * @throws IllegalArgumentException if the range does not fit in the memory
      */
+    @Override
     public void protect(Word start, int length, Permissions what) {
         int first = start.value();
         if (length < 0 || first + length > permissions.length) {

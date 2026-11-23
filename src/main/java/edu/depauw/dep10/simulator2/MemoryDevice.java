@@ -21,4 +21,17 @@ public interface MemoryDevice extends Device {
      * @param value
      */
     void loadB(Word address, UByte value);
+
+    /**
+     * Record what user mode may do with a range of addresses, as read from an
+     * image. A device with no protection ignores this, which is what this default
+     * does.
+     * 
+     * @param start  the first address in the range
+     * @param length the number of bytes in the range
+     * @param what   what is allowed in the range
+     */
+    default void protect(Word start, int length, Permissions what) {
+        // Do nothing
+    }
 }

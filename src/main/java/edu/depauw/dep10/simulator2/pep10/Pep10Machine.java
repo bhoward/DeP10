@@ -9,6 +9,7 @@ import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.common.StreamingConsoleDevice;
 import edu.depauw.dep10.simulator2.common.BufferedConsoleDevice;
 import edu.depauw.dep10.simulator2.common.PlainMemoryDevice;
+import edu.depauw.dep10.simulator2.common.ProtectedMemoryDevice;
 import edu.depauw.dep10.simulator2.common.RegisterFile;
 import edu.depauw.dep10.simulator2.common.ShutdownDevice;
 import edu.depauw.dep10.util.Word;
@@ -35,7 +36,7 @@ public class Pep10Machine implements Machine {
 
     @Override
     public Pep10State init(Image image) {
-        var memory = new PlainMemoryDevice(MEMORY_SIZE);
+        var memory = new ProtectedMemoryDevice(new PlainMemoryDevice(MEMORY_SIZE));
         var registerFile = new RegisterFile(Pep10Registers.DESCRIPTOR);
         var state = new Pep10State(memory, registerFile);
 
@@ -53,7 +54,7 @@ public class Pep10Machine implements Machine {
 
     @Override
     public Pep10DebugState initDebug(Image image) {
-        var memory = new PlainMemoryDevice(MEMORY_SIZE);
+        var memory = new ProtectedMemoryDevice(new PlainMemoryDevice(MEMORY_SIZE));
         var registerFile = new RegisterFile(Pep10Registers.DESCRIPTOR);
         var state = new Pep10DebugState(memory, registerFile);
 
