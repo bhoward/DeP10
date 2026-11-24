@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator2.common;
 
+import java.util.Arrays;
+
 import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.DebugState;
 import edu.depauw.dep10.util.UByte;
@@ -59,9 +61,15 @@ public class RegisterFile {
         this.descriptor = descriptor;
         this.breg = new UByte[descriptor.byteRegisters().length];
         this.wreg = new Word[descriptor.wordRegisters().length];
+
+        // Every register starts at zero, so an instruction may read or set a flag
+        // before anything has been stored
+        Arrays.fill(breg, UByte.of(0));
+        Arrays.fill(wreg, Word.of(0));
     }
 
     private RegisterFile(RegisterFile registerFile) {
+        this.descriptor = registerFile.descriptor;
         this.breg = registerFile.breg.clone();
         this.wreg = registerFile.wreg.clone();
     }
