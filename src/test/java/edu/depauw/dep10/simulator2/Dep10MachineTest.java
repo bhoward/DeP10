@@ -205,8 +205,8 @@ public class Dep10MachineTest {
     }
 
     @Test
-    public void arithmeticPrefixIsNotInstalledYet() {
-        var state = start("08 11");
+    public void undefinedArithmeticOpcodeFaults() {
+        var state = start("08 01"); // no arithmetic instruction at second opcode 01
         assertThrows(Fault.class, () -> step(state));
     }
 

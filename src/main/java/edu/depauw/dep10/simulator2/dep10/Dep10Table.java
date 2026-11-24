@@ -15,7 +15,7 @@ import edu.depauw.dep10.util.Word;
  * extensions behind the prefix opcodes 0x08 (arithmetic) and 0x09 (utility).
  */
 public class Dep10Table {
-    /** Prefix of the arithmetic extension table (not yet installed). */
+    /** Prefix of the arithmetic extension table. */
     public static final int ARITH_PREFIX = 0x08;
 
     /** Prefix of the utility extension table. */
@@ -169,6 +169,7 @@ public class Dep10Table {
      */
     public static void installDep10(ExtensibleTable table) {
         Pep10Table.installPep10Base(table);
+        table.installPrefix(ARITH_PREFIX, Dep10Arith.arithTable());
         table.installPrefix(UTIL_PREFIX, utilTable());
     }
 }

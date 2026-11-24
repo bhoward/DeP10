@@ -3,6 +3,9 @@ package edu.depauw.dep10.simulator2.dep10;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
+import edu.depauw.dep10.simulator2.pep10.Mode;
+import edu.depauw.dep10.simulator2.pep10.Pep10Operation;
+import edu.depauw.dep10.simulator2.pep10.Pep10Registers;
 
 /**
  * An instruction that needs the DeP10 registers (such as H). Instructions that
@@ -34,6 +37,24 @@ public interface Dep10Operation extends Operation {
 
         public boolean hasOperand() {
             return false;
+        }
+    }
+
+    /**
+     * The core of a non-unary instruction that needs the DeP10 registers. It is
+     * installed in a table with {@link edu.depauw.dep10.simulator2.pep10.Pep10Table#installNonUnary}
+     * like any other core.
+     */
+    public abstract class OpCore extends Pep10Operation.OpCore {
+        public OpCore(String mnemonic, Mode[] modes) {
+            super(mnemonic, modes);
+        }
+
+        public abstract void exec(Dep10Registers state, Mode mode) throws Fault;
+
+        @Override
+        public void exec(Pep10Registers state, Mode mode) throws Fault {
+            exec((Dep10Registers) state, mode);
         }
     }
 }
