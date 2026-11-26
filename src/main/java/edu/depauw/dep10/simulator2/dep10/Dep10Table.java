@@ -4,7 +4,6 @@ import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.pep10.Mode;
-import edu.depauw.dep10.simulator2.pep10.Pep10Operation;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.OpCore;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.Unary;
 import edu.depauw.dep10.simulator2.pep10.Pep10Registers;
@@ -168,8 +167,8 @@ public class Dep10Table {
      * 
      * @param table
      */
-    public static void installDep10(Table table) {
+    public static void installDep10(ExtensibleTable table) {
         Pep10Table.installPep10Base(table);
-        Pep10Table.installPrefix(table, UTIL_PREFIX, utilTable());
+        table.installPrefix(UTIL_PREFIX, utilTable());
     }
 }

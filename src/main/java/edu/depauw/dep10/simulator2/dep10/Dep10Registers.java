@@ -23,7 +23,7 @@ public interface Dep10Registers extends Pep10Registers {
 
     static final WordRegister H = new WordRegister("H", 6);
 
-    static final WordRegister[] WORD_REGISTERS = { A, X, PC, SP, IR2, EA, H, IR1 };
+    static final WordRegister[] WORD_REGISTERS = { A, X, H, PC, SP, IR1, IR2, EA };
 
     static final RegisterFileDescriptor DESCRIPTOR = new RegisterFileDescriptor() {
         @Override
@@ -64,8 +64,8 @@ public interface Dep10Registers extends Pep10Registers {
     }
 
     /**
-     * @return the last opcode byte of the current instruction (the second byte of
-     *         a prefixed instruction)
+     * @return the last opcode byte of the current instruction (the second byte of a
+     *         prefixed instruction)
      */
     @Override
     default UByte getOpCode() {

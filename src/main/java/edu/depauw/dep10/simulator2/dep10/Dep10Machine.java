@@ -5,7 +5,6 @@ import edu.depauw.dep10.simulator2.Image;
 import edu.depauw.dep10.simulator2.Machine;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
-import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.common.BufferedConsoleDevice;
 import edu.depauw.dep10.simulator2.common.ClockDevice;
 import edu.depauw.dep10.simulator2.common.PlainMemoryDevice;
@@ -15,7 +14,6 @@ import edu.depauw.dep10.simulator2.common.ShutdownDevice;
 import edu.depauw.dep10.simulator2.common.StreamingConsoleDevice;
 import edu.depauw.dep10.simulator2.pep10.Pep10Machine;
 import edu.depauw.dep10.simulator2.pep10.Pep10Table;
-import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
 /**
@@ -28,10 +26,10 @@ public class Dep10Machine implements Machine {
     /** The real time clock occupies the 16-byte slice 0xFF00 to 0xFF0F of the I/O page. */
     public static final Word CLOCK = Word.of(0xFF00);
 
-    private static final Table TABLE;
+    private static final ExtensibleTable TABLE;
 
     static {
-        TABLE = new Table(Pep10Table.UNIMPLEMENTED);
+        TABLE = new ExtensibleTable(Pep10Table.UNIMPLEMENTED);
         Dep10Table.installDep10(TABLE);
     }
 
@@ -92,7 +90,7 @@ public class Dep10Machine implements Machine {
         s.setOpCode(first);
 
         var op = TABLE.getOp(first);
-        if (op instanceof Pep10Table.Prefix prefix) {
+        if (op instanceof ExtensibleTable.Prefix prefix) {
             var second = s.fetchB(s.getPC());
             s.setPC(s.getPC().plus(1));
             s.setIR1(Word.of((first.value() << 8) | second.value()));

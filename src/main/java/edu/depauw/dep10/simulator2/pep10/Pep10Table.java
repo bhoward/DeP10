@@ -2,7 +2,6 @@ package edu.depauw.dep10.simulator2.pep10;
 
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Operation;
-import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.Table;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.OpCore;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.Unary;
@@ -732,63 +731,9 @@ public class Pep10Table {
         table.install(code, op, "");
     }
 
-    /**
-     * The entry in a {@link Table} for a prefix opcode: it is not itself a complete
-     * instruction, but names the table where the next byte is looked up. Machines
-     * that extend Pep/10 with two-byte instructions, such as the DeP10 machine,
-     * read the second byte in their fetch and look it up in {@link #getTable()}.
-     */
-    public static final class Prefix implements Operation {
-        private final Table table;
-
-        private Prefix(Table table) {
-            this.table = table;
-        }
-
-        /**
-         * @return the table for the byte that follows the prefix
-         */
-        public Table getTable() {
-            return table;
-        }
-
-        @Override
-        public void execute(State state) throws Fault {
-            throw new Fault("Incomplete instruction");
-        }
-
-        @Override
-        public String getMnemonic() {
-            return "PREFIX";
-        }
-
-        @Override
-        public boolean hasOperand() {
-            return false;
-        }
-    }
-
-    /**
-     * Install an extension table of two-byte instructions behind the given prefix
-     * opcode. Looking up a mnemonic installed in the extension table returns the
-     * prefix in the high byte and the second opcode in the low byte, in the same
-     * order as the bytes in memory.
-     * 
-     * @param table  the main table
-     * @param prefix the opcode of the prefix
-     * @param ext    the table for the byte that follows the prefix
-     */
-    public static void installPrefix(Table table, int prefix, Table ext) {
-        table.install(prefix, new Prefix(ext));
-        table.installCodes(ext, code -> (prefix << 8) | code);
-    }
-
     public static void installNonUnary(Table table, int code, OpCore op) {
         for (Mode mode : op.getModes()) {
             var index = code + mode.getOffset();
-            if (index == 0) {
-                throw new IllegalArgumentException("Zero opcodes are not supported");
-            }
             table.install(index, new Pep10Operation.NonUnary(op, mode), mode.getSuffix());
         }
     }

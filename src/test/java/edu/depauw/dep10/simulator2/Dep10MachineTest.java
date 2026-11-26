@@ -9,11 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import edu.depauw.dep10.simulator2.dep10.Dep10DebugState;
 import edu.depauw.dep10.simulator2.dep10.Dep10Machine;
-import edu.depauw.dep10.simulator2.dep10.Dep10Registers;
 import edu.depauw.dep10.simulator2.dep10.Dep10State;
 import edu.depauw.dep10.simulator2.dep10.Dep10Table;
-import edu.depauw.dep10.simulator2.pep10.Pep10Table;
+import edu.depauw.dep10.simulator2.dep10.ExtensibleTable;
 import edu.depauw.dep10.simulator2.pep10.Pep10Image;
+import edu.depauw.dep10.simulator2.pep10.Pep10Table;
 import edu.depauw.dep10.util.UByte;
 import edu.depauw.dep10.util.Word;
 
@@ -236,7 +236,7 @@ public class Dep10MachineTest {
 
     @Test
     public void lookupOfPrefixedInstructionsPutsThePrefixInTheHighByte() {
-        var table = new Table(Pep10Table.UNIMPLEMENTED);
+        var table = new ExtensibleTable(Pep10Table.UNIMPLEMENTED);
         Dep10Table.installDep10(table);
         assertEquals(0x0902, table.lookup("SWAPHA", ""));
         assertEquals(0x0911, table.lookup("LEAA", "d"));
