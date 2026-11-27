@@ -4,7 +4,7 @@ import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.pep10.Mode;
-import edu.depauw.dep10.simulator2.pep10.Pep10Operation;
+import edu.depauw.dep10.simulator2.pep10.Pep10Operation.OpCore;
 import edu.depauw.dep10.simulator2.pep10.Pep10Registers;
 
 /**
@@ -45,8 +45,8 @@ public interface Dep10Operation extends Operation {
      * installed in a table with {@link edu.depauw.dep10.simulator2.pep10.Pep10Table#installNonUnary}
      * like any other core.
      */
-    public abstract class OpCore extends Pep10Operation.OpCore {
-        public OpCore(String mnemonic, Mode[] modes) {
+    public abstract class Dep10OpCore extends OpCore {
+        public Dep10OpCore(String mnemonic, Mode[] modes) {
             super(mnemonic, modes);
         }
 

@@ -3,6 +3,7 @@ package edu.depauw.dep10.simulator2.dep10;
 import edu.depauw.dep10.simulator2.Fault;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.Table;
+import edu.depauw.dep10.simulator2.dep10.Dep10Operation.Dep10OpCore;
 import edu.depauw.dep10.simulator2.pep10.Mode;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.OpCore;
 import edu.depauw.dep10.simulator2.pep10.Pep10Operation.Unary;
@@ -361,7 +362,7 @@ public class Dep10Arith {
      *   the sign-extend of A)
      * V is not affected
      */
-    public static final OpCore SMULA = new Dep10Operation.OpCore("SMULA", Pep10Table.All) {
+    public static final OpCore SMULA = new Dep10OpCore("SMULA", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -390,7 +391,7 @@ public class Dep10Arith {
      *   the sign-extend of X)
      * V is not affected
      */
-    public static final OpCore SMULX = new Dep10Operation.OpCore("SMULX", Pep10Table.All) {
+    public static final OpCore SMULX = new Dep10OpCore("SMULX", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -418,7 +419,7 @@ public class Dep10Arith {
      * C is true if full product does not fit in 16 bits (that is, if H is not zero)
      * V is not affected
      */
-    public static final OpCore UMULA = new Dep10Operation.OpCore("UMULA", Pep10Table.All) {
+    public static final OpCore UMULA = new Dep10OpCore("UMULA", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -446,7 +447,7 @@ public class Dep10Arith {
      * C is true if full product does not fit in 16 bits (that is, if H is not zero)
      * V is not affected
      */
-    public static final OpCore UMULX = new Dep10Operation.OpCore("UMULX", Pep10Table.All) {
+    public static final OpCore UMULX = new Dep10OpCore("UMULX", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -477,7 +478,7 @@ public class Dep10Arith {
      * C is true if divide-by-zero
      * On divide-by-zero, quotient and remainder (A and H) will both be zero
      */
-    public static final OpCore SDMA = new Dep10Operation.OpCore("SDMA", Pep10Table.All) {
+    public static final OpCore SDMA = new Dep10OpCore("SDMA", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -515,7 +516,7 @@ public class Dep10Arith {
      * C is true if divide-by-zero
      * On divide-by-zero, quotient and remainder (X and H) will both be zero
      */
-    public static final OpCore SDMX = new Dep10Operation.OpCore("SDMX", Pep10Table.All) {
+    public static final OpCore SDMX = new Dep10OpCore("SDMX", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -553,7 +554,7 @@ public class Dep10Arith {
      * C is true if divide-by-zero
      * On divide-by-zero, quotient and remainder (A and H) will both be zero
      */
-    public static final OpCore UDMA = new Dep10Operation.OpCore("UDMA", Pep10Table.All) {
+    public static final OpCore UDMA = new Dep10OpCore("UDMA", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
@@ -591,7 +592,7 @@ public class Dep10Arith {
      * C is true if divide-by-zero
      * On divide-by-zero, quotient and remainder (X and H) will both be zero
      */
-    public static final OpCore UDMX = new Dep10Operation.OpCore("UDMX", Pep10Table.All) {
+    public static final OpCore UDMX = new Dep10OpCore("UDMX", Pep10Table.All) {
         public void exec(Dep10Registers s, Mode mode) throws Fault {
             var operand = mode.resolveWord(s);
             
