@@ -22,5 +22,8 @@ public interface DebugState extends State {
      */
     void untick();
 
+    /**
+     * @return an object describing the current state (e.g., register contents)
+     */
     Checkpoint getCheckpoint();
 }

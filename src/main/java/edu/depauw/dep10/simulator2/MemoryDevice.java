@@ -34,4 +34,9 @@ public interface MemoryDevice extends Device {
     default void protect(Word start, int length, Permissions what) {
         // Do nothing
     }
+
+    /**
+     * @return the contents of memory as a byte array
+     */
+    byte[] dumpBytes();
 }

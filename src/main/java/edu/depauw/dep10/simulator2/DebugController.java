@@ -2,6 +2,7 @@ package edu.depauw.dep10.simulator2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A {@link Controller} that maintains a list of {@link Breakpoint}s and allows
@@ -25,13 +26,13 @@ public class DebugController extends AbstractController {
     }
 
     @Override
-    public void run() {
+    public void run(Consumer<State> andThen) {
         pause(); // stop any previous run
 
         state = machine.initDebug(image);
         steps = new ArrayList<>();
         state.run();
-        startCycle();
+        startCycle(andThen);
     }
 
     @Override

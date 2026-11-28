@@ -102,7 +102,7 @@ public class Dep10Machine implements Machine {
 
     @Override
     public void handle(Fault fault, State state) {
-        // TODO print the fault message to error log/console?
+        // TODO cause a trap instead
         state.pause();
     }
 }

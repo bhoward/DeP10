@@ -89,4 +89,13 @@ public class PlainMemoryDevice implements MemoryDevice {
         writeB(address, value);
         state.record(action);
     }
+
+    @Override
+    public byte[] dumpBytes() {
+        var result = new byte[mem.length];
+        for (int i = 0; i < mem.length; i++) {
+            result[i] = (byte) mem[i].value();
+        }
+        return result;
+    }
 }

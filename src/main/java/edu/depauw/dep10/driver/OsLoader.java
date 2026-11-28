@@ -5,6 +5,7 @@ import static edu.depauw.dep10.driver.Driver.FORTH_OS_OBJECT;
 import static edu.depauw.dep10.driver.Driver.FULL_OS_OBJECT;
 
 import edu.depauw.dep10.simulator.State;
+import edu.depauw.dep10.simulator2.pep10.Pep10Image;
 
 /** Chooses the OS that the run command loads. Kept apart from Driver so that tests do not load the GUI classes. */
 final class OsLoader {
@@ -36,6 +37,31 @@ final class OsLoader {
             }
         } else {
             state.loadResource(FULL_OS_OBJECT);
+        }
+    }
+
+    static void loadOS(CommandRun run, Pep10Image image, ErrorLog log) {
+        // TODO also handle the fancy machine
+        if (run.noOS) {
+            if (run.bareMetal || run.osName != null) {
+                log.error("--sys (no OS) excludes --bm and --os.");
+            }
+            // load nothing: the program brings its own kernel
+        } else if (run.bareMetal) {
+            if (run.osName != null) {
+                log.error("Bare metal excludes specifying OS.");
+            }
+            image.addResource(BARE_METAL_OS_OBJECT);
+        } else if (run.osName != null) {
+            if (run.osName.equalsIgnoreCase("FULL")) {
+                image.addResource(FULL_OS_OBJECT);
+            } else if (run.osName.equalsIgnoreCase("FORTH")) {
+                image.addResource(FORTH_OS_OBJECT);
+            } else {
+                image.addFile(run.osName + ".pepo");
+            }
+        } else {
+            image.addResource(FULL_OS_OBJECT);
         }
     }
 }

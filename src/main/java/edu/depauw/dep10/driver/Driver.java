@@ -22,6 +22,9 @@ import edu.depauw.dep10.simulator.Simulator;
 import edu.depauw.dep10.simulator.State;
 import edu.depauw.dep10.simulator.StepCountController;
 import edu.depauw.dep10.simulator.TracingController;
+import edu.depauw.dep10.simulator2.dep10.Dep10Machine;
+import edu.depauw.dep10.simulator2.pep10.Pep10Image;
+import edu.depauw.dep10.simulator2.pep10.Pep10Machine;
 import edu.depauw.dep10.ui.Main;
 
 public class Driver {
@@ -191,6 +194,46 @@ public class Driver {
     }
 
     private static void doRun(CommandRun run, ErrorLog log) {
+        var machine = (run.fancy) ? new Dep10Machine() : new Pep10Machine();
+        var image = new Pep10Image();
+
+        for (var param : run.parameters) {
+            image.addFile(param);
+        }
+
+        OsLoader.loadOS(run, image, log);
+
+        // TODO set up I/O streams, and step limit
+        // TODO use the log for errors
+
+        if (run.trace == null) {
+            var control = new edu.depauw.dep10.simulator2.PlainController(machine, image);
+            control.run(state -> {
+                if (run.memDump != null) {
+                    state.dump(run.memDump);
+                }
+            });
+        } else {
+            var control = new edu.depauw.dep10.simulator2.DebugController(machine, image);
+            control.run(state -> {
+                if (run.memDump != null) {
+                    state.dump(run.memDump);
+                }
+
+                try {
+                    var output = new PrintStream(new File(run.trace));
+                    for (var trace : control.getTrace()) {
+                        output.println(trace);
+                    }
+                    output.close();
+                } catch (FileNotFoundException e) {
+                    System.err.println("Unable to open tracing output: " + run.trace);
+                }
+            });
+        }
+    }
+
+    private static void doRunOldToBeDeleted(CommandRun run, ErrorLog log) {
         State state = (run.trace == null) ? new State() : new DebugState();
 
         for (var param : run.parameters) {

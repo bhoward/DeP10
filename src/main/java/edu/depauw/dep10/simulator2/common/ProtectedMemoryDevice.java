@@ -151,4 +151,9 @@ public class ProtectedMemoryDevice implements MemoryDevice {
         }
         inner.writeB(address, value, state);
     }
+
+    @Override
+    public byte[] dumpBytes() {
+        return inner.dumpBytes();
+    }
 }

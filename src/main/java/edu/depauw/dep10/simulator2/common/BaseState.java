@@ -1,11 +1,14 @@
 package edu.depauw.dep10.simulator2.common;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.depauw.dep10.simulator2.AbstractState;
 import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.MemoryDevice;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.State;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
@@ -19,7 +22,7 @@ import edu.depauw.dep10.util.Word;
  * register file.
  */
 public class BaseState extends AbstractState implements State {
-    protected Device memory;
+    protected MemoryDevice memory;
     protected List<Device> devices; // all mounted devices, to be ticked
     private final List<List<Device>> slices; // devices mounted in each 16-byte slice of the I/O page
     private static final List<Device> NO_DEVICES = List.of();
@@ -31,7 +34,7 @@ public class BaseState extends AbstractState implements State {
      * @param memory
      * @param registerFile
      */
-    public BaseState(Device memory, RegisterFile registerFile) {
+    public BaseState(MemoryDevice memory, RegisterFile registerFile) {
         this.memory = memory;
         this.devices = new ArrayList<Device>();
         this.slices = new ArrayList<>();
@@ -192,5 +195,16 @@ public class BaseState extends AbstractState implements State {
     @Override
     public void setOperation(Operation op) {
         // Ignore when not in debug mode
+    }
+
+    @Override
+    public void dump(String fileName) {
+        try (var dumpOut = new FileOutputStream(fileName)) {
+            var mem = memory.dumpBytes();
+            dumpOut.write(mem);
+        } catch (IOException e) {
+            // TODO log this?
+            System.err.println("Error writing memory dump: " + e.getMessage());
+        }
     }
 }

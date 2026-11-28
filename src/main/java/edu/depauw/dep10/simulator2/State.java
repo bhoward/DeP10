@@ -152,4 +152,11 @@ public interface State {
      * @param op
      */
     void setOperation(Operation op);
+
+    /**
+     * Save a memory dump to a file with the given name.
+     * 
+     * @param fileName
+     */
+    void dump(String fileName);
 }

@@ -1,6 +1,6 @@
 package edu.depauw.dep10.simulator2.dep10;
 
-import edu.depauw.dep10.simulator2.Device;
+import edu.depauw.dep10.simulator2.MemoryDevice;
 import edu.depauw.dep10.simulator2.common.DebugBaseState;
 import edu.depauw.dep10.simulator2.common.RegisterFile;
 
@@ -9,7 +9,7 @@ import edu.depauw.dep10.simulator2.common.RegisterFile;
  * in.
  */
 public class Dep10DebugState extends DebugBaseState implements Dep10Registers {
-    public Dep10DebugState(Device memory, RegisterFile registerFile) {
+    public Dep10DebugState(MemoryDevice memory, RegisterFile registerFile) {
         super(memory, registerFile);
     }
 }

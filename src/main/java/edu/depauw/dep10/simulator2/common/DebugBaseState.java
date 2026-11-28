@@ -3,8 +3,8 @@ package edu.depauw.dep10.simulator2.common;
 import edu.depauw.dep10.simulator2.Action;
 import edu.depauw.dep10.simulator2.Checkpoint;
 import edu.depauw.dep10.simulator2.DebugState;
-import edu.depauw.dep10.simulator2.Device;
 import edu.depauw.dep10.simulator2.Fault;
+import edu.depauw.dep10.simulator2.MemoryDevice;
 import edu.depauw.dep10.simulator2.Operation;
 import edu.depauw.dep10.simulator2.Step;
 import edu.depauw.dep10.simulator2.common.RegisterFile.ByteRegister;
@@ -26,7 +26,7 @@ public class DebugBaseState extends BaseState implements DebugState {
 
     private Step current;
 
-    public DebugBaseState(Device memory, RegisterFile registerFile) {
+    public DebugBaseState(MemoryDevice memory, RegisterFile registerFile) {
         super(memory, registerFile);
         this.current = new Step(this);
     }
@@ -145,6 +145,4 @@ public class DebugBaseState extends BaseState implements DebugState {
     public void setOperation(Operation op) {
         current.setOperation(op);
     }
-    
-    
 }

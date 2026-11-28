@@ -1,5 +1,7 @@
 package edu.depauw.dep10.simulator2;
 
+import java.util.function.Consumer;
+
 /**
  * Represents the connection between the user and the simulation, handling
  * requests to run, pause, and resume.
@@ -7,9 +9,12 @@ package edu.depauw.dep10.simulator2;
 public interface Controller {
     /**
      * Start program execution from an initial machine state. Runs asynchronously.
-     * This will attempt to stop any previously running execution.
+     * This will attempt to stop any previously running execution. If the argument
+     * is not null, it provides an action that will be run after execution halts.
+     *
+     * @param andThen the action to perform after the program halts, or null
      */
-    void run();
+    void run(Consumer<State> andThen);
 
     /**
      * Pauses the currently running execution, if any.
@@ -17,9 +22,12 @@ public interface Controller {
     void pause();
 
     /**
-     * Resumes a previously paused execution, if any.
+     * Resumes a previously paused execution, if any. If the argument
+     * is not null, it provides an action that will be run after execution halts.
+     *
+     * @param andThen the action to perform after the program halts, or null
      */
-    void resume();
+    void resume(Consumer<State> andThen);
 
     /**
      * @return true if there is a currently running execution
